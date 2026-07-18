@@ -13,51 +13,51 @@
 // Eutrofia	            22,0 – 27,0
 // Sobrepeso	          > 27,0
 
-import 'package:nutri_calc/shared/services/calculator/domain/entities/imc/imc.entity.dart';
-import 'package:nutri_calc/shared/services/calculator/domain/entities/imc/imc_classification.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi.entity.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi_classification.enum.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
-class CalculateImc {
-  Result<Imc, String> call({
+class CalculateBmi {
+  Result<Bmi, String> call({
     required double weight,
     required double height,
     required int age,
   }) {
     try {
-      final imc = weight / (height * height);
-      late ImcClassification classification;
+      final bmi = weight / (height * height);
+      late BmiClassification classification;
 
       if (age < 60) {
-        classification = _classificateAdult(imc);
+        classification = _classificateAdult(bmi);
       } else {
-        classification = _classificateElder(imc);
+        classification = _classificateElder(bmi);
       }
-      return Ok(Imc(value: imc, classification: classification));
+      return Ok(Bmi(value: bmi, classification: classification));
     } catch (err) {
       return Error(err.toString());
     }
   }
 
-  ImcClassification _classificateAdult(double imc) {
-    if (imc >= 40) {
+  BmiClassification _classificateAdult(double bmi) {
+    if (bmi >= 40) {
       return .obesityGrade3;
-    } else if (imc >= 35) {
+    } else if (bmi >= 35) {
       return .obesityGrade2;
-    } else if (imc >= 30) {
+    } else if (bmi >= 30) {
       return .obesity;
-    } else if (imc >= 25) {
+    } else if (bmi >= 25) {
       return .overweight;
-    } else if (imc >= 18.5) {
+    } else if (bmi >= 18.5) {
       return .eutrophy;
     } else {
       return .low;
     }
   }
 
-  ImcClassification _classificateElder(double imc) {
-    if (imc > 27) {
+  BmiClassification _classificateElder(double bmi) {
+    if (bmi > 27) {
       return .overweight;
-    } else if (imc >= 22) {
+    } else if (bmi >= 22) {
       return .eutrophy;
     } else {
       return .low;

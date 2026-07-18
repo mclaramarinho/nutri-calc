@@ -1,4 +1,4 @@
-enum ImcClassification {
+enum BmiClassification {
   low,
   eutrophy,
   overweight,
