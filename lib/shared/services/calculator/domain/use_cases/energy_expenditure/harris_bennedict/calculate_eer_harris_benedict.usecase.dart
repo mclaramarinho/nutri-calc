@@ -12,6 +12,8 @@
 // Altura: cm
 // Idade: anos
 
+// https://espen.org/documents/A174-02PaedPNGuidel_ESPGHANESPENPNGuidelines2Energy.pdf
+
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/eer.entity.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
@@ -33,9 +35,11 @@ class CalculateEerHarrisBenedict {
       double eer;
       switch (gender) {
         case .female:
-          eer = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+          eer = _calculateFemale(weight, height, age);
+          break;
         case .male:
-          eer = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+          eer = _calculateMale(weight, height, age);
+          break;
       }
 
       return Ok(
@@ -49,5 +53,19 @@ class CalculateEerHarrisBenedict {
     } catch (err) {
       return Error(err.toString());
     }
+  }
+
+  double _calculateFemale(double weight, double height, int age) {
+    if (age > 18) {
+      return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    }
+    return 655.10 + 9.56 * weight + 1.85 * height - 4.68 * age;
+  }
+
+  double _calculateMale(double weight, double height, int age) {
+    if (age > 18) {
+      return 66.47 + (13.75 * weight) + (5 * height) - (6.76 * age);
+    }
+    return 655.10 + 9.56 * weight + 1.85 * height - 4.68 * age;
   }
 }
