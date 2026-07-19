@@ -20,3 +20,5 @@ Society of Critical Care Medicine/ASPEN. Guidelines for the Provision and Assess
 Weijs PJM, et al. Protein intake in critically ill patients. Curr Opin Clin Nutr Metab Care. 2014.
 
 Singer P, et al. ESPEN guideline: Clinical nutrition in the intensive care unit. Clin Nutr. 2019.
+
+http://www.hu.ufsc.br/documentos/pop/DND/POP_e_Manual_Avaliacao_Nutricional_Antropometria.pdf
