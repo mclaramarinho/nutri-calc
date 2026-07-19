@@ -28,9 +28,9 @@ class CalculateBmi {
       late BmiClassification classification;
 
       if (age < 60) {
-        classification = _classificateAdult(bmi);
+        classification = _classifyAdult(bmi);
       } else {
-        classification = _classificateElder(bmi);
+        classification = _classifyElder(bmi);
       }
       return Ok(Bmi(value: bmi, classification: classification));
     } catch (err) {
@@ -38,7 +38,7 @@ class CalculateBmi {
     }
   }
 
-  BmiClassification _classificateAdult(double bmi) {
+  BmiClassification _classifyAdult(double bmi) {
     if (bmi >= 40) {
       return .obesityGrade3;
     } else if (bmi >= 35) {
@@ -54,7 +54,7 @@ class CalculateBmi {
     }
   }
 
-  BmiClassification _classificateElder(double bmi) {
+  BmiClassification _classifyElder(double bmi) {
     if (bmi > 27) {
       return .overweight;
     } else if (bmi >= 22) {
