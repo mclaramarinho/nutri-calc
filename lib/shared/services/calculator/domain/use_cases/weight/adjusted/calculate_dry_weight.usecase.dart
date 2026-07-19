@@ -25,6 +25,10 @@ class CalculateDryWeight {
     OedemaLevel? oedema,
   }) {
     try {
+      if(currentWeight < 0) {
+        return Error("INVALID_PARAMS");
+      }
+
       final ascitisValue = ascitis?.value ?? 0;
 
       return Ok(

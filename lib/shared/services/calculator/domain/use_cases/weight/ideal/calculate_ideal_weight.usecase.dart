@@ -15,6 +15,10 @@ class CalculateIdealWeight {
     AmputationWeight? amputation,
   }) {
     try {
+      if (weight < 0 || height < 0) {
+        return Error("INVALID_PARAMS");
+      }
+
       final idealBmi = gender == .female ? 21 : 22;
       double idealWeight = idealBmi * (height * height);
 

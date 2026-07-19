@@ -21,6 +21,10 @@ class CalculateEerMifflin {
     TemperatureFactor? temperatureFactor,
   }) {
     try {
+      if (age < 0 || height < 0 || weight < 0) {
+        return Error("INVALID_PARAMS");
+      }
+      
       double eer;
 
       switch (gender) {

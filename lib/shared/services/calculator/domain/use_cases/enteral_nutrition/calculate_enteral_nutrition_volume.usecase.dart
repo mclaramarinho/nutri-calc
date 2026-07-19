@@ -8,6 +8,9 @@ class CalculateEnteralNutritionVolume {
     required double caloricDensityOfDiet, // kcal per ml
   }) {
     try {
+      if (totalDailyEnergy < 0 || caloricDensityOfDiet < 0) {
+        return Error("INVALID_PARAMS");
+      }
       return Ok(totalDailyEnergy / caloricDensityOfDiet);
     } catch (err) {
       return Error(err.toString());

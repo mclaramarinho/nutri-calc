@@ -8,6 +8,9 @@ class CalculateEnteralNutritionDripping {
     required double totalHoursForVolume,
   }) {
     try {
+      if (totalVolume < 0 || totalHoursForVolume < 0) {
+        return Error("INVALID_PARAMS");
+      }
       return Ok(totalVolume / (3 * totalHoursForVolume));
     } catch (err) {
       return Error(err.toString());

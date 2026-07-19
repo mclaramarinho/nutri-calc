@@ -9,6 +9,10 @@ class CalculateWeightAdequation {
     required double idealWeight,
   }) {
     try {
+      if (idealWeight < 0 || currentWeight < 0) {
+        return Error("INVALID_PARAMS");
+      }
+
       final val = (currentWeight * 100) / idealWeight;
 
       return Ok(

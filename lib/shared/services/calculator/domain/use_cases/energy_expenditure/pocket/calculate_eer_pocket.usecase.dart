@@ -11,6 +11,10 @@ class CalculateEerPocket {
     StressLevel stressLevel = StressLevel.noStress,
   }) {
     try {
+      if (weight < 0) {
+        return Error("INVALID_PARAMS");
+      }
+
       double min, max;
       switch (stressLevel) {
         case .noStress:

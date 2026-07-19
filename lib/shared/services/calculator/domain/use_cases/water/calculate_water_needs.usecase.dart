@@ -5,14 +5,13 @@
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
 class CalculateWaterNeeds {
-  Result<double, String> call({
-    required double weight,
-    required int age,
-  }) {
+  Result<double, String> call({required double weight, required int age}) {
     try {
-      return Ok(
-        age >= 60 ? 25 * weight : 30 * weight
-      );
+      if (age < 0 || weight < 0) {
+        return Error("INVALID_PARAMS");
+      }
+      
+      return Ok(age >= 60 ? 25 * weight : 30 * weight);
     } catch (err) {
       return Error(err.toString());
     }

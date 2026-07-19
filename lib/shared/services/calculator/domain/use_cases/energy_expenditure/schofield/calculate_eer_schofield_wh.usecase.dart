@@ -19,9 +19,13 @@ class CalculateEerSchofield {
     InjuryFactor? injuryFactor,
   }) {
     try {
+      if (age < 0 || height < 0 || weight < 0) {
+        return Error("INVALID_PARAMS");
+      }
+
       // TODO - add formulas para ate 18 anos depois
       if (age > 10) {
-        throw "INVALID_AGE";
+        return Error("INVALID_AGE");
       }
       final formula = gender == .female
           ? _getFormulaFemale(age)

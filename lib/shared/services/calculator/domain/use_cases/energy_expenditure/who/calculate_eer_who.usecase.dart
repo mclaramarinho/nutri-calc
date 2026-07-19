@@ -5,9 +5,7 @@ import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_exp
 import 'package:nutri_calc/shared/utils/enums/gender.enum.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
-
 // https://espen.org/documents/A174-02PaedPNGuidel_ESPGHANESPENPNGuidelines2Energy.pdf
-
 
 class CalculateEerWho {
   Result<EER, String> call({
@@ -19,8 +17,12 @@ class CalculateEerWho {
     TemperatureFactor? temperatureFactor,
   }) {
     try {
+      if (age < 0 || weight < 0) {
+        return Error("INVALID_PARAMS");
+      }
+
       if (age > 18) {
-        throw "INVALID_AGE";
+        return Error("INVALID_AGE");
       }
 
       double eer;

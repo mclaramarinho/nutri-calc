@@ -21,9 +21,13 @@ class CalculateProteinNeeds {
     required PatientState patientState,
   }) {
     try {
+      if (weight < 0) {
+        return Error("INVALID_PARAMS");
+      }
+
       final needs = proteinNeedsPerState[patientState];
       if (needs == null) {
-        throw "NO_PROTEIN_NEEDS_FOR_STATE";
+        return Error("NO_PROTEIN_NEEDS_FOR_STATE");
       }
       return Ok(ProteinNeeds(min: needs.min * weight, max: needs.max * weight));
     } catch (err) {

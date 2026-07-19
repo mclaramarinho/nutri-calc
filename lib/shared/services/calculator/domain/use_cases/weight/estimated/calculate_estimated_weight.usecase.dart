@@ -23,8 +23,12 @@ class CalculateEstimatedWeight {
     AmputationWeight? amputation,
   }) {
     try {
+      if (age < 0 || kneeHeight < 0 || armCircumference < 0) {
+        return Error("INVALID_PARAMS");
+      }
+
       if (age > 80) {
-        throw "INVALID_AGE";
+        return Error("INVALID_AGE");
       }
 
       double Function(double, double)? formulae;
