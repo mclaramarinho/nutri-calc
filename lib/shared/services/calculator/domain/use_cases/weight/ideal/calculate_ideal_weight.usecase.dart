@@ -3,6 +3,7 @@
 // Mulheres: IMC = 21
 // Fórmula: Peso Ideal = IMC × Altura²
 
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/amputation_weight.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/gender.enum.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
@@ -11,10 +12,15 @@ class CalculateIdealWeight {
     required double weight,
     required double height,
     required Gender gender,
+    AmputationWeight? amputation,
   }) {
     try {
       final idealBmi = gender == .female ? 21 : 22;
-      final idealWeight = idealBmi * (height * height);
+      double idealWeight = idealBmi * (height * height);
+
+      if (amputation != null) {
+        idealWeight -= (idealWeight * amputation.percentage) / 100;
+      }
 
       return Ok(idealWeight);
     } catch (err) {
