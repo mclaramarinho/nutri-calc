@@ -19,7 +19,7 @@ class CalculateIdealWeight {
       double idealWeight = idealBmi * (height * height);
 
       if (amputation != null) {
-        idealWeight -= (idealWeight * amputation.percentage) / 100;
+        idealWeight = amputation.adjustWeightByAmputation(idealWeight);
       }
 
       return Ok(idealWeight);

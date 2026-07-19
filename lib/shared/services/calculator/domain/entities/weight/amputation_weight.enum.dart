@@ -9,6 +9,10 @@ enum AmputationWeight {
   final double percentage;
 
   const AmputationWeight({required this.percentage});
+
+  double adjustWeightByAmputation(double weight) {
+    return weight - ((weight * percentage) / 100);
+  }
 }
 
 

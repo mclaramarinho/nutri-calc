@@ -1,0 +1,1 @@
+enum Ethnicity { white, black }

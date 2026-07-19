@@ -1,5 +1,7 @@
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
+
+// REFERENCE
 class CalculateAdjustedObesityWeight {
   Result<double, String> call({
     required double idealWeight,
