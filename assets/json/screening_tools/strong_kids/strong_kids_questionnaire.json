@@ -1,0 +1,102 @@
+{
+    "steps": [
+        {
+            "order": 1,
+            "section": "Doença de alto risco",
+            "question": "Existe alguma doença de base que pode causar desnutrição ou cirurgia de grande porte prevista? Assinale sim ou não caso apresente uma das doenças abaixo:",
+            "details": [
+                "Anorexia nervosa",
+                "Queimaduras",
+                "Displasia broncopulmonar (até os 2 meses)",
+                "Doença celíaca",
+                "Fibrose cística",
+                "Prematuridade/dismaturidade (usar idade corrigida até o sexto mês)",
+                "Doença cardíaca crônica",
+                "Doença infecciosa (AIDS)",
+                "Doença inflamatória intestinal",
+                "Câncer",
+                "Doença hepática crônica",
+                "Doença renal crônica",
+                "Pancreatite",
+                "Síndrome do intestino curto",
+                "Doença muscular",
+                "Doença metabólica",
+                "Trauma",
+                "Deficiência/retardo mental",
+                "Cirurgia de grande porte prevista",
+                "Outra (classificada por um médico ou nutricionista)"
+            ],
+            "answers": [
+                {
+                    "id": "1",
+                    "label": "Sim",
+                    "points": 1
+                },
+                {
+                    "id": "2",
+                    "label": "Não",
+                    "points": 0
+                }
+            ]
+        },
+        {
+            "order": 2,
+            "section": "Avaliação clínica subjetiva",
+            "question": "O paciente apresenta estado nutricional prejudicado de acordo com a avaliação clínica subjetiva (massa muscular e/ou gordura subcutânea reduzidas e/ou face encovada)?",
+            "details": [],
+            "answers": [
+                {
+                    "id": "1",
+                    "label": "Sim",
+                    "points": 1
+                },
+                {
+                    "id": "2",
+                    "label": "Não",
+                    "points": 0
+                }
+            ]
+        },
+        {
+            "order": 3,
+            "section": "Ingestão alimentar e perdas",
+            "question": "Apresenta alguns dos itens abaixo?",
+            "details": [
+                "Diarreia (> 5 vezes por dia) e/ou vômito (> 3 vezes por dia) excessivos nos últimos dias?",
+                "Diminuição da ingestão alimentar durante os últimos dias antes da internação (não incluindo jejum para procedimento ou cirurgia eletiva)?",
+                "Recomendações de intervenção nutricional pré-existente?",
+                "Incapacidade de ingestão alimentar adequada por causa de dor?"
+            ],
+            "answers": [
+                {
+                    "id": "1",
+                    "label": "Sim",
+                    "points": 1
+                },
+                {
+                    "id": "2",
+                    "label": "Não",
+                    "points": 0
+                }
+            ]
+        },
+        {
+            "order": 4,
+            "section": "Perda de peso ou baixo ganho de peso",
+            "question": "Houve perda de peso durante as últimas semanas ou os últimos meses? (menores de 1 ano - pontuar se houve perda de peso ou nenhum ganho de peso)",
+            "details": [],
+            "answers": [
+                {
+                    "id": "1",
+                    "label": "Sim",
+                    "points": 1
+                },
+                {
+                    "id": "2",
+                    "label": "Não",
+                    "points": 0
+                }
+            ]
+        }
+    ]
+}

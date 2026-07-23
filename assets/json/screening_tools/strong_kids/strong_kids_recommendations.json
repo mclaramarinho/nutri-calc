@@ -1,0 +1,14 @@
+{
+    "low": {
+        "summary": "Não é necessária intervenção nutricional",
+        "details": "Verifique o peso regularmente e avalie o risco nutricional toda semana (ou de acordo com o protocolo do hospital)."
+    },
+    "medium": {
+        "summary": "Comece prescrevendo pequenas porções de alimento até o diagnóstico definitivo",
+        "details": "Converse com o médico do paciente para um diagnóstico completo assim como uma intervenção nutricional com o nutricionista. Verifique o peso duas vezes por semana e reavalie o risco nutricional após uma semana."
+    },
+    "high": {
+        "summary": "ntervenção e acompanhamento",
+        "details": "Converse com o médico e o nutricionista do paciente para o diagnóstico nutricional completo e orientação nutricional individualizada. Iniciar suplementação oral até a conclusão do diagnóstico nutricional"
+    }
+}
