@@ -1,0 +1,52 @@
+{
+    "byLevel": {
+        "low": {
+            "summary": "Cuidados de saúde de rotina",
+            "details": [
+                "Repetir o rastreio \nHospital – semanalmente \nInstituições de cuidados – mensalmente \nComunidade – anualmente para grupos especiais por exemplo os indivíduos >75 anos"
+            ],
+            "observations": []
+        },
+        "medium": {
+            "summary": "Observar",
+            "details": [
+                "Registar a ingestão nutricional durante 3 dias",
+                "Se for adequada – preocupação ligeira e repetir o rastreio \n* Hospital – semanalmente \n* Instituição de cuidados – pelo menos mensalmente \n* Comunidade – pelo menos de 2 a 3 meses \n* Se for inadequada – pre"
+            ],
+            "observations": []
+        },
+        "high": {
+            "summary": "Tratar*",
+            "details": [
+                "Remeter ao nutricionista, à equipa de suporte nutricional ou implementar a política local",
+                "Definir objetivos, melhorar e aumentar a ingestão nutricional geral",
+                "Monitorizar e rever o plano de cuidados \n* Hospital – semanalmente"
+            ],
+            "observations": [
+                "A menos que se suspeite poder prejudicar ou não beneficiar com o suporte nutricional, por exemplo, morte iminente."
+            ]
+        }
+    },
+    "forAllLevels": {
+        "all": {
+            "summary": null,
+            "details": [
+                "Tratar as condições subjacentes e prestar ajuda e aconselhamento nas opções alimentares, nos alimentos e nas bebidas quando necessário.",
+                "Registar a categoria de risco da malnutrição.",
+                "Registar a necessidade de dietas especiais e seguir a política local."
+            ],
+            "observations": []
+        },
+        "obesity": {
+            "summary": null,
+            "details": [
+                "Registar a presença de obesidade. Para os doentes com condições subjacentes, estas são geralmente controladas antes do tratamento da obesidade."
+            ],
+            "observations": []
+        }
+    },
+    "observations": [
+        "Reavaliar os indivíduos identificados como estando em risco à medida que vão passando pelas instituições de cuidados",
+        "Consulte o Folheto Explicativo da ‘MUST’ para obter informações mais detalhadas e o Relatório ‘MUST’ para obter informações sobre as provas corroborantes."
+    ]
+}

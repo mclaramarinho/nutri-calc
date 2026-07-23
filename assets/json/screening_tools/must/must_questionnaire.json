@@ -1,0 +1,16 @@
+{
+    "steps": [
+        {
+            "order": 1,
+            "title": "Pontuação do IMC"
+        },
+        {
+            "order": 2,
+            "title": "Pontuação da perda de peso"
+        },
+        {
+            "order": 3,
+            "title": "Pontuação da consequência de doença grave"
+        }
+    ]
+}
