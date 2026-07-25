@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/shared/di/di.dart';
+import 'package:nutri_calc/shared/services/database/app_database.service.dart';
 
-void main() {
+Future<void> main() async {
   configureDependencies();
+
+  // Initialize database
+  await getIt.get<AppDatabase>().init();
+
   runApp(const MainApp());
 }
 
