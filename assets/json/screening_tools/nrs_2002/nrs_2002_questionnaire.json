@@ -1,0 +1,157 @@
+{
+    "steps": [
+        {
+            "order": 1,
+            "title": "Triagem inicial",
+            "subtitle": "Se obtiver alguma resposta “sim”, passar para a 2ª etapa. Repetir a cada 7 dias, caso não obtenha nenhuma resposta positiva.",
+            "options": [
+                {
+                    "order": 1,
+                    "title": "O IMC é < 20,5kg/m²",
+                    "responseOptions": [
+                        {
+                            "label": "Sim",
+                            "details": null,
+                            "points": 1
+                        },
+                        {
+                            "label": "Não",
+                            "details": null,
+                            "points": 0
+                        }
+                    ]
+                },
+                {
+                    "order": 2,
+                    "title": "O paciente perdeu peso nos 3 últimos meses?",
+                    "responseOptions": [
+                        {
+                            "label": "Sim",
+                            "details": null,
+                            "points": 1
+                        },
+                        {
+                            "label": "Não",
+                            "details": null,
+                            "points": 0
+                        }
+                    ]
+                },
+                {
+                    "order": 3,
+                    "title": "O paciente teve sua ingestão dietética reduzida na última semana?",
+                    "responseOptions": [
+                        {
+                            "label": "Sim",
+                            "details": null,
+                            "points": 1
+                        },
+                        {
+                            "label": "Não",
+                            "details": null,
+                            "points": 0
+                        }
+                    ]
+                },
+                {
+                    "order": 4,
+                    "title": "O paciente é gravemente doente?",
+                    "responseOptions": [
+                        {
+                            "label": "Sim",
+                            "details": null,
+                            "points": 1
+                        },
+                        {
+                            "label": "Não",
+                            "details": null,
+                            "points": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "order": 2,
+            "title": "Triagem final",
+            "subtitle": "Encontre uma pontuação (0 – 3) tanto para Deterioração do estado nutricional, como para Gravidade da doença",
+            "options": [
+                {
+                    "order": 1,
+                    "title": "Deterioração do estado nutricional",
+                    "responseOptions": [
+                        {
+                            "label": "Ausente",
+                            "details": "Estado nutricional normal",
+                            "points": 0
+                        },
+                        {
+                            "label": "Leve",
+                            "details": "Perda de peso >5% em 3 meses OU aceitação da via oral entre 50 e 75% da estimativa de requerimento há 1 semana",
+                            "points": 1
+                        },
+                        {
+                            "label": "Moderado",
+                            "details": "Perda de peso >5% em 2 meses OU IMC = 18,5 a 20,5 + piora das condições gerais OU aceitação da via oral entre 25% e 50% da estimativa de requerimento há 1 semana",
+                            "points": 2
+                        },
+                        {
+                            "label": "Grave",
+                            "details": "Perda de peso >5% em 1 mês (>15% em 3 meses) OU IMC <18,5 + piora das condições gerais OU aceitação da via oral entre 0 e 25% da estimativa de requerimento há 1 semana",
+                            "points": 3
+                        }
+                    ]
+                },
+                {
+                    "order": 2,
+                    "title": "Gravidade da doença (grau de estresse)",
+                    "responseOptions": [
+                        {
+                            "label": "Ausente",
+                            "details": "Requerimento nutricional normal",
+                            "points": 0
+                        },
+                        {
+                            "label": "Leve",
+                            "details": "Fratura de quadril, pacientes crônicos (especialmente com complicações agudas): cirrose, doença pulmonar obstrutiva",
+                            "points": 1
+                        },
+                        {
+                            "label": "Moderado",
+                            "details": "Cirurgia abdominal de grande porte, acidente vascular cerebral, pneumonia grave, leucemia",
+                            "points": 2
+                        },
+                        {
+                            "label": "Grave",
+                            "details": "Traumatismo craniano, transplante de medula óssea, pacientes críticos (APACHE>10)",
+                            "points": 3
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "order": 3,
+            "title": "Idade",
+            "subtitle": null,
+            "options": [
+                {
+                    "order": 1,
+                    "title": "Paciente com idade > 70 anos?",
+                    "responseOptions": [
+                        {
+                            "label": "Sim",
+                            "details": null,
+                            "points": 1
+                        },
+                        {
+                            "label": "Não",
+                            "details": null,
+                            "points": 0
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
