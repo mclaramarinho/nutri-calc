@@ -46,3 +46,5 @@ app.*.map.json
 .metadata
 pubspec.lock
 lib/shared/di/di.config.dart
+
+*.g.dart
