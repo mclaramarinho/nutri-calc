@@ -14,7 +14,7 @@ class TableSqlField {
 
   String get sql {
     return '''
-        $name ${type.sql} ${constraints != null && constraints!.isNotEmpty ? constraints!.map((ct) => "${ct.sql} ") : ""}
+        $name ${type.sql} ${constraints != null && constraints!.isNotEmpty ? constraints!.map((ct) => "${ct.sql} ").join("") : ""}
     ''';
   }
 }
