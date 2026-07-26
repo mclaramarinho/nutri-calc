@@ -21,7 +21,11 @@ class DsScaffold extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         floatingActionButton: fab != null ? DsFab(data: fab.data) : null,
-        body: child,
+        body: SizedBox(
+          width: MediaQuery.sizeOf(context).width,
+          height: MediaQuery.sizeOf(context).height,
+          child: Padding(padding: EdgeInsetsGeometry.all(16), child: child),
+        ),
       ),
     );
   }
