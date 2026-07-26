@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/shared/di/di.dart';
 import 'package:nutri_calc/shared/services/database/app_database.service.dart';
+import 'package:nutri_calc/shared/services/router/app_router.service.dart';
 
 Future<void> main() async {
   configureDependencies();
@@ -16,8 +17,8 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Hello World!'))),
+    return MaterialApp.router(
+      routerConfig: getIt.get<AppRouter>().router,
     );
   }
 }
