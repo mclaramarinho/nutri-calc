@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_fab/ds_fab.dart';
 import 'package:nutri_calc/shared/di/di.dart';
+import 'package:nutri_calc/shared/services/router/app_bar_config.enum.dart';
 import 'package:nutri_calc/shared/services/router/app_fab_config.enum.dart';
 import 'package:nutri_calc/shared/services/router/app_router.service.dart';
 
@@ -17,9 +18,13 @@ class DsScaffold extends StatelessWidget {
     final fab = currentRoute != null
         ? AppFabConfig.getByRoute(currentRoute)
         : null;
+    final appBar = currentRoute != null
+        ? AppBarConfig.getByRoute(currentRoute)
+        : null;
 
     return SafeArea(
       child: Scaffold(
+        appBar: appBar != null ? DsAppBar.build(data: appBar) : null,
         floatingActionButton: fab != null ? DsFab(data: fab.data) : null,
         body: SizedBox(
           width: MediaQuery.sizeOf(context).width,

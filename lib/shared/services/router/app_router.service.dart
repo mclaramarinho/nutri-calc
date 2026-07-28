@@ -6,11 +6,9 @@ import 'package:nutri_calc/shared/services/router/app_routes.enum.dart';
 
 @Singleton()
 class AppRouter {
-  final navigator = GlobalKey<NavigatorState>();
-
   AppRouter();
 
-  final router = GoRouter(
+  static final _router = GoRouter(
     routes: AppRoutes.values
         .map(
           (route) => GoRoute(
@@ -21,15 +19,21 @@ class AppRouter {
         .toList(),
   );
 
-  // METHODS =================================================================
-  AppRoutes? get currentRoute => AppRoutes.getByPath(router.state.path ?? "");
+  GoRouter get router => _router;
 
+  BuildContext? get context =>
+      _router.routerDelegate.navigatorKey.currentContext;
+
+  AppRoutes? get currentRoute =>
+      AppRoutes.getByPath(_router.state.matchedLocation);
+
+  // METHODS =================================================================
   void push(AppRoutes route, {Object? params}) {
-    router.go(route.path, extra: params);
+    router.push(route.path, extra: params);
   }
 
   void pop() {
-    router.canPop() ? router.pop() : null;
+    router.canPop() ? router.pop() : print("Can't pop");
   }
 
   void replace(AppRoutes route, {Object? params}) {
