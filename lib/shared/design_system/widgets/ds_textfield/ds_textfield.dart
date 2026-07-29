@@ -8,12 +8,14 @@ class DsTextfield extends StatefulWidget {
   final String? hintText;
   final void Function(String text)? onChange;
   final TextInputType? type;
+  final String? Function(String? value)? validator;
 
   const DsTextfield({
     this.label,
     this.hintText,
     this.onChange,
     this.type,
+    this.validator,
     super.key,
   });
 
@@ -22,8 +24,9 @@ class DsTextfield extends StatefulWidget {
 }
 
 class _DsTextFieldState extends State<DsTextfield> {
-  late DateTime? selectedDate;
+  DateTime? selectedDate;
   TextEditingController controller = TextEditingController();
+  String? errorMessage;
 
   void openDatePicker(BuildContext context) {
     showDatePicker(
@@ -35,7 +38,24 @@ class _DsTextFieldState extends State<DsTextfield> {
         selectedDate = val;
       });
       controller.text = selectedDate?.formattedDate() ?? "";
+      onChangedDate();
     });
+  }
+
+  void onChangedDate() {
+    widget.onChange?.call(selectedDate?.toIso8601String() ?? "");
+  }
+
+  String? validate(String? value) {
+    if (widget.validator == null) {
+      setState(() => errorMessage = null);
+      return null;
+    }
+
+    final res = widget.validator!.call(value);
+    setState(() => errorMessage = res);
+
+    return res;
   }
 
   @override
@@ -47,20 +67,27 @@ class _DsTextFieldState extends State<DsTextfield> {
       inputFormatters: [
         if (widget.type == .datetime) ...[DatetimeFormatter()],
       ],
+      readOnly: widget.type == .datetime,
       decoration: InputDecoration(
         label: widget.label != null ? Text(widget.label!) : null,
         hintText: widget.hintText,
+        errorText: errorMessage,
         suffixIcon: widget.type == .datetime
             ? Icon(
                 Icons.calendar_month_outlined,
               ).touchEvents(onTap: () => openDatePicker(context))
             : null,
       ),
-      onChanged: (value) => widget.onChange?.call(
-        widget.type == .datetime
-            ? (selectedDate?.toIso8601String() ?? "")
-            : value,
-      ),
+      onTap: () => widget.type == .datetime ? openDatePicker(context) : {},
+      onChanged: (value) {
+        final isDate = widget.type == .datetime;
+        if (!isDate) {
+          validate(value);
+          widget.onChange?.call(value);
+        } else {
+          onChangedDate();
+        }
+      },
     );
   }
 }
