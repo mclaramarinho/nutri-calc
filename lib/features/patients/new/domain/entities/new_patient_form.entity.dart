@@ -15,4 +15,20 @@ class NewPatientForm {
     this.birthdate,
     this.age,
   });
+
+  NewPatientForm copyWith({
+    String? patientId,
+    String? firstName,
+    String? lastName,
+    DateTime? birthdate,
+    int? age,
+  }) {
+    return NewPatientForm(
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      patientId: patientId ?? this.patientId,
+      birthdate: birthdate ?? this.birthdate,
+      age: age ?? this.age,
+    );
+  }
 }

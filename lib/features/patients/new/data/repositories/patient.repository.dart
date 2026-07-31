@@ -4,14 +4,17 @@ import 'package:nutri_calc/shared/services/database/app_database.service.dart';
 import 'package:nutri_calc/shared/services/database/app_database_tables.enum.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
-abstract class PatientRepository {}
+abstract class NewPatientRepository {
+  Future<Result<Patient, String>> createPatient(Patient data);
+}
 
-@Injectable(as: PatientRepository)
-class PatientRepositoryImpl implements PatientRepository {
+@Injectable(as: NewPatientRepository)
+class NewPatientRepositoryImpl implements NewPatientRepository {
   final AppDatabase _appDatabase;
 
-  const PatientRepositoryImpl({required this._appDatabase});
+  const NewPatientRepositoryImpl({required this._appDatabase});
 
+  @override
   Future<Result<Patient, String>> createPatient(Patient data) async {
     try {
       final toAdd = data.copyWithId();
