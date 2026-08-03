@@ -14,6 +14,7 @@ class GetPatientsListUseCaseImpl implements GetPatientsListUseCase {
 
   final ListPatientRepository _listPatientRepository;
 
+  @override
   Future<Result<List<PatientListCardEntity>, String>> call() async {
     try {
       final res = await _listPatientRepository.getPatients();
@@ -26,6 +27,7 @@ class GetPatientsListUseCaseImpl implements GetPatientsListUseCase {
           lastName: pt.lastName,
           patientId: pt.patientId,
           age: pt.age,
+          ageUnit: pt.ageUnit
         ),
       );
       return Ok(entities.toList());

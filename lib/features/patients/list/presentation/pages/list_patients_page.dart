@@ -33,10 +33,20 @@ class _ListPatientsPageContent extends StatelessWidget {
                 final patient = state.patients[index];
                 return ListTile(
                   trailing: Icon(Icons.chevron_right_outlined),
-                  title: Text(
-                    "${patient.firstName} ${patient.lastName}",
+                  title: Column(
+                    crossAxisAlignment: .start,
+                    children: [
+                      if (patient.patientId != null) ...[
+                        Text(patient.patientId!),
+                      ],
+                      Text("${patient.firstName} ${patient.lastName}"),
+                    ],
                   ),
-                  subtitle: Text("${patient.age} "),
+                  subtitle: Text(
+                    patient.age == null || patient.ageUnit == null
+                        ? "Idade não informada"
+                        : "${patient.age} ${patient.ageUnit?.value.toLowerCase()}",
+                  ),
                 );
               },
             );

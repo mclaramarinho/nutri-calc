@@ -44,6 +44,7 @@ class PatientModel {
       patientId: patientId,
       birthdate: birthdate,
       age: age,
+      ageUnit: ageUnit
     );
   }
 }
