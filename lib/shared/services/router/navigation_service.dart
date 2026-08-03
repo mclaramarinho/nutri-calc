@@ -10,12 +10,13 @@ import 'package:nutri_calc/shared/services/router/app_routes.dart';
 class NavigationService {
   NavigationService();
 
+  // TODO - ajustar para cada pagina usar seu proprio scaffold
   static final _router = GoRouter(
     routes: AppRoutes.values
         .map(
           (route) => GoRoute(
             path: route.path,
-            builder: (context, state) => DsScaffold(child: route.page),
+            builder: (context, state) => DsScaffold(child: route.page, ),
           ),
         )
         .toList(),
