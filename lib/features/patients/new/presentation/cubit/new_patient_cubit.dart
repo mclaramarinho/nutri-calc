@@ -35,13 +35,11 @@ class NewPatientCubit extends Cubit<NewPatientState> {
       emit(currentState.copyWith(isSaving: true));
 
       if (form == null) {
-        // emit error
         emit(NewPatientStateError(message: "O form não foi preenchido."));
         return;
       }
 
       if (form.firstName.isEmpty || form.lastName.isEmpty) {
-        // emit error
         emit(
           NewPatientStateError(
             message: "Você precisa preencher o primeiro e segundo nome.",
@@ -51,13 +49,16 @@ class NewPatientCubit extends Cubit<NewPatientState> {
       }
 
       if (form.age != null && form.age! < 0) {
-        // emit error
         emit(NewPatientStateError(message: "Idade inválida."));
         return;
       }
 
+      if (form.age != null && form.ageUnit == null) {
+        emit(NewPatientStateError(message: "Selecione a unidade da idade."));
+        return;
+      }
+
       if (form.birthdate != null && form.birthdate!.isAfter(DateTime.now())) {
-        // emit error
         emit(
           NewPatientStateError(
             message: "A data de nascimento precisa ser menor que a de agora.",
@@ -70,10 +71,8 @@ class NewPatientCubit extends Cubit<NewPatientState> {
       emit(currentState.copyWith(isSaving: false));
 
       if (createRes.isError) {
-        // emit error
         emit(NewPatientStateError(message: "Erro na criação do paciente."));
       } else {
-        // emit success
         emit(NewPatientStateSuccess());
       }
     }
@@ -107,7 +106,7 @@ class NewPatientCubit extends Cubit<NewPatientState> {
       throw ArgumentError("Expected value to be of type ${prop.type}");
     }
 
-    bool disableAgeInput = false;
+    bool disableAgeInput = currentState.disableAgeInput;
 
     switch (prop) {
       case .age:
@@ -116,7 +115,7 @@ class NewPatientCubit extends Cubit<NewPatientState> {
         break;
       case .birthdate:
         final ageDays = DateTime.now().difference(value).inDays;
-        final ageMonths = (ageDays / 30).floor();
+        final ageMonths = (ageDays / 30.5).floor();
         if (ageDays < 30) {
           newForm = newForm.copyWith(age: ageDays, ageUnit: .day);
         } else if (ageMonths < 12) {

@@ -21,7 +21,7 @@ class DsDialog {
       barrierDismissible: isDismissible ?? true,
 
       builder: (context) {
-        return DsDialogWidget(
+        return _DsDialogWidget(
           showCloseButton: showCloseButton ?? false,
           title: title,
           message: message,
@@ -31,11 +31,11 @@ class DsDialog {
           duration: duration,
         );
       },
-    ).then((_) => duration == null ? onClose?.call() : {});
+    ).then((_) => onClose?.call());
   }
 }
 
-class DsDialogWidget extends StatelessWidget {
+class _DsDialogWidget extends StatefulWidget {
   final String? title;
   final String? message;
   final List<Widget>? actions;
@@ -44,7 +44,7 @@ class DsDialogWidget extends StatelessWidget {
   final bool showCloseButton;
   final Duration? duration;
 
-  const DsDialogWidget({
+  const _DsDialogWidget({
     this.showCloseButton = true,
     this.title,
     this.message,
@@ -52,17 +52,25 @@ class DsDialogWidget extends StatelessWidget {
     this.onClose,
     this.closeButtonText,
     this.duration,
-    super.key,
   });
 
   @override
-  Widget build(BuildContext context) {
-    if (duration != null) {
-      Future.delayed(duration!).then((_) {
+  State<StatefulWidget> createState() => _DsDialogWidgetState();
+}
+
+class _DsDialogWidgetState extends State<_DsDialogWidget> {
+  @override
+  void initState() {
+    if (widget.duration != null) {
+      Future.delayed(widget.duration!).then((_) {
         getIt.get<NavigationService>().pop();
-        onClose?.call();
       });
     }
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
         padding: EdgeInsets.all(16),
@@ -84,9 +92,9 @@ class DsDialogWidget extends StatelessWidget {
                       spacing: 16,
                       children: [
                         // title
-                        if (title != null) ...[
+                        if (widget.title != null) ...[
                           Text(
-                            title!,
+                            widget.title!,
                             style: TextStyle(
                               fontWeight: .w700,
                               color: Colors.black,
@@ -96,9 +104,9 @@ class DsDialogWidget extends StatelessWidget {
                           ),
                         ],
                         // message
-                        if (message != null) ...[
+                        if (widget.message != null) ...[
                           Text(
-                            message!,
+                            widget.message!,
                             style: TextStyle(
                               fontWeight: .w700,
                               color: Colors.black,
@@ -108,17 +116,18 @@ class DsDialogWidget extends StatelessWidget {
                           ),
                         ],
 
-                        if (actions != null) ...[Row(children: actions!)],
+                        if (widget.actions != null) ...[
+                          Row(children: widget.actions!),
+                        ],
 
                         // close
-                        if (actions == null &&
-                            showCloseButton &&
-                            duration == null) ...[
+                        if (widget.actions == null &&
+                            widget.showCloseButton &&
+                            widget.duration == null) ...[
                           DsButton(
-                            label: closeButtonText ?? "Fechar",
+                            label: widget.closeButtonText ?? "Fechar",
                             isLoading: false,
                             onTap: () {
-                              onClose?.call();
                               getIt.get<NavigationService>().pop();
                             },
                           ),
