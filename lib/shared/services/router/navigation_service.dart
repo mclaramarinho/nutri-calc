@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
-import 'package:nutri_calc/shared/services/router/app_routes.enum.dart';
+import 'package:nutri_calc/shared/services/router/app_routes.dart';
+
+// TODO - create abstract class
 
 @Singleton()
-class AppRouter {
-  AppRouter();
+class NavigationService {
+  NavigationService();
 
   static final _router = GoRouter(
     routes: AppRoutes.values

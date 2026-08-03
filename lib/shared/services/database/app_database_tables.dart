@@ -20,6 +20,7 @@ enum AppDatabaseTables {
           TableSqlField(name: "lastName", type: .text, constraints: [.notNull]),
           TableSqlField(name: "birthdate", type: .text),
           TableSqlField(name: "age", type: .integer),
+          TableSqlField(name: "ageUnit", type: .text),
         ]);
     }
   }

@@ -4,7 +4,7 @@
 // Fórmula: Peso Ideal = IMC × Altura²
 
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/amputation_weight.enum.dart';
-import 'package:nutri_calc/shared/utils/enums/gender.enum.dart';
+import 'package:nutri_calc/shared/utils/enums/gender.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
 class CalculateIdealWeight {

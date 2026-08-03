@@ -1,9 +1,10 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:nutri_calc/shared/utils/enums/time_unit.dart';
 import 'package:uuid/uuid.dart';
-part 'patient.model.g.dart';
+part 'patient_model.g.dart';
 
 @JsonSerializable()
-class Patient {
+class PatientModel {
   // Identifiers
   /// Database id
   final String? id;
@@ -16,25 +17,27 @@ class Patient {
   final String lastName;
   final DateTime? birthdate;
   final int? age;
+  final TimeUnit? ageUnit;
 
-  const Patient({
+  const PatientModel({
     this.id,
     required this.firstName,
     required this.lastName,
     this.patientId,
     this.birthdate,
     this.age,
+    this.ageUnit,
   });
 
   // Wire up the generated `toJson` in `example.g.dart`.
-  Map<String, dynamic> toJson() => _$PatientToJson(this);
+  Map<String, dynamic> toJson() => _$PatientModelToJson(this);
 
   // Wire up the generated `fromJson` in `example.g.dart`.
-  factory Patient.fromJson(Map<String, dynamic> json) =>
-      _$PatientFromJson(json);
+  factory PatientModel.fromJson(Map<String, dynamic> json) =>
+      _$PatientModelFromJson(json);
 
-  Patient copyWithId() {
-    return Patient(
+  PatientModel copyWithId() {
+    return PatientModel(
       id: Uuid().v4(),
       firstName: firstName,
       lastName: lastName,

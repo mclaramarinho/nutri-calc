@@ -9,8 +9,8 @@
 // Coxa (11.6%).
 
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/amputation_weight.enum.dart';
-import 'package:nutri_calc/shared/utils/enums/ethnicity.enum.dart';
-import 'package:nutri_calc/shared/utils/enums/gender.enum.dart';
+import 'package:nutri_calc/shared/utils/enums/ethnicity.dart';
+import 'package:nutri_calc/shared/utils/enums/gender.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
 class CalculateEstimatedWeight {

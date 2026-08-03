@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:nutri_calc/features/home/presentation/home.page.dart';
-import 'package:nutri_calc/features/patients/new/presentation/pages/new_patient.page.dart';
+import 'package:nutri_calc/features/home/presentation/home_page.dart';
+import 'package:nutri_calc/features/patients/new/presentation/pages/new_patient_page.dart';
 
 enum AppRoutes {
   createPatient(page: NewPatientPage(), path: "/create-patient"),

@@ -1,9 +1,9 @@
 import 'package:injectable/injectable.dart';
-import 'package:nutri_calc/shared/services/database/app_database_tables.enum.dart';
+import 'package:nutri_calc/shared/services/database/app_database_tables.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 import 'package:sqflite/sqflite.dart';
 
-abstract class AppDatabase {
+abstract class AppDatabaseService {
   Future<void> init();
 
   Future<Result<List<T>, String>> read<T>(
@@ -34,11 +34,11 @@ abstract class AppDatabase {
   });
 }
 
-@Singleton(as: AppDatabase)
-class AppDatabaseImpl implements AppDatabase {
+@Singleton(as: AppDatabaseService)
+class AppDatabaseServiceImpl implements AppDatabaseService {
   late Database _db;
 
-  AppDatabaseImpl();
+  AppDatabaseServiceImpl();
 
   @override
   Future<void> init() async {

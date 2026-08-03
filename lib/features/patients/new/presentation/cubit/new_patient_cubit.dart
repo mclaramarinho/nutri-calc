@@ -1,11 +1,12 @@
-part of './new_patient.state.dart';
+part of 'new_patient_state.dart';
 
 enum PatientPropertiesToEdit<T> {
   firstName<String>(),
   lastName<String>(),
   patientId<String>(),
   birthdate<DateTime>(),
-  age<int>();
+  age<int>(),
+  ageUnit<TimeUnit>();
 
   const PatientPropertiesToEdit();
 
@@ -14,12 +15,13 @@ enum PatientPropertiesToEdit<T> {
 
 @injectable
 class NewPatientCubit extends Cubit<NewPatientState> {
-  NewPatientCubit({required this._createPatient})
+  NewPatientCubit({required this._createPatientUseCase})
     : super(NewPatientStateInitial());
 
-  CreatePatient _createPatient;
+  final CreatePatientUseCase _createPatientUseCase;
 
-  NewPatientForm? _cachedForm;
+  NewPatientFormEntity? _cachedForm;
+  TextEditingController ageInputController = TextEditingController();
 
   void closedErrorModal() {
     emit(NewPatientStateInitial(form: _cachedForm));
@@ -64,7 +66,7 @@ class NewPatientCubit extends Cubit<NewPatientState> {
         return;
       }
 
-      final createRes = await _createPatient.call(formData: form);
+      final createRes = await _createPatientUseCase.call(formData: form);
       emit(currentState.copyWith(isSaving: false));
 
       if (createRes.isError) {
@@ -85,24 +87,48 @@ class NewPatientCubit extends Cubit<NewPatientState> {
     if (state is! NewPatientStateInitial) {
       throw StateError("Expected current state to be $NewPatientStateInitial");
     }
+    final currentState = state as NewPatientStateInitial;
+    final currentForm =
+        currentState.form ?? NewPatientFormEntity(firstName: "", lastName: "");
 
-    if (value == null) return;
+    NewPatientFormEntity newForm = currentForm;
+
+    if (value == null) {
+      if (prop == .birthdate) {
+        newForm = newForm.clearAge();
+        ageInputController.text = "";
+        emit(currentState.copyWith(disableAgeInput: false, form: newForm));
+      }
+
+      return;
+    }
 
     if (value.runtimeType != prop.type) {
       throw ArgumentError("Expected value to be of type ${prop.type}");
     }
 
-    final currentState = state as NewPatientStateInitial;
-    final currentForm =
-        currentState.form ?? NewPatientForm(firstName: "", lastName: "");
-
-    NewPatientForm newForm = currentForm;
+    bool disableAgeInput = false;
 
     switch (prop) {
       case .age:
         newForm = newForm.copyWith(age: value);
+        ageInputController.text = newForm.age.toString();
         break;
       case .birthdate:
+        final ageDays = DateTime.now().difference(value).inDays;
+        final ageMonths = (ageDays / 30).floor();
+        if (ageDays < 30) {
+          newForm = newForm.copyWith(age: ageDays, ageUnit: .day);
+        } else if (ageMonths < 12) {
+          newForm = newForm.copyWith(age: ageMonths, ageUnit: .month);
+        } else {
+          newForm = newForm.copyWith(
+            age: (ageMonths / 12).floor(),
+            ageUnit: .year,
+          );
+        }
+        ageInputController.text = newForm.age.toString();
+        disableAgeInput = true;
         newForm = newForm.copyWith(birthdate: value);
         break;
       case .firstName:
@@ -114,8 +140,13 @@ class NewPatientCubit extends Cubit<NewPatientState> {
       case .patientId:
         newForm = newForm.copyWith(patientId: value);
         break;
+      case .ageUnit:
+        newForm = newForm.copyWith(ageUnit: value);
+        break;
     }
-    emit(NewPatientStateInitial(form: newForm));
+    emit(
+      NewPatientStateInitial(form: newForm, disableAgeInput: disableAgeInput),
+    );
     _cachedForm = newForm;
   }
 }

@@ -2,7 +2,7 @@ import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_exp
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/eer.entity.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/temperature_factor.enum.dart';
-import 'package:nutri_calc/shared/utils/enums/gender.enum.dart';
+import 'package:nutri_calc/shared/utils/enums/gender.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
 // https://espen.org/documents/A174-02PaedPNGuidel_ESPGHANESPENPNGuidelines2Energy.pdf

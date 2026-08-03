@@ -12,7 +12,7 @@
 // Singer P, et al. ESPEN guideline: Clinical nutrition in the intensive care unit. Clin Nutr. 2019.
 
 import 'package:nutri_calc/shared/services/calculator/domain/entities/protein/protein_needs.entity.dart';
-import 'package:nutri_calc/shared/utils/enums/patient_state.enum.dart';
+import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 
 class CalculateProteinNeeds {

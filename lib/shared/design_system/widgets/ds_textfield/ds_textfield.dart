@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nutri_calc/shared/utils/extensions/datetime.ext.dart';
-import 'package:nutri_calc/shared/utils/extensions/widget.ext.dart';
+import 'package:nutri_calc/shared/utils/extensions/ext_datetime.dart';
+import 'package:nutri_calc/shared/utils/extensions/ext_widget.dart';
 import 'package:nutri_calc/shared/utils/formatters/datetime_formatter.dart';
 
 class DsTextfield extends StatefulWidget {
@@ -9,13 +9,19 @@ class DsTextfield extends StatefulWidget {
   final void Function(String text)? onChange;
   final TextInputType? type;
   final String? Function(String? value)? validator;
+  final bool? disabled;
+  final String? staticValue;
+  final TextEditingController? customController;
 
   const DsTextfield({
+    this.disabled = false,
     this.label,
     this.hintText,
     this.onChange,
     this.type,
     this.validator,
+    this.staticValue,
+    this.customController,
     super.key,
   });
 
@@ -25,8 +31,14 @@ class DsTextfield extends StatefulWidget {
 
 class _DsTextFieldState extends State<DsTextfield> {
   DateTime? selectedDate;
-  TextEditingController controller = TextEditingController();
+  late TextEditingController controller;
   String? errorMessage;
+
+  @override
+  void initState() {
+    controller = widget.customController ?? TextEditingController();
+    super.initState();
+  }
 
   void openDatePicker(BuildContext context) {
     showDatePicker(
@@ -59,11 +71,21 @@ class _DsTextFieldState extends State<DsTextfield> {
   }
 
   @override
+  void didUpdateWidget(covariant DsTextfield oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
+    if (widget.staticValue != null) {
+      controller.text = widget.staticValue!;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextFormField(
       style: TextStyle(),
       keyboardType: widget.type ?? TextInputType.text,
-      controller: widget.type == .datetime ? controller : null,
+      controller: controller,
+      enabled: !widget.disabled!,
       inputFormatters: [
         if (widget.type == .datetime) ...[DatetimeFormatter()],
       ],

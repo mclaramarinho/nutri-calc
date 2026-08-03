@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/di/di.dart';
-import 'package:nutri_calc/shared/services/router/app_router.service.dart';
+import 'package:nutri_calc/shared/services/router/navigation_service.dart';
 
 class DsDialog {
   static Future<void> show(
@@ -59,7 +59,7 @@ class DsDialogWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (duration != null) {
       Future.delayed(duration!).then((_) {
-        getIt.get<AppRouter>().pop();
+        getIt.get<NavigationService>().pop();
         onClose?.call();
       });
     }
@@ -119,7 +119,7 @@ class DsDialogWidget extends StatelessWidget {
                             isLoading: false,
                             onTap: () {
                               onClose?.call();
-                              getIt.get<AppRouter>().pop();
+                              getIt.get<NavigationService>().pop();
                             },
                           ),
                         ],

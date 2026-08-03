@@ -15,11 +15,9 @@ class DsButton extends StatelessWidget {
   // TODO - style this button
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: ElevatedButton(
-        onPressed: onTap,
-        child: isLoading ? CircularProgressIndicator() : Text(label),
-      ),
+    return ElevatedButton(
+      onPressed: onTap,
+      child: isLoading ? CircularProgressIndicator() : Text(label),
     );
   }
 }
