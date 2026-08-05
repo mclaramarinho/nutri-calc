@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/features/patients/new/presentation/cubit/new_patient_state.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_dialog/ds_dialog.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
@@ -23,6 +24,7 @@ class NewPatientPage extends StatelessWidget {
 }
 
 class _NewPatientPageContent extends StatelessWidget {
+  final AppRouter _router = getIt.get<AppRouter>();
   @override
   Widget build(BuildContext context) {
     final NewPatientCubit cubit = context.read<NewPatientCubit>();
@@ -36,7 +38,7 @@ class _NewPatientPageContent extends StatelessWidget {
               title: "Salvo com sucesso",
               message: "Esse paciente ficará visível na home.",
               showCloseButton: false,
-              onClose: () => getIt.get<AppRouter>().replace(.home),
+              onClose: () => _router.replace(.home),
               duration: Duration(seconds: 2),
               isDismissible: false,
             );
@@ -56,6 +58,11 @@ class _NewPatientPageContent extends StatelessWidget {
       buildWhen: (previous, current) => current is NewPatientStateInitial,
       builder: (context, state) {
         return DsScaffold(
+          appBar: DsAppBarData(
+            title: "Criar Paciente",
+            onBack: _router.pop,
+            onClose: _router.pop,
+          ),
           child: SingleChildScrollView(
             child: Column(
               children: [

@@ -1,9 +1,9 @@
 import 'dart:ui';
 
-class AppBarData {
+class DsAppBarData {
   final String? title;
   final VoidCallback? onBack;
   final VoidCallback? onClose;
 
-  const AppBarData({this.title, this.onBack, this.onClose});
+  const DsAppBarData({this.title, this.onBack, this.onClose});
 }

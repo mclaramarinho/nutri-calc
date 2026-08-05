@@ -20,5 +20,3 @@ enum AppRoutes {
     }
   }
 }
-
-// TODO - configurar bottom navbar
