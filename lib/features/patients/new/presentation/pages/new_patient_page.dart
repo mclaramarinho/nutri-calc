@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/features/patients/new/presentation/cubit/new_patient_state.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_dialog/ds_dialog.dart';
@@ -115,7 +116,7 @@ class _NewPatientPageContent extends StatelessWidget {
                             )
                             .toList(),
 
-                        expandedInsets: EdgeInsets.all(0),
+                        expandedInsets: EdgeInsets.all(DsSpacing.none),
                         onSelected: (val) => cubit.setValue(.ageUnit, val),
                         enabled: !state.disableAgeInput,
                         initialSelection: state.disableAgeInput

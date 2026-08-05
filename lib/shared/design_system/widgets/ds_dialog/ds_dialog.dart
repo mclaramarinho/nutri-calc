@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_radius.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
@@ -75,13 +77,13 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(DsSpacing.md),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(DsSpacing.md),
               decoration: BoxDecoration(
                 color: DsColors.white,
                 borderRadius: BorderRadius.all(DsRadius.small),
@@ -101,7 +103,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                               fontWeight: .w700,
                               color: DsColors.black,
                               decoration: .none,
-                              fontSize: 22,
+                              fontSize: 22.sp,
                             ),
                           ),
                         ],
@@ -113,7 +115,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                               fontWeight: .w700,
                               color: DsColors.black,
                               decoration: .none,
-                              fontSize: 16,
+                              fontSize: 16.sp,
                             ),
                           ),
                         ],

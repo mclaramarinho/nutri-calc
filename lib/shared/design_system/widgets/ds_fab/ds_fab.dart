@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
-import 'package:nutri_calc/shared/design_system/widgets/ds_fab/ds_fab_data.type.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_fab/ds_fab_data.dart';
 
 class DsFab extends StatelessWidget {
   final DsFabData data;
