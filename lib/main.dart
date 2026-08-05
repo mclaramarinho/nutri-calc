@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nutri_calc/core/services/database/app_database_service.dart';
 import 'package:nutri_calc/shared/di/di.dart';
-import 'package:nutri_calc/shared/services/database/app_database_service.dart';
 import 'package:nutri_calc/shared/services/router/navigation_service.dart';
 
 Future<void> main() async {

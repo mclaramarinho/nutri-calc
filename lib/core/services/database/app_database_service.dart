@@ -1,5 +1,5 @@
 import 'package:injectable/injectable.dart';
-import 'package:nutri_calc/shared/services/database/app_database_tables.dart';
+import 'package:nutri_calc/core/services/database/app_database_tables.dart';
 import 'package:nutri_calc/shared/utils/result/result.dart';
 import 'package:sqflite/sqflite.dart';
 

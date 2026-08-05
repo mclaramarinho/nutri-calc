@@ -1,4 +1,4 @@
-import 'package:nutri_calc/shared/services/database/entities/table_sql_field.entity.dart';
+import 'package:nutri_calc/core/services/database/entities/table_sql_field.entity.dart';
 
 enum AppDatabaseTables {
   patient(name: "PATIENT");

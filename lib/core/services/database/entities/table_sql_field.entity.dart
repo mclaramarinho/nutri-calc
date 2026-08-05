@@ -1,5 +1,5 @@
-import 'package:nutri_calc/shared/services/database/entities/table_sql_constraints.enum.dart';
-import 'package:nutri_calc/shared/services/database/entities/table_sql_types.enum.dart';
+import 'package:nutri_calc/core/services/database/entities/table_sql_constraints.enum.dart';
+import 'package:nutri_calc/core/services/database/entities/table_sql_types.enum.dart';
 
 class TableSqlField {
   final String name;
