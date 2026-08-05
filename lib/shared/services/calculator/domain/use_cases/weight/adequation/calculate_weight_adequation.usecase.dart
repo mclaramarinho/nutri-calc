@@ -1,6 +1,6 @@
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_adequation.entity.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_adequation_classification.enum.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 // REFERENCE
 class CalculateWeightAdequation {

@@ -1,18 +1,17 @@
 import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/core/services/database/app_database_tables.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:sqflite/sqflite.dart';
 
 abstract class AppDatabaseService {
   Future<void> init();
 
-  Future<Result<List<T>, String>> read<T>(
+  Future<Result<List<Map<String, Object?>>, String>> read(
     AppDatabaseTables table, {
     String? where,
     List<Object>? whereArgs,
     String? orderBy,
     int? limit,
-    T Function(Map<String, Object?>)? mapper,
   });
 
   Future<Result<int, String>> insert(
@@ -51,16 +50,13 @@ class AppDatabaseServiceImpl implements AppDatabaseService {
   }
 
   @override
-  Future<Result<List<T>, String>> read<T>(
+  Future<Result<List<Map<String, Object?>>, String>> read(
     AppDatabaseTables table, {
     String? where,
     List<Object>? whereArgs,
     String? orderBy,
     int? limit,
-    T Function(Map<String, Object?>)? mapper,
   }) async {
-    _validateTypeMapperArgs(mapper);
-
     try {
       final List<Map<String, Object?>> res = await _db.query(
         table.name,
@@ -70,11 +66,7 @@ class AppDatabaseServiceImpl implements AppDatabaseService {
         limit: limit,
       );
 
-      if (mapper != null) {
-        return Ok(res.map((el) => mapper(el)).toList());
-      }
-
-      return Ok(res as List<T>);
+      return Ok(res);
     } catch (err) {
       return Error(err.toString());
     }
@@ -135,12 +127,6 @@ class AppDatabaseServiceImpl implements AppDatabaseService {
       return Ok(res);
     } catch (err) {
       return Error(err.toString());
-    }
-  }
-
-  void _validateTypeMapperArgs<T>(T Function(Map<String, Object?>)? mapper) {
-    if (T is! List<Map<String, Object?>> && T != dynamic && mapper == null) {
-      throw ArgumentError("Type $T requires a mapper.");
     }
   }
 }

@@ -7,7 +7,7 @@
 // https://www.bapen.org.uk/images/pdfs/must/portuguese/must-toolkit.pdf
 
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/must/must_result.entity.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateMustScore {
   Result<MustResult, String> call({

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:nutri_calc/shared/utils/extensions/ext_datetime.dart';
-import 'package:nutri_calc/shared/utils/extensions/ext_widget.dart';
-import 'package:nutri_calc/shared/utils/formatters/datetime_formatter.dart';
+import 'package:nutri_calc/core/utils/extensions/ext_datetime.dart';
+import 'package:nutri_calc/core/utils/extensions/ext_widget.dart';
+import 'package:nutri_calc/core/utils/formatters/datetime_formatter.dart';
 
 class DsTextfield extends StatefulWidget {
   final String? label;

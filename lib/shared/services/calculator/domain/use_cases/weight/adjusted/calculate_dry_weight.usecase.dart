@@ -13,7 +13,7 @@ import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi.en
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/dry_weight.entity.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/ascitis_level.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/oedema_level.enum.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 // POP n. 01 - Hospital universitario Prof. Polydoro Ernani de Sao Thiago da Univ. Federal de Santa Catarina (2015)
 

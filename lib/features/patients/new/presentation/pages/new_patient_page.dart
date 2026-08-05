@@ -5,8 +5,8 @@ import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart
 import 'package:nutri_calc/shared/design_system/widgets/ds_dialog/ds_dialog.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
-import 'package:nutri_calc/shared/di/di.dart';
-import 'package:nutri_calc/shared/services/router/navigation_service.dart';
+import 'package:nutri_calc/di/di.dart';
+import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/utils/enums/time_unit.dart';
 import 'package:nutri_calc/shared/utils/validators/input_validators.dart';
 
@@ -36,7 +36,7 @@ class _NewPatientPageContent extends StatelessWidget {
               title: "Salvo com sucesso",
               message: "Esse paciente ficará visível na home.",
               showCloseButton: false,
-              onClose: () => getIt.get<NavigationService>().replace(.home),
+              onClose: () => getIt.get<AppRouter>().replace(.home),
               duration: Duration(seconds: 2),
               isDismissible: false,
             );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.type.dart';
-import 'package:nutri_calc/shared/utils/extensions/ext_widget.dart';
+import 'package:nutri_calc/core/utils/extensions/ext_widget.dart';
 
 class DsAppBar {
   static AppBar build({required AppBarData data}) {

@@ -2,7 +2,7 @@
 // Adultos: 30 - 35 ml/kg/dia (ajustar em caso de insuficiência cardíaca ou renal).
 // Idosos: 25 - 30 ml/kg/dia.
 
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateWaterNeeds {
   Result<double, String> call({required double weight, required int age}) {

@@ -6,7 +6,7 @@
 // Society of Critical Care Medicine/ASPEN. Guidelines for the Provision and Assessment of Nutrition Support Therapy in the Adult Critically Ill Patient. 2016.
 
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/strong_kids/strong_kids_result.entity.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateStrongKidsScore {
   Result<StrongkidsResult, String> call({

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/core/services/database/app_database_service.dart';
-import 'package:nutri_calc/shared/di/di.dart';
-import 'package:nutri_calc/shared/services/router/navigation_service.dart';
+import 'package:nutri_calc/di/di.dart';
+import 'package:nutri_calc/routing/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +18,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(routerConfig: getIt.get<NavigationService>().router);
+    return MaterialApp.router(routerConfig: getIt.get<AppRouter>().router);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
-import 'package:nutri_calc/shared/di/di.dart';
-import 'package:nutri_calc/shared/services/router/navigation_service.dart';
+import 'package:nutri_calc/di/di.dart';
+import 'package:nutri_calc/routing/app_router.dart';
 
 class DsDialog {
   static Future<void> show(
@@ -63,7 +63,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
   void initState() {
     if (widget.duration != null) {
       Future.delayed(widget.duration!).then((_) {
-        getIt.get<NavigationService>().pop();
+        getIt.get<AppRouter>().pop();
       });
     }
     super.initState();
@@ -128,7 +128,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                             label: widget.closeButtonText ?? "Fechar",
                             isLoading: false,
                             onTap: () {
-                              getIt.get<NavigationService>().pop();
+                              getIt.get<AppRouter>().pop();
                             },
                           ),
                         ],

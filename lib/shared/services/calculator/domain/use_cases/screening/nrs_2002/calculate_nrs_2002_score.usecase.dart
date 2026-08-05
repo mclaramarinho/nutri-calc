@@ -9,7 +9,7 @@
 
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/nrs_2002/nrs_2002_questionnaire_response.entity.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/nrs_2002/nrs_2002_score_result.entity.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateNrs2002Score {
   Result<Nrs2002ScoreResult, String> call(

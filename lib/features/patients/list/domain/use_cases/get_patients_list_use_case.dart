@@ -2,7 +2,7 @@ import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/features/patients/data/models/patient_model.dart';
 import 'package:nutri_calc/features/patients/list/domain/entities/patient_list_card_entity.dart';
 import 'package:nutri_calc/features/patients/list/domain/repositories/list_patient_repository.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 abstract class GetPatientsListUseCase {
   Future<Result<List<PatientListCardEntity>, String>> call();

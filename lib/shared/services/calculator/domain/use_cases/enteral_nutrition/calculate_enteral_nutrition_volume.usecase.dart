@@ -1,6 +1,6 @@
 // Volumetotal(ml) = Kcal total diaria / Densidade calorica da dieta (kcal/ml)
 
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateEnteralNutritionVolume {
   Result<double, String> call({

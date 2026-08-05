@@ -3,7 +3,7 @@
 
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/eer_pocket.entity.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/stress_level.enum.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateEerPocket {
   Result<EERPocket, String> call({

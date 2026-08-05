@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
-import 'package:nutri_calc/shared/services/router/app_routes.dart';
+import 'package:nutri_calc/routing/app_routes.dart';
 
-
-abstract class NavigationService {
+abstract class AppRouter {
   GoRouter get router;
   BuildContext? get context;
   AppRoutes? get currentRoute;
@@ -14,9 +13,9 @@ abstract class NavigationService {
   void replace(AppRoutes route, {Object? params});
 }
 
-@Singleton(as: NavigationService)
-class NavigationServiceImpl implements NavigationService {
-  NavigationServiceImpl();
+@Singleton(as: AppRouter)
+class AppRouterImpl implements AppRouter {
+  AppRouterImpl();
 
   static final _router = GoRouter(
     routes: AppRoutes.values

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/features/patients/list/domain/entities/patient_list_card_entity.dart';
 import 'package:nutri_calc/features/patients/list/domain/use_cases/get_patients_list_use_case.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 part 'list_patients_state.dart';
 

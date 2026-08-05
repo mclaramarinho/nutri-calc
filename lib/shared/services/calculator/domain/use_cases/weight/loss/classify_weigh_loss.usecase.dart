@@ -4,7 +4,7 @@
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss.entity.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss_classification.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss_reference.enum.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class ClassifyWeighLoss {
   const ClassifyWeighLoss();

@@ -5,7 +5,7 @@
 // Valor positivo indica anabolismo.
 // O objetivo em pacientes críticos é alcançar o equilíbrio (BN≈0).
 
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateNitrogenBalance {
   Result<double, String> call({

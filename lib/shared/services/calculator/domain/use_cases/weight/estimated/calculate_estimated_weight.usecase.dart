@@ -11,7 +11,7 @@
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/amputation_weight.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/ethnicity.dart';
 import 'package:nutri_calc/shared/utils/enums/gender.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateEstimatedWeight {
   Result<double, String> call({

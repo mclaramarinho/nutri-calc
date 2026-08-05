@@ -15,7 +15,7 @@
 
 import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi.entity.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi_classification.enum.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateBmi {
   Result<Bmi, String> call({

@@ -1,4 +1,4 @@
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 // REFERENCE
 class CalculateAdjustedObesityWeight {

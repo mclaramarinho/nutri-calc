@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/features/patients/list/presentation/cubit/list_patients_cubit.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
-import 'package:nutri_calc/shared/di/di.dart';
+import 'package:nutri_calc/di/di.dart';
 
 class ListPatientsPage extends StatelessWidget {
   const ListPatientsPage({super.key});

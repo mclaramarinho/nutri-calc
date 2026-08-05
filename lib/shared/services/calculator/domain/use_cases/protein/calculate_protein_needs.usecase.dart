@@ -13,7 +13,7 @@
 
 import 'package:nutri_calc/shared/services/calculator/domain/entities/protein/protein_needs.entity.dart';
 import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
-import 'package:nutri_calc/shared/utils/result/result.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateProteinNeeds {
   Result<ProteinNeeds, String> call({
