@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nutri_calc/shared/design_system/utils/ds_screen_adapter.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_fab/ds_fab.dart';
@@ -21,15 +22,23 @@ class DsScaffold extends StatelessWidget {
     final fab = currentRoute != null
         ? AppFabConfig.getByRoute(currentRoute)
         : null;
+    DsScreenAdapter.init(context);
 
-    return SafeArea(
-      child: Scaffold(
-        appBar: appBar != null ? DsAppBar.build(data: appBar!) : null,
-        floatingActionButton: fab != null ? DsFab(data: fab.data) : null,
-        body: SizedBox(
-          width: MediaQuery.sizeOf(context).width,
-          height: MediaQuery.sizeOf(context).height,
-          child: Padding(padding: EdgeInsetsGeometry.all(16), child: child),
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(
+          MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.3),
+        ),
+      ),
+      child: SafeArea(
+        child: Scaffold(
+          appBar: appBar != null ? DsAppBar.build(data: appBar!) : null,
+          floatingActionButton: fab != null ? DsFab(data: fab.data) : null,
+          body: SizedBox(
+            width: MediaQuery.sizeOf(context).width,
+            height: MediaQuery.sizeOf(context).height,
+            child: Padding(padding: EdgeInsetsGeometry.all(16), child: child),
+          ),
         ),
       ),
     );

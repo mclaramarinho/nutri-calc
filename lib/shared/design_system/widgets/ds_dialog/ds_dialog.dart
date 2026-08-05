@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_radius.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
@@ -81,8 +83,8 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(16)),
+                color: DsColors.white,
+                borderRadius: BorderRadius.all(DsRadius.small),
               ),
               child: Row(
                 children: [
@@ -97,7 +99,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                             widget.title!,
                             style: TextStyle(
                               fontWeight: .w700,
-                              color: Colors.black,
+                              color: DsColors.black,
                               decoration: .none,
                               fontSize: 22,
                             ),
@@ -109,7 +111,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                             widget.message!,
                             style: TextStyle(
                               fontWeight: .w700,
-                              color: Colors.black,
+                              color: DsColors.black,
                               decoration: .none,
                               fontSize: 16,
                             ),
