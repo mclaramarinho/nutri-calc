@@ -51,6 +51,5 @@ class NewPatientFormEntity extends Equatable {
   }
 
   @override
-  // TODO: implement props
   List<Object?> get props => [firstName, lastName, patientId, birthdate, age, ageUnit];
 }

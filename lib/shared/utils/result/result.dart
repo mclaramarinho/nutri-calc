@@ -1,6 +1,3 @@
-// TODO (docs)
-
-///
 ///A simple implementation of the Result type, which can be used to represent the result of an operation that can either succeed or fail.
 ///
 ///The Result type is a generic type that takes two type parameters: T, which represents the

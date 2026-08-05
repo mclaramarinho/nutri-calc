@@ -12,7 +12,7 @@ class ListPatientsCubit extends Cubit<ListPatientsState> {
   ListPatientsCubit({required this._getPatientsListUseCase})
     : super(ListPatientsStateInitial());
 
-  GetPatientsListUseCase _getPatientsListUseCase;
+  final GetPatientsListUseCase _getPatientsListUseCase;
 
   Future<void> init() async {
     emit(ListPatientsStateLoading());
