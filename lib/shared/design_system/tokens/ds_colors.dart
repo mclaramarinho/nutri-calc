@@ -4,4 +4,5 @@ class DsColors {
   static Color get white => Colors.white;
   static Color get blue => Colors.blue;
   static Color get black => Colors.black;
+  static Color get gray => Colors.grey.shade200;
 }

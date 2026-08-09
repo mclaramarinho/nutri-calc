@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:nutri_calc/features/home/presentation/home_page.dart';
+import 'package:nutri_calc/features/home/presentation/pages/home_page.dart';
 import 'package:nutri_calc/features/patients/new/presentation/pages/new_patient_page.dart';
 
 enum AppRoutes {
