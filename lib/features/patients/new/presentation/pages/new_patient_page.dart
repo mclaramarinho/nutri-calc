@@ -65,85 +65,88 @@ class _NewPatientPageContent extends StatelessWidget {
             onClose: _router.pop,
           ),
           children: [
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  DsTextfield(
-                    label: "ID do paciente",
-                    onChange: (val) => cubit.setValue(.patientId, val),
-                    validator: (value) => InputValidators.patientId(value),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DsTextfield(
-                          label: "Primeiro Nome*",
-                          onChange: (val) => cubit.setValue(.firstName, val),
-                          type: .name,
+            Padding(
+              padding: EdgeInsets.all(DsSpacing.md),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    DsTextfield(
+                      label: "ID do paciente",
+                      onChange: (val) => cubit.setValue(.patientId, val),
+                      validator: (value) => InputValidators.patientId(value),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DsTextfield(
+                            label: "Primeiro Nome*",
+                            onChange: (val) => cubit.setValue(.firstName, val),
+                            type: .name,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: DsSpacing.md),
-                      Expanded(
-                        child: DsTextfield(
-                          label: "Último Nome*",
-                          onChange: (val) => cubit.setValue(.lastName, val),
-                          type: .name,
+                        SizedBox(width: DsSpacing.md),
+                        Expanded(
+                          child: DsTextfield(
+                            label: "Último Nome*",
+                            onChange: (val) => cubit.setValue(.lastName, val),
+                            type: .name,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DsTextfield(
-                          label: "Idade",
-                          customController: cubit.ageInputController,
-                          onChange: (val) =>
-                              cubit.setValue(.age, int.tryParse(val)),
-                          type: .number,
-                          disabled:
-                              (state as NewPatientStateInitial).disableAgeInput,
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DsTextfield(
+                            label: "Idade",
+                            customController: cubit.ageInputController,
+                            onChange: (val) =>
+                                cubit.setValue(.age, int.tryParse(val)),
+                            type: .number,
+                            disabled:
+                                (state as NewPatientStateInitial).disableAgeInput,
+                          ),
                         ),
-                      ),
-
-                      Expanded(
-                        child: DropdownMenuFormField(
-                          dropdownMenuEntries: TimeUnit.values
-                              .map(
-                                (val) => DropdownMenuEntry(
-                                  value: val,
-                                  label: val.name,
-                                ),
-                              )
-                              .toList(),
-
-                          expandedInsets: EdgeInsets.all(DsSpacing.none),
-                          onSelected: (val) => cubit.setValue(.ageUnit, val),
-                          enabled: !state.disableAgeInput,
-                          initialSelection: state.disableAgeInput
-                              ? state.form!.ageUnit
-                              : "",
+              
+                        Expanded(
+                          child: DropdownMenuFormField(
+                            dropdownMenuEntries: TimeUnit.values
+                                .map(
+                                  (val) => DropdownMenuEntry(
+                                    value: val,
+                                    label: val.name,
+                                  ),
+                                )
+                                .toList(),
+              
+                            expandedInsets: EdgeInsets.all(DsSpacing.none),
+                            onSelected: (val) => cubit.setValue(.ageUnit, val),
+                            enabled: !state.disableAgeInput,
+                            initialSelection: state.disableAgeInput
+                                ? state.form!.ageUnit
+                                : "",
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  DsTextfield(
-                    label: "Data de Nascimento",
-                    onChange: (val) =>
-                        cubit.setValue(.birthdate, DateTime.tryParse(val)),
-                    type: .datetime,
-                  ),
-
-                  Row(
-                    children: [
-                      DsButton(
-                        label: "Salvar",
-                        isLoading: state.isSaving,
-                        onTap: cubit.onSubmit,
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                    DsTextfield(
+                      label: "Data de Nascimento",
+                      onChange: (val) =>
+                          cubit.setValue(.birthdate, DateTime.tryParse(val)),
+                      type: .datetime,
+                    ),
+              
+                    Row(
+                      children: [
+                        DsButton(
+                          label: "Salvar",
+                          isLoading: state.isSaving,
+                          onTap: cubit.onSubmit,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
