@@ -15,7 +15,7 @@ class DsAppBar {
       actions: [
         Icon(Icons.close).touchEvents(onTap: () => data.onClose?.call()),
       ],
-      actionsPadding: EdgeInsets.all(DsSpacing.md),
+      actionsPadding: EdgeInsets.all(DsSpacing.xxl),
     );
   }
 }
