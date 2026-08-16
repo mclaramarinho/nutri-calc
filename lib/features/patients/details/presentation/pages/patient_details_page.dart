@@ -1,5 +1,3 @@
-// TODO - edit patient
-// TODO - view patient data
 // TODO - quick links to calculators
 
 import 'package:flutter/material.dart';
@@ -57,12 +55,11 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
             }
             if (state is PatientDetailsStateLoaded) {
               return DsTabView(
-                tabs: [Text("Tab 1"), Text("Tab 2")],
-                tabsContents: [Placeholder(), Placeholder()],
+                tabs: [Text("Calculadoras"), Text("Medidas"), Text("Histórico")],
+                tabsContents: [Placeholder(), Placeholder(), Placeholder()],
                 header: Column(
                   spacing: 10,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  // children: [...getFields(state)],
                   children: [PatientDetailsForm()],
                 ),
               );
