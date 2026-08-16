@@ -27,10 +27,15 @@ class LoadPatientDetailsUseCaseImpl implements LoadPatientDetailsUseCase {
       if (patient.isError) return Error((patient as Error).error);
       PatientModel pat = (patient as Ok).value;
 
+      if(pat.id == null) {
+        return Error("Patient does not exist on the database");
+      }
+
       return Ok(
         EditPatientFormEntity(
           firstName: pat.firstName,
           lastName: pat.lastName,
+          patientLocalId: pat.id!,
           patientId: pat.patientId,
           birthdate: pat.birthdate,
           age: pat.age,

@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/features/patients/new/domain/entities/new_patient_form_entity.dart';
 import 'package:nutri_calc/features/patients/new/domain/use_cases/create_patient_use_case.dart';
+import 'package:nutri_calc/shared/utils/entities/age_entity.dart';
 import 'package:nutri_calc/shared/utils/enums/time_unit.dart';
+import 'package:nutri_calc/shared/utils/extensions/ext_age.dart';
 part 'new_patient_cubit.dart';
 
 abstract class NewPatientState extends Equatable {}

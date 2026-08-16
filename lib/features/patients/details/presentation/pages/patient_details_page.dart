@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
+import 'package:nutri_calc/features/patients/details/presentation/widgets/patient_details_form.dart';
 import 'package:nutri_calc/routing/app_router.dart';
-import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_tab_view/ds_tab_view.dart';
@@ -35,28 +35,6 @@ class _PatientDetailsPage extends StatefulWidget {
 }
 
 class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
-  List<RichText> getFields(PatientDetailsStateLoaded loadedState) {
-    List<RichText> widgets = [];
-
-    for (final entry in loadedState.mappedBasicInfo.entries) {
-      widgets.add(
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: "${entry.key}: ",
-                style: TextStyle(fontWeight: .w900),
-              ),
-              TextSpan(text: entry.value ?? "Desconhecido"),
-            ],
-            style: TextStyle(color: DsColors.black),
-          ),
-        ),
-      );
-    }
-    return widgets;
-  }
-
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
@@ -84,7 +62,8 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                 header: Column(
                   spacing: 10,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [...getFields(state)],
+                  // children: [...getFields(state)],
+                  children: [PatientDetailsForm()],
                 ),
               );
             }

@@ -7,10 +7,12 @@ class EditPatientFormEntity {
   final DateTime? birthdate;
   final int? age;
   final TimeUnit? ageUnit;
+  final String patientLocalId;
 
   const EditPatientFormEntity({
     required this.firstName,
     required this.lastName,
+    required this.patientLocalId,
     this.patientId,
     this.birthdate,
     this.age,
@@ -27,6 +29,7 @@ class EditPatientFormEntity {
   }) => EditPatientFormEntity(
     firstName: firstName ?? this.firstName,
     lastName: lastName ?? this.lastName,
+    patientLocalId: this.patientLocalId,
     patientId: patientId ?? this.patientId,
     birthdate: birthdate ?? this.birthdate,
     age: age ?? this.age,

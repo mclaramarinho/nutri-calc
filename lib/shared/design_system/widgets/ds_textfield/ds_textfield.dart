@@ -11,6 +11,7 @@ class DsTextfield extends StatefulWidget {
   final String? Function(String? value)? validator;
   final bool? disabled;
   final String? staticValue;
+  final String? initialValue;
   final TextEditingController? customController;
 
   const DsTextfield({
@@ -21,6 +22,7 @@ class DsTextfield extends StatefulWidget {
     this.type,
     this.validator,
     this.staticValue,
+    this.initialValue,
     this.customController,
     super.key,
   });
@@ -31,13 +33,23 @@ class DsTextfield extends StatefulWidget {
 
 class _DsTextFieldState extends State<DsTextfield> {
   DateTime? selectedDate;
-  late TextEditingController controller;
+  late final TextEditingController controller;
   String? errorMessage;
 
   @override
   void initState() {
-    controller = widget.customController ?? TextEditingController();
     super.initState();
+
+    final initialValue = widget.staticValue ?? widget.initialValue ?? '';
+    if (widget.customController != null) {
+      controller = widget.customController!;
+      if (controller.text.isEmpty && initialValue.isNotEmpty) {
+        controller.text = initialValue;
+      }
+      return;
+    }
+
+    controller = TextEditingController(text: initialValue);
   }
 
   void openDatePicker(BuildContext context) {
@@ -71,11 +83,11 @@ class _DsTextFieldState extends State<DsTextfield> {
   }
 
   @override
-  void didUpdateWidget(covariant DsTextfield oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.staticValue != null) {
-      controller.text = widget.staticValue!;
+  void dispose() {
+    if (widget.customController == null) {
+      controller.dispose();
     }
+    super.dispose();
   }
 
   @override

@@ -114,18 +114,8 @@ class NewPatientCubit extends Cubit<NewPatientState> {
         ageInputController.text = newForm.age.toString();
         break;
       case .birthdate:
-        final ageDays = DateTime.now().difference(value).inDays;
-        final ageMonths = (ageDays / 30.5).floor();
-        if (ageDays < 30) {
-          newForm = newForm.copyWith(age: ageDays, ageUnit: .day);
-        } else if (ageMonths < 12) {
-          newForm = newForm.copyWith(age: ageMonths, ageUnit: .month);
-        } else {
-          newForm = newForm.copyWith(
-            age: (ageMonths / 12).floor(),
-            ageUnit: .year,
-          );
-        }
+        final AgeEntity age = (value as DateTime).getAge();
+        newForm = newForm.copyWith(age: age.value, ageUnit: age.unit);
         ageInputController.text = newForm.age.toString();
         disableAgeInput = true;
         newForm = newForm.copyWith(birthdate: value);

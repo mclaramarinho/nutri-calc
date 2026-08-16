@@ -37,4 +37,25 @@ class PatientDetailsRepositoryImpl implements PatientDetailsRepository {
       return Error(err.toString());
     }
   }
+
+  @override
+  Future<Result<void, String>> updatePatient(
+    PatientModel patient,
+    String patientLocalId,
+  ) async {
+    try {
+      final updateRes = await _databaseService.update(
+        .patient,
+        values: patient.toJson(),
+        where: "id = ",
+        whereArgs: [patientLocalId],
+      );
+      if (updateRes.isOk && (updateRes as Ok).value == 1) {
+        return Ok(null);
+      }
+      return Error("Error updating patient");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }
