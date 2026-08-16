@@ -9,8 +9,4 @@ extension ExtNumScreenAdapter on num {
 
   /// Radius scaling (typically tied to width to maintain circular/proportional shapes)
   double get r => this * DsScreenAdapter.scaleWidth;
-
-  /// Scalable font size (respects both screen size scaling and accessibility text scaler)
-  double get sp =>
-      DsScreenAdapter.textScaler.scale(this * DsScreenAdapter.scaleWidth);
 }

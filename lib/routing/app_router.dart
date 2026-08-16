@@ -7,10 +7,11 @@ abstract class AppRouter {
   GoRouter get router;
   BuildContext? get context;
   AppRoutes? get currentRoute;
+  Object? get params;
 
-  void push(AppRoutes route, {Object? params});
+  void push(AppRoutes route, {Map<String, dynamic>? params});
   void pop();
-  void replace(AppRoutes route, {Object? params});
+  void replace(AppRoutes route, {Map<String, dynamic>? params});
 }
 
 @Singleton(as: AppRouter)
@@ -22,7 +23,9 @@ class AppRouterImpl implements AppRouter {
         .map(
           (route) => GoRoute(
             path: route.path,
-            builder: (context, state) => route.page,
+            builder: (context, state) {
+              return route.page;
+            },
           ),
         )
         .toList(),
@@ -36,12 +39,15 @@ class AppRouterImpl implements AppRouter {
       _router.routerDelegate.navigatorKey.currentContext;
 
   @override
+  Object? get params => _router.state.extra;
+
+  @override
   AppRoutes? get currentRoute =>
       AppRoutes.getByPath(_router.state.matchedLocation);
 
   // METHODS =================================================================
   @override
-  void push(AppRoutes route, {Object? params}) {
+  void push(AppRoutes route, {Map<String, dynamic>? params}) {
     router.push(route.path, extra: params);
   }
 
@@ -51,7 +57,7 @@ class AppRouterImpl implements AppRouter {
   }
 
   @override
-  void replace(AppRoutes route, {Object? params}) {
+  void replace(AppRoutes route, {Map<String, dynamic>? params}) {
     router.replace(route.path, extra: params);
   }
 }

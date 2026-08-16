@@ -23,6 +23,7 @@ class GetPatientsListUseCaseImpl implements GetPatientsListUseCase {
 
       final entities = (res as Ok<List<PatientModel>, String>).value.map(
         (pt) => PatientListCardEntity(
+          localId: pt.id,
           firstName: pt.firstName,
           lastName: pt.lastName,
           patientId: pt.patientId,

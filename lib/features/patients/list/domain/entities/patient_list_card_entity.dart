@@ -6,9 +6,11 @@ class PatientListCardEntity {
   final int? age;
   final String? patientId;
   final TimeUnit? ageUnit;
+  final String? localId;
 
   const PatientListCardEntity({
     required this.firstName,
+    required this.localId,
     required this.lastName,
     this.age,
     this.patientId,

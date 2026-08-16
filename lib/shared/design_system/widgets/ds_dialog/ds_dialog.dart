@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_radius.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
-import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_typography.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
@@ -95,7 +95,6 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                       mainAxisAlignment: .center,
                       spacing: 16,
                       children: [
-                        // title
                         if (widget.title != null) ...[
                           Text(
                             widget.title!,
@@ -103,11 +102,10 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                               fontWeight: .w700,
                               color: DsColors.black,
                               decoration: .none,
-                              fontSize: 22.sp,
+                              fontSize: DsTypography.large,
                             ),
                           ),
                         ],
-                        // message
                         if (widget.message != null) ...[
                           Text(
                             widget.message!,
@@ -115,7 +113,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                               fontWeight: .w700,
                               color: DsColors.black,
                               decoration: .none,
-                              fontSize: 16.sp,
+                              fontSize: DsTypography.small,
                             ),
                           ),
                         ],
@@ -124,7 +122,6 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                           Row(children: widget.actions!),
                         ],
 
-                        // close
                         if (widget.actions == null &&
                             widget.showCloseButton &&
                             widget.duration == null) ...[

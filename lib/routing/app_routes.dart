@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:nutri_calc/features/home/presentation/pages/home_page.dart';
+import 'package:nutri_calc/features/patients/details/presentation/pages/patient_details_page.dart';
 import 'package:nutri_calc/features/patients/new/presentation/pages/new_patient_page.dart';
 
 enum AppRoutes {
   createPatient(page: NewPatientPage(), path: "/create-patient"),
-  home(page: HomePage(), path: "/");
+  home(page: HomePage(), path: "/"),
+  patientDetails(page: PatientDetailsPage(), path: "/patient-details");
 
   final String path;
   final Widget page;
