@@ -5,13 +5,20 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   PatientDetailsCubit({
     required this._loadPatientDetailsUseCase,
     required this._updatePatientUseCase,
+    required this._createWeightUseCase,
+    required this._getWeightsUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
   final UpdatePatientUseCase _updatePatientUseCase;
+  final CreateWeightUseCase _createWeightUseCase;
+  final GetWeightsUseCase _getWeightsUseCase;
 
   Future<void> init(String patientId) async {
-    final result = await _loadPatientDetailsUseCase(patientId);
+    final result = await Future.wait([
+      _loadPatientDetailsUseCase(patientId),
+      _getWeightsUseCase(patientId),
+    ]);
     if (result is Error) {
       emit(
         PatientDetailsStateError(
@@ -21,11 +28,16 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       return;
     }
 
-    emit(PatientDetailsStateLoaded(form: (result as Ok).value));
+    emit(
+      PatientDetailsStateLoaded(
+        form: (result[0] as Ok).value,
+        weights: (result[1] as Ok).value,
+      ),
+    );
   }
 
   void toggleEditing() {
-    executeOnStateLoaded((current) {
+    _executeOnStateLoaded((current) {
       final isEditing = current.isEditing;
 
       if (isEditing) {
@@ -45,42 +57,33 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   }
 
   Future<void> updatePatientData() async {
-    executeOnStateLoaded((current) async {
-      // TODO - Update Patient
-      print({
-        "age": current.form.age,
-        "ageUnit": current.form.ageUnit,
-        "birthdate": current.form.birthdate,
-        "fName": current.form.firstName,
-        "lName": current.form.lastName,
-        "id": current.form.patientId,
-      });
+    _executeOnStateLoaded((current) async {
       final res = await _updatePatientUseCase(current.form);
 
-      await handleSaveResult(current, res.isOk);
+      await _handleSaveResult(current, res.isOk);
     });
   }
 
   void updateId(String? value) {
-    executeOnStateLoaded((current) async {
+    _executeOnStateLoaded((current) async {
       emit(current.copyWith(form: current.form.copyWith(patientId: value)));
     });
   }
 
   void updateFirstName(String? value) {
-    executeOnStateLoaded((current) async {
+    _executeOnStateLoaded((current) async {
       emit(current.copyWith(form: current.form.copyWith(firstName: value)));
     });
   }
 
   void updateLastName(String? value) {
-    executeOnStateLoaded((current) async {
+    _executeOnStateLoaded((current) async {
       emit(current.copyWith(form: current.form.copyWith(lastName: value)));
     });
   }
 
   void updateAge(String? value) {
-    executeOnStateLoaded((current) async {
+    _executeOnStateLoaded((current) async {
       emit(
         current.copyWith(
           form: current.form.copyWith(age: int.tryParse(value ?? '')),
@@ -90,13 +93,13 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   }
 
   void updateAgeUnit(TimeUnit? value) {
-    executeOnStateLoaded((current) async {
+    _executeOnStateLoaded((current) async {
       emit(current.copyWith(form: current.form.copyWith(ageUnit: value)));
     });
   }
 
   void updateBirthdate(DateTime? value) {
-    executeOnStateLoaded((current) async {
+    _executeOnStateLoaded((current) async {
       final AgeEntity age = (value as DateTime).getAge();
       emit(
         current.copyWith(
@@ -110,7 +113,27 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
-  Future<void> handleSaveResult(
+  void updateWeightValue(String? value) {
+    if (value == null) return;
+    _executeOnStateLoaded((current) {
+      emit(current.copyWith(newWeight: double.tryParse(value)));
+    });
+  }
+
+  Future<void> saveWeight() async {
+    _executeOnStateLoaded((current) {
+      if (current.newWeight == null) return;
+      _createWeightUseCase(
+        weight: WeightEntity(
+          createdAt: DateTime.now(),
+          value: current.newWeight!,
+          patientId: current.form.patientLocalId,
+        ),
+      );
+    });
+  }
+
+  Future<void> _handleSaveResult(
     PatientDetailsStateLoaded current,
     bool isSuccess,
   ) async {
@@ -121,7 +144,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     emit(current.copyWith(isEditing: false, isSaved: false, isSaving: false));
   }
 
-  void executeOnStateLoaded(
+  void _executeOnStateLoaded(
     void Function(PatientDetailsStateLoaded currentState) callback,
   ) {
     if (state is PatientDetailsStateLoaded) {

@@ -1,7 +1,9 @@
 import 'package:nutri_calc/core/services/database/entities/table_sql_field.entity.dart';
 
 enum AppDatabaseTables {
-  patient(name: "PATIENT");
+  patient(name: "PATIENT"),
+  weights(name: "WEIGHTS"),
+  heights(name: "HEIGHTS");
 
   final String name;
   const AppDatabaseTables({required this.name});
@@ -21,6 +23,20 @@ enum AppDatabaseTables {
           TableSqlField(name: "birthdate", type: .text),
           TableSqlField(name: "age", type: .integer),
           TableSqlField(name: "ageUnit", type: .text),
+        ]);
+      case .weights:
+        return _getSqlForCreateTable([
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "value", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text),
+          TableSqlField(name: "patientId", type: .text),
+        ]);
+      case .heights:
+        return _getSqlForCreateTable([
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "value", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text),
+          TableSqlField(name: "patientId", type: .text),
         ]);
     }
   }

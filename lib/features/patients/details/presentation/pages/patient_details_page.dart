@@ -5,7 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/patient_details_form.dart';
+import 'package:nutri_calc/features/patients/details/presentation/widgets/patient_measurements_tab.dart';
 import 'package:nutri_calc/routing/app_router.dart';
+import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_tab_view/ds_tab_view.dart';
@@ -55,10 +57,10 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
             }
             if (state is PatientDetailsStateLoaded) {
               return DsTabView(
-                tabs: [Text("Calculadoras"), Text("Medidas"), Text("Histórico")],
-                tabsContents: [Placeholder(), Placeholder(), Placeholder()],
+                tabs: [Text("Calculadoras"), Text("Pesos"), Text("Alturas"), Text("Histórico")],
+                tabsContents: [Placeholder(), PatientWeightsTab(), Placeholder(), Placeholder()],
                 header: Column(
-                  spacing: 10,
+                  spacing: 10.h,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [PatientDetailsForm()],
                 ),
