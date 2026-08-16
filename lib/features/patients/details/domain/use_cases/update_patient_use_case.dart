@@ -25,8 +25,8 @@ class UpdatePatientUseCaseImpl implements UpdatePatientUseCase {
           birthdate: form.birthdate,
           age: form.age,
           ageUnit: form.ageUnit,
+          id: form.patientLocalId,
         ),
-        form.patientLocalId,
       );
     } catch (err) {
       return Error(err.toString());

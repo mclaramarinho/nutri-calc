@@ -5,6 +5,5 @@ abstract class PatientDetailsRepository {
   Future<Result<PatientModel, String>> getPatientData(String localId);
   Future<Result<void, String>> updatePatient(
     PatientModel patient,
-    String patientLocalId,
   );
 }

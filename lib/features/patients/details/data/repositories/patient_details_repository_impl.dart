@@ -41,16 +41,17 @@ class PatientDetailsRepositoryImpl implements PatientDetailsRepository {
   @override
   Future<Result<void, String>> updatePatient(
     PatientModel patient,
-    String patientLocalId,
   ) async {
     try {
+      final json = patient.toJson();
+      json.remove("id");
       final updateRes = await _databaseService.update(
         .patient,
-        values: patient.toJson(),
-        where: "id = ",
-        whereArgs: [patientLocalId],
+        values: json,
+        where: "id = ?",
+        whereArgs: [patient.id!],
       );
-      if (updateRes.isOk && (updateRes as Ok).value == 1) {
+      if (updateRes.isOk && (updateRes as Ok).value >= 1) {
         return Ok(null);
       }
       return Error("Error updating patient");
