@@ -5,7 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/patient_details_form.dart';
-import 'package:nutri_calc/features/patients/details/presentation/widgets/patient_measurements_tab.dart';
+import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_circumferences_tab.dart';
+import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_measurements_tab.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
@@ -69,7 +70,7 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                   DsPlaceholder(),
                   PatientMeasurementsTab(type: .weight),
                   PatientMeasurementsTab(type: .height),
-                  DsPlaceholder(),
+                  PatientCircumferencesTab(),
                   DsPlaceholder(),
                 ],
                 header: Column(
