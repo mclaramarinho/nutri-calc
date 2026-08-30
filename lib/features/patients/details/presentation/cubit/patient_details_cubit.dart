@@ -7,6 +7,8 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._updatePatientUseCase,
     required this._createWeightUseCase,
     required this._getWeightsUseCase,
+    required this._createHeightUseCase,
+    required this._getHeightsUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
@@ -14,10 +16,15 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   final CreateWeightUseCase _createWeightUseCase;
   final GetWeightsUseCase _getWeightsUseCase;
 
+  final CreateHeightUseCase _createHeightUseCase;
+  final GetHeightsUseCase _getHeightsUseCase;
+
+  // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
     final result = await Future.wait([
       _loadPatientDetailsUseCase(patientId),
       _getWeightsUseCase(patientId),
+      _getHeightsUseCase(patientId),
     ]);
     if (result is Error) {
       emit(
@@ -32,10 +39,12 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       PatientDetailsStateLoaded(
         form: (result[0] as Ok).value,
         weights: (result[1] as Ok).value,
+        heights: (result[2] as Ok).value
       ),
     );
   }
 
+  // EDIT PATIENT DATA =====================================================
   void toggleEditing() {
     _executeOnStateLoaded((current) {
       final isEditing = current.isEditing;
@@ -113,6 +122,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
+  // WEIGHT TAB ============================================================
   void updateWeightValue(String? value) {
     if (value == null) return;
     _executeOnStateLoaded((current) {
@@ -133,6 +143,28 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
+  // HEIGHT TAB ============================================================
+  void updateHeightValue(String? value) {
+    if (value == null) return;
+    _executeOnStateLoaded((current) {
+      emit(current.copyWith(newHeight: double.tryParse(value)));
+    });
+  }
+
+  Future<void> saveHeight() async {
+    _executeOnStateLoaded((current) {
+      if (current.newHeight == null) return;
+      _createHeightUseCase(
+        height: HeightEntity(
+          createdAt: DateTime.now(),
+          value: current.newHeight!,
+          patientId: current.form.patientLocalId,
+        ),
+      );
+    });
+  }
+
+  // PRIVATE METHODS =======================================================
   Future<void> _handleSaveResult(
     PatientDetailsStateLoaded current,
     bool isSuccess,
@@ -153,5 +185,5 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   }
 
   // TODO - register measurements
-  // weight, height, circumferences
+  // circumferences
 }

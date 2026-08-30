@@ -29,7 +29,7 @@ class EditPatientFormEntity {
   }) => EditPatientFormEntity(
     firstName: firstName ?? this.firstName,
     lastName: lastName ?? this.lastName,
-    patientLocalId: this.patientLocalId,
+    patientLocalId: patientLocalId,
     patientId: patientId ?? this.patientId,
     birthdate: birthdate ?? this.birthdate,
     age: age ?? this.age,

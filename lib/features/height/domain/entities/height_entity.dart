@@ -1,6 +1,6 @@
 import 'package:nutri_calc/shared/domain/entities/measurement_entity.dart';
 
-class WeightEntity implements MeasurementEntity {
+class HeightEntity implements MeasurementEntity {
   @override
   final String? id;
   @override
@@ -10,19 +10,19 @@ class WeightEntity implements MeasurementEntity {
   @override
   final String patientId;
 
-  const WeightEntity({
+  const HeightEntity({
     required this.createdAt,
     required this.value,
     required this.patientId,
     this.id,
   });
 
-  WeightEntity copyWith({
+  HeightEntity copyWith({
     String? id,
     double? value,
     DateTime? createdAt,
     String? patientId,
-  }) => WeightEntity(
+  }) => HeightEntity(
     createdAt: createdAt ?? this.createdAt,
     value: value ?? this.value,
     patientId: patientId ?? this.patientId,

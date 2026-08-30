@@ -2,6 +2,9 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
+import 'package:nutri_calc/features/height/domain/entities/height_entity.dart';
+import 'package:nutri_calc/features/height/domain/use_cases/create_height_use_case.dart';
+import 'package:nutri_calc/features/height/domain/use_cases/get_heights_use_case.dart';
 import 'package:nutri_calc/features/patients/details/domain/entities/edit_patient_form_entity.dart';
 import 'package:nutri_calc/features/patients/details/domain/use_cases/load_patient_details_use_case.dart';
 import 'package:nutri_calc/features/patients/details/domain/use_cases/update_patient_use_case.dart';
@@ -42,6 +45,9 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isSavingWeight = false,
     this.weights = const [],
     this.newWeight,
+    this.isSavingHeight = false,
+    this.heights = const [],
+    this.newHeight,
   });
 
   final EditPatientFormEntity form;
@@ -53,6 +59,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final bool isSavingWeight;
   final List<WeightEntity> weights;
 
+  final double? newHeight;
+  final bool isSavingHeight;
+  final List<HeightEntity> heights;
+
   PatientDetailsStateLoaded copyWith({
     EditPatientFormEntity? form,
     bool? isEditing,
@@ -62,6 +72,9 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     double? newWeight,
     bool? isSavingWeight,
     List<WeightEntity>? weights,
+    double? newHeight,
+    bool? isSavingHeight,
+    List<HeightEntity>? heights,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
@@ -71,6 +84,9 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     newWeight: newWeight ?? this.newWeight,
     isSavingWeight: isSavingWeight ?? this.isSavingWeight,
     weights: weights ?? this.weights,
+    newHeight: newHeight ?? this.newHeight,
+    isSavingHeight: isSavingHeight ?? this.isSavingHeight,
+    heights: heights ?? this.heights,
   );
 
   @override
@@ -82,5 +98,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     newWeight,
     isSavingWeight,
     weights,
+    newHeight,
+    isSavingHeight,
+    heights,
   ];
 }

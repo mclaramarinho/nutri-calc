@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/core/utils/extensions/ext_datetime.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
+import 'package:nutri_calc/shared/utils/formatters/only_numbers_formatter.dart';
 
-class PatientWeightsTab extends StatelessWidget {
-  const PatientWeightsTab({super.key});
+enum MeasurementType { weight, height }
+
+class PatientMeasurementsTab extends StatelessWidget {
+  final MeasurementType type;
+
+  const PatientMeasurementsTab({required this.type, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,51 +25,74 @@ class PatientWeightsTab extends StatelessWidget {
 
         final cubit = context.read<PatientDetailsCubit>();
 
+        final isWeight = type == .weight;
+
+        final listData = isWeight ? state.weights : state.heights;
+
         return Column(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: DsTextfield(
-                    type: .number,
-                    label: "Peso",
-                    hintText: "XX.X",
-                    onChange: cubit.updateWeightValue,
+            Padding(
+              padding: EdgeInsets.all(DsSpacing.lg),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DsTextfield(
+                      type: .number,
+                      label: isWeight ? "Peso" : "Altura",
+                      hintText: isWeight ? "XX.X" : "XXX",
+                      inputFormatters: isWeight
+                          ? null
+                          : [OnlyNumbersFormatter()],
+                      onChange: isWeight
+                          ? cubit.updateWeightValue
+                          : cubit.updateHeightValue,
+                    ),
                   ),
-                ),
-                DsButton(
-                  label: "Salvar",
-                  isLoading: state.isSavingWeight,
-                  onTap: cubit.saveWeight,
-                ),
-              ],
+                  DsButton(
+                    label: "Salvar",
+                    isLoading: state.isSavingWeight,
+                    onTap: isWeight ? cubit.saveWeight : cubit.saveHeight,
+                  ),
+                ],
+              ),
             ),
 
-            if (state.weights.isEmpty) ...[
-              Text("Não encontramos pesos para esse paciente."),
+            if (listData.isEmpty) ...[
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: .center,
+                  children: [
+                    Text(
+                      "Não encontramos ${isWeight ? 'pesos' : 'alturas'} para esse paciente.",
+                    ),
+                  ],
+                ),
+              ),
             ],
 
-            if (state.weights.isNotEmpty) ...[
+            if (listData.isNotEmpty) ...[
               Flexible(
                 child: ListView.separated(
-                  itemCount: state.weights.length,
+                  itemCount: listData.length,
                   itemBuilder: ((context, index) {
-                    final weight = state.weights[index];
-                    final prevWeight = index < state.weights.length - 1
-                        ? state.weights[index + 1].value
+                    final measurement = listData[index];
+                    final prevMeasurement = index < listData.length - 1
+                        ? listData[index + 1].value
                         : null;
 
-                    final curve = prevWeight != null
-                        ? prevWeight > weight.value
+                    final curve = prevMeasurement != null
+                        ? prevMeasurement > measurement.value
                               ? "desc"
-                              : prevWeight < weight.value
+                              : prevMeasurement < measurement.value
                               ? "asc"
                               : "nochange"
                         : "nochange";
 
+                    final unit = isWeight ? 'kg' : 'cm';
+
                     return ListTile(
-                      title: Text("${weight.value} kg"),
-                      subtitle: Text(weight.createdAt.formattedDateTime()),
+                      title: Text("${measurement.value} $unit"),
+                      subtitle: Text(measurement.createdAt.formattedDateTime()),
                       trailing: curve == "desc"
                           ? Icon(Icons.trending_down_sharp)
                           : curve == "asc"

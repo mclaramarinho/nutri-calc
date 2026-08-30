@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nutri_calc/core/utils/extensions/ext_datetime.dart';
 import 'package:nutri_calc/core/utils/extensions/ext_widget.dart';
 import 'package:nutri_calc/core/utils/formatters/datetime_formatter.dart';
@@ -13,6 +14,7 @@ class DsTextfield extends StatefulWidget {
   final String? staticValue;
   final String? initialValue;
   final TextEditingController? customController;
+  final List<TextInputFormatter>? inputFormatters;
 
   const DsTextfield({
     this.disabled = false,
@@ -24,6 +26,7 @@ class DsTextfield extends StatefulWidget {
     this.staticValue,
     this.initialValue,
     this.customController,
+    this.inputFormatters,
     super.key,
   });
 
@@ -99,6 +102,7 @@ class _DsTextFieldState extends State<DsTextfield> {
       enabled: !widget.disabled!,
       inputFormatters: [
         if (widget.type == .datetime) ...[DatetimeFormatter()],
+        ...widget.inputFormatters ?? [],
       ],
       readOnly: widget.type == .datetime,
       decoration: InputDecoration(

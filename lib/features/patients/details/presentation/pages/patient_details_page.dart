@@ -57,8 +57,18 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
             }
             if (state is PatientDetailsStateLoaded) {
               return DsTabView(
-                tabs: [Text("Calculadoras"), Text("Pesos"), Text("Alturas"), Text("Histórico")],
-                tabsContents: [Placeholder(), PatientWeightsTab(), Placeholder(), Placeholder()],
+                tabs: [
+                  Text("Calculadoras"),
+                  Text("Pesos"),
+                  Text("Alturas"),
+                  Text("Histórico"),
+                ],
+                tabsContents: [
+                  Placeholder(),
+                  PatientMeasurementsTab(type: .weight),
+                  PatientMeasurementsTab(type: .height),
+                  Placeholder(),
+                ],
                 header: Column(
                   spacing: 10.h,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
