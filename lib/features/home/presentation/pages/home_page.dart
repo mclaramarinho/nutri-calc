@@ -6,6 +6,7 @@ import 'package:nutri_calc/features/patients/list/presentation/pages/list_patien
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_bottom_nav/ds_bottom_nav_data.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_fab/ds_fab_data.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_placeholder/ds_placeholder.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
 
 class HomePage extends StatelessWidget {
@@ -45,7 +46,7 @@ class HomePage extends StatelessWidget {
                 ),
               ],
             ),
-            children: [Placeholder(), ListPatientsPage()],
+            children: [DsPlaceholder(), ListPatientsPage()],
           );
         },
       ),

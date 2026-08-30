@@ -5,6 +5,7 @@ import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_placeholder/ds_placeholder.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
 import 'package:nutri_calc/shared/utils/formatters/only_numbers_formatter.dart';
 
@@ -59,13 +60,9 @@ class PatientMeasurementsTab extends StatelessWidget {
 
             if (listData.isEmpty) ...[
               Expanded(
-                child: Column(
-                  mainAxisAlignment: .center,
-                  children: [
-                    Text(
+                child: DsPlaceholder(
+                  message:
                       "Não encontramos ${isWeight ? 'pesos' : 'alturas'} para esse paciente.",
-                    ),
-                  ],
                 ),
               ),
             ],

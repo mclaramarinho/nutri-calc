@@ -57,7 +57,12 @@ class _DsTabView extends State<DsTabView> with SingleTickerProviderStateMixin {
             SliverPersistentHeader(
               pinned: true,
               delegate: TabBarDelegate(
-                TabBar(controller: _tabController, tabs: widget.tabs, isScrollable: true,),
+                TabBar(
+                  controller: _tabController,
+                  tabs: widget.tabs,
+                  isScrollable: true,
+                  tabAlignment: .start,
+                ),
               ),
             ),
           ];

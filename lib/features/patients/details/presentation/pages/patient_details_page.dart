@@ -9,6 +9,7 @@ import 'package:nutri_calc/features/patients/details/presentation/widgets/patien
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_placeholder/ds_placeholder.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_tab_view/ds_tab_view.dart';
 
@@ -61,13 +62,15 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                   Text("Calculadoras"),
                   Text("Pesos"),
                   Text("Alturas"),
+                  Text("Circunferências"),
                   Text("Histórico"),
                 ],
                 tabsContents: [
-                  Placeholder(),
+                  DsPlaceholder(),
                   PatientMeasurementsTab(type: .weight),
                   PatientMeasurementsTab(type: .height),
-                  Placeholder(),
+                  DsPlaceholder(),
+                  DsPlaceholder(),
                 ],
                 header: Column(
                   spacing: 10.h,
@@ -76,7 +79,7 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                 ),
               );
             }
-            return Placeholder();
+            return DsPlaceholder();
           },
         ),
       ],
