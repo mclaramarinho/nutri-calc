@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/core/utils/extensions/ext_datetime.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
+import 'package:nutri_calc/features/patients/details/presentation/widgets/measurement_input_field.dart';
+import 'package:nutri_calc/features/patients/details/presentation/widgets/no_data_found_for_patient.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
-import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
-import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
-import 'package:nutri_calc/shared/design_system/widgets/ds_placeholder/ds_placeholder.dart';
-import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
 import 'package:nutri_calc/shared/utils/formatters/only_numbers_formatter.dart';
 
 enum MeasurementType { weight, height }
@@ -32,38 +30,21 @@ class PatientMeasurementsTab extends StatelessWidget {
 
         return Column(
           children: [
-            Padding(
-              padding: EdgeInsets.all(DsSpacing.lg),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: DsTextfield(
-                      type: .number,
-                      label: isWeight ? "Peso" : "Altura",
-                      hintText: isWeight ? "XX.X" : "XXX",
-                      inputFormatters: isWeight
-                          ? null
-                          : [OnlyNumbersFormatter()],
-                      onChange: isWeight
-                          ? cubit.updateWeightValue
-                          : cubit.updateHeightValue,
-                    ),
-                  ),
-                  DsButton(
-                    label: "Salvar",
-                    isLoading: state.isSavingWeight,
-                    onTap: isWeight ? cubit.saveWeight : cubit.saveHeight,
-                  ),
-                ],
-              ),
+            MeasurementInputField(
+              label: isWeight ? "Peso" : "Altura",
+              hint: isWeight ? "XX.X" : "XXX",
+              isSaving: isWeight ? state.isSavingWeight : state.isSavingHeight,
+              saveCallback: isWeight ? cubit.saveWeight : cubit.saveHeight,
+              onChange: isWeight
+                  ? cubit.updateWeightValue
+                  : cubit.updateHeightValue,
+              inputFormatters: isWeight ? null : [OnlyNumbersFormatter()],
             ),
 
             if (listData.isEmpty) ...[
-              Expanded(
-                child: DsPlaceholder(
-                  message:
-                      "Não encontramos ${isWeight ? 'pesos' : 'alturas'} para esse paciente.",
-                ),
+              NoDataFoundForPatient(
+                message:
+                    "Não encontramos ${isWeight ? 'pesos' : 'alturas'} para esse paciente.",
               ),
             ],
 

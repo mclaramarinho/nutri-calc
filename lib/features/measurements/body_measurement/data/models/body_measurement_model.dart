@@ -1,13 +1,13 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:nutri_calc/features/measurements/data/models/measurement_model.dart';
 
-part 'circumference_model.g.dart';
+part 'body_measurement_model.g.dart';
 
 @JsonSerializable()
-class CircumferenceModel extends MeasurementModel {
+class BodyMeasurementModel extends MeasurementModel {
   final String measurementType;
 
-  const CircumferenceModel({
+  const BodyMeasurementModel({
     required this.measurementType,
     required super.createdAt,
     required super.patientId,
@@ -16,8 +16,8 @@ class CircumferenceModel extends MeasurementModel {
   });
 
   @override
-  Map<String, dynamic> toJson() => _$CircumferenceModelToJson(this);
+  Map<String, dynamic> toJson() => _$BodyMeasurementModelToJson(this);
 
-  factory CircumferenceModel.fromJson(Map<String, dynamic> json) =>
-      _$CircumferenceModelFromJson(json);
+  factory BodyMeasurementModel.fromJson(Map<String, dynamic> json) =>
+      _$BodyMeasurementModelFromJson(json);
 }

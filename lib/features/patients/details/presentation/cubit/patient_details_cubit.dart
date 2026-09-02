@@ -9,15 +9,21 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._getWeightsUseCase,
     required this._createHeightUseCase,
     required this._getHeightsUseCase,
+    required this._createBodyMeasurementUseCase,
+    required this._getBodyMeasurementUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
   final UpdatePatientUseCase _updatePatientUseCase;
+
   final CreateWeightUseCase _createWeightUseCase;
   final GetWeightsUseCase _getWeightsUseCase;
 
   final CreateHeightUseCase _createHeightUseCase;
   final GetHeightsUseCase _getHeightsUseCase;
+
+  final CreateBodyMeasurementUseCase _createBodyMeasurementUseCase;
+  final GetBodyMeasurementUseCase _getBodyMeasurementUseCase;
 
   // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
@@ -25,6 +31,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       _loadPatientDetailsUseCase(patientId),
       _getWeightsUseCase(patientId),
       _getHeightsUseCase(patientId),
+      _getBodyMeasurementUseCase(patientId),
     ]);
     if (result is Error) {
       emit(
@@ -39,7 +46,8 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       PatientDetailsStateLoaded(
         form: (result[0] as Ok).value,
         weights: (result[1] as Ok).value,
-        heights: (result[2] as Ok).value
+        heights: (result[2] as Ok).value,
+        measurements: (result[3] as Ok).value,
       ),
     );
   }
@@ -161,6 +169,71 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
           patientId: current.form.patientLocalId,
         ),
       );
+    });
+  }
+
+  // BODY MEASUREMENTS TAB =================================================
+  void updateBodyMeasurementForm(dynamic value) {
+    assert(
+      value is double || value is String,
+      "Expected double or String, got ${value.runtimeType}",
+    );
+
+    _executeOnStateLoaded((current) {
+      var bodyMeasurementForm = current.newBodyMeasurement ??
+          BodyMeasurementEntity(
+            createdAt: DateTime.now(), // placeholder
+            patientId: current.form.patientLocalId ,
+            value: -9999, // placeholder
+            measurementType: .armCircumference, // placeholder
+          );
+
+      if (value is double) {
+        // update the measurement value
+        bodyMeasurementForm = bodyMeasurementForm.copyWith(
+          value: value,
+        );
+      } else if (value is String) {
+        // try to parse to double and update the measurement value
+        final parsedDouble = double.tryParse(value);
+
+        if (parsedDouble != null) {
+          bodyMeasurementForm = bodyMeasurementForm.copyWith(
+            value: parsedDouble,
+          );
+        } else {
+          // if not parseable, update the measurement type
+          try {
+            bodyMeasurementForm = bodyMeasurementForm.copyWith(
+              measurementType: BodyMeasurementTypeEnum.fromJson(value),
+            );
+          } on UnsupportedError catch (ue) {
+            print("[PatientDetailsCubit] - $ue");
+            return;
+          }
+        }
+      }
+
+      emit(current.copyWith(newBodyMeasurement: bodyMeasurementForm));
+    });
+  }
+
+  // TODO - nao ta salvando ainda (erro)
+  Future<void> saveNewBodyMeasurement() async {
+    _executeOnStateLoaded((current) async {
+      final measurementForm = current.newBodyMeasurement;
+      if (measurementForm == null) return;
+
+      if (measurementForm.value == -9999) return;
+
+      final res = await _createBodyMeasurementUseCase(measurementForm);
+
+      if (res is Ok) {
+        emit(current.clearForm(.bodyMeasurements));
+      } else {
+        print("Error saving body measurement");
+        return;
+      }
     });
   }
 

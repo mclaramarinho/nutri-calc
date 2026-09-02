@@ -2,6 +2,10 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
+import 'package:nutri_calc/features/measurements/body_measurement/domain/entities/body_measurement_entity.dart';
+import 'package:nutri_calc/features/measurements/body_measurement/domain/entities/body_measurement_type_enum.dart';
+import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cases/create_body_measurement_use_case.dart';
+import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cases/get_body_measurement_use_case.dart';
 import 'package:nutri_calc/features/measurements/height/domain/entities/height_entity.dart';
 import 'package:nutri_calc/features/measurements/height/domain/use_cases/create_height_use_case.dart';
 import 'package:nutri_calc/features/measurements/height/domain/use_cases/get_heights_use_case.dart';
@@ -16,6 +20,8 @@ import 'package:nutri_calc/shared/utils/enums/time_unit.dart';
 import 'package:nutri_calc/shared/utils/extensions/ext_age.dart';
 
 part 'patient_details_cubit.dart';
+
+enum PatientDetailsFormOptions { weights, heights, bodyMeasurements }
 
 abstract class PatientDetailsState extends Equatable {}
 
@@ -48,6 +54,9 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isSavingHeight = false,
     this.heights = const [],
     this.newHeight,
+    this.newBodyMeasurement,
+    this.isSavingNewBodyMeasurement = false,
+    this.measurements = const [],
   });
 
   final EditPatientFormEntity form;
@@ -63,6 +72,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final bool isSavingHeight;
   final List<HeightEntity> heights;
 
+  final BodyMeasurementEntity? newBodyMeasurement;
+  final bool isSavingNewBodyMeasurement;
+  final List<BodyMeasurementEntity> measurements;
+
   PatientDetailsStateLoaded copyWith({
     EditPatientFormEntity? form,
     bool? isEditing,
@@ -75,6 +88,9 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     double? newHeight,
     bool? isSavingHeight,
     List<HeightEntity>? heights,
+    BodyMeasurementEntity? newBodyMeasurement,
+    bool? isSavingNewBodyMeasurement,
+    List<BodyMeasurementEntity>? measurements,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
@@ -87,7 +103,34 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     newHeight: newHeight ?? this.newHeight,
     isSavingHeight: isSavingHeight ?? this.isSavingHeight,
     heights: heights ?? this.heights,
+    newBodyMeasurement: newBodyMeasurement ?? this.newBodyMeasurement,
+    isSavingNewBodyMeasurement:
+        isSavingNewBodyMeasurement ?? this.isSavingNewBodyMeasurement,
+    measurements: measurements ?? this.measurements,
   );
+
+  PatientDetailsStateLoaded clearForm(PatientDetailsFormOptions formOption) {
+    return PatientDetailsStateLoaded(
+      form: form,
+      isEditing: isEditing,
+      isSaved: isSaved,
+      isSaving: isSaving,
+      isSaveError: isSaveError,
+      newWeight: formOption == .weights ? null : newWeight,
+      isSavingWeight: formOption == .weights ? false : isSavingWeight,
+      weights: weights,
+      newHeight: formOption == .heights ? null : newHeight,
+      isSavingHeight: formOption == .heights ? false : isSavingHeight,
+      heights: heights,
+      newBodyMeasurement: formOption == .bodyMeasurements
+          ? null
+          : newBodyMeasurement,
+      isSavingNewBodyMeasurement: formOption == .bodyMeasurements
+          ? false
+          : isSavingNewBodyMeasurement,
+      measurements: measurements,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -101,5 +144,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     newHeight,
     isSavingHeight,
     heights,
+    newBodyMeasurement,
+    isSavingNewBodyMeasurement,
+    measurements,
   ];
 }
