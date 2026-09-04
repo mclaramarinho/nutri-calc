@@ -47,7 +47,7 @@ class BodyMeasurementRepositoryImpl implements BodyMeasurementRepository {
 
       final createResult = await _database.insert(
         .bodyMeasurements,
-        model.toJson(),
+        dataWithId,
       );
 
       if(createResult.isError || (createResult as Ok).value == 0) {

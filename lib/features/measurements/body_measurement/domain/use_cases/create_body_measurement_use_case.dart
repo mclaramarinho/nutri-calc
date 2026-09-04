@@ -6,7 +6,7 @@ import 'package:nutri_calc/features/measurements/body_measurement/domain/entitie
 import 'package:nutri_calc/features/measurements/body_measurement/domain/repositories/body_measurement_repository.dart';
 
 abstract class CreateBodyMeasurementUseCase {
-  Future<Result<List<BodyMeasurementEntity>, String>> call(
+  Future<Result<BodyMeasurementEntity, String>> call(
     BodyMeasurementEntity entity,
   );
 }
@@ -18,13 +18,13 @@ class CreateBodyMeasurementUseCaseImpl implements CreateBodyMeasurementUseCase {
   final BodyMeasurementRepository _repository;
 
   @override
-  Future<Result<List<BodyMeasurementEntity>, String>> call(
+  Future<Result<BodyMeasurementEntity, String>> call(
     BodyMeasurementEntity entity,
   ) async {
     try {
       final data = await _repository.createMeasurement(
         BodyMeasurementModel(
-          measurementType: entity.measurementType.toString(),
+          measurementType: entity.measurementType.name,
           createdAt: entity.createdAt,
           patientId: entity.patientId,
           value: entity.value,
@@ -35,20 +35,17 @@ class CreateBodyMeasurementUseCaseImpl implements CreateBodyMeasurementUseCase {
         return Error((data as Error).error);
       }
 
-      return Ok(
-        (data as Ok<List<BodyMeasurementModel>, String>).value
-            .map(
-              (el) => BodyMeasurementEntity(
-                createdAt: el.createdAt,
-                patientId: el.patientId,
-                value: el.value,
+      final model = (data as Ok).value as BodyMeasurementModel;
+
+      return Ok(BodyMeasurementEntity(
+                createdAt: model.createdAt,
+                patientId: model.patientId,
+                value: model.value,
                 measurementType: BodyMeasurementTypeEnum.fromJson(
-                  el.measurementType,
+                  model.measurementType,
                 ),
-                id: el.id,
-              ),
-            )
-            .toList(),
+                id: model.id,
+              )
       );
     } catch (ex) {
       return Error("Error creating body measurement");

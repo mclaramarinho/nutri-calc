@@ -33,7 +33,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       _getHeightsUseCase(patientId),
       _getBodyMeasurementUseCase(patientId),
     ]);
-    if (result is Error) {
+    if (result[0] is Error) {
       emit(
         PatientDetailsStateError(
           message: "Erro ao carregar dados do paciente.",
@@ -42,12 +42,20 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       return;
     }
 
+    final weights =
+        result[1].getOrElse(() => <WeightEntity>[]) as List<WeightEntity>;
+    final heights =
+        result[2].getOrElse(() => <HeightEntity>[]) as List<HeightEntity>;
+    final measurements =
+        result[3].getOrElse(() => <BodyMeasurementEntity>[])
+            as List<BodyMeasurementEntity>;
+
     emit(
       PatientDetailsStateLoaded(
         form: (result[0] as Ok).value,
-        weights: (result[1] as Ok).value,
-        heights: (result[2] as Ok).value,
-        measurements: (result[3] as Ok).value,
+        weights: weights,
+        heights: heights,
+        measurements: measurements.reversed.toList(),
       ),
     );
   }
@@ -180,32 +188,22 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     );
 
     _executeOnStateLoaded((current) {
-      var bodyMeasurementForm = current.newBodyMeasurement ??
-          BodyMeasurementEntity(
-            createdAt: DateTime.now(), // placeholder
-            patientId: current.form.patientLocalId ,
-            value: -9999, // placeholder
-            measurementType: .armCircumference, // placeholder
-          );
-
       if (value is double) {
         // update the measurement value
-        bodyMeasurementForm = bodyMeasurementForm.copyWith(
-          value: value,
-        );
+        emit(current.copyWith(newBodyMeasurementValue: value));
       } else if (value is String) {
         // try to parse to double and update the measurement value
         final parsedDouble = double.tryParse(value);
 
         if (parsedDouble != null) {
-          bodyMeasurementForm = bodyMeasurementForm.copyWith(
-            value: parsedDouble,
-          );
+          emit(current.copyWith(newBodyMeasurementValue: parsedDouble));
         } else {
           // if not parseable, update the measurement type
           try {
-            bodyMeasurementForm = bodyMeasurementForm.copyWith(
-              measurementType: BodyMeasurementTypeEnum.fromJson(value),
+            emit(
+              current.copyWith(
+                newBodyMeasurementType: BodyMeasurementTypeEnum.fromJson(value),
+              ),
             );
           } on UnsupportedError catch (ue) {
             print("[PatientDetailsCubit] - $ue");
@@ -213,20 +211,26 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
           }
         }
       }
-
-      emit(current.copyWith(newBodyMeasurement: bodyMeasurementForm));
     });
   }
 
   // TODO - nao ta salvando ainda (erro)
   Future<void> saveNewBodyMeasurement() async {
     _executeOnStateLoaded((current) async {
-      final measurementForm = current.newBodyMeasurement;
-      if (measurementForm == null) return;
+      if (current.newBodyMeasurementValue == null ||
+          current.newBodyMeasurementType == null)
+        return;
 
-      if (measurementForm.value == -9999) return;
+      if (current.newBodyMeasurementValue! <= 0) return;
 
-      final res = await _createBodyMeasurementUseCase(measurementForm);
+      final res = await _createBodyMeasurementUseCase(
+        BodyMeasurementEntity(
+          createdAt: DateTime.now(),
+          patientId: current.form.patientLocalId,
+          value: current.newBodyMeasurementValue!,
+          measurementType: current.newBodyMeasurementType!,
+        ),
+      );
 
       if (res is Ok) {
         emit(current.clearForm(.bodyMeasurements));

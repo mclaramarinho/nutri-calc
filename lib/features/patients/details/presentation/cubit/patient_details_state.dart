@@ -54,7 +54,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isSavingHeight = false,
     this.heights = const [],
     this.newHeight,
-    this.newBodyMeasurement,
+    this.newBodyMeasurementType,
+    this.newBodyMeasurementValue,
     this.isSavingNewBodyMeasurement = false,
     this.measurements = const [],
   });
@@ -72,7 +73,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final bool isSavingHeight;
   final List<HeightEntity> heights;
 
-  final BodyMeasurementEntity? newBodyMeasurement;
+  final BodyMeasurementTypeEnum? newBodyMeasurementType;
+  final double? newBodyMeasurementValue;
   final bool isSavingNewBodyMeasurement;
   final List<BodyMeasurementEntity> measurements;
 
@@ -88,7 +90,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     double? newHeight,
     bool? isSavingHeight,
     List<HeightEntity>? heights,
-    BodyMeasurementEntity? newBodyMeasurement,
+    BodyMeasurementTypeEnum? newBodyMeasurementType,
+    double? newBodyMeasurementValue,
     bool? isSavingNewBodyMeasurement,
     List<BodyMeasurementEntity>? measurements,
   }) => PatientDetailsStateLoaded(
@@ -103,7 +106,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     newHeight: newHeight ?? this.newHeight,
     isSavingHeight: isSavingHeight ?? this.isSavingHeight,
     heights: heights ?? this.heights,
-    newBodyMeasurement: newBodyMeasurement ?? this.newBodyMeasurement,
+    newBodyMeasurementType: newBodyMeasurementType ?? this.newBodyMeasurementType,
+    newBodyMeasurementValue: newBodyMeasurementValue ?? this.newBodyMeasurementValue,
     isSavingNewBodyMeasurement:
         isSavingNewBodyMeasurement ?? this.isSavingNewBodyMeasurement,
     measurements: measurements ?? this.measurements,
@@ -122,9 +126,12 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       newHeight: formOption == .heights ? null : newHeight,
       isSavingHeight: formOption == .heights ? false : isSavingHeight,
       heights: heights,
-      newBodyMeasurement: formOption == .bodyMeasurements
+      newBodyMeasurementType: formOption == .bodyMeasurements
           ? null
-          : newBodyMeasurement,
+          : newBodyMeasurementType,
+      newBodyMeasurementValue: formOption == .bodyMeasurements
+          ? null
+          : newBodyMeasurementValue,
       isSavingNewBodyMeasurement: formOption == .bodyMeasurements
           ? false
           : isSavingNewBodyMeasurement,
@@ -144,7 +151,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     newHeight,
     isSavingHeight,
     heights,
-    newBodyMeasurement,
+    newBodyMeasurementType,
+    newBodyMeasurementValue,
     isSavingNewBodyMeasurement,
     measurements,
   ];
