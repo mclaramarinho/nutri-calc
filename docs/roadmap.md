@@ -21,13 +21,14 @@
 
 | Priority | What | Description |
 | -------- | ---- | ----------- |
-| 1 | Validate this roadmap | Look for inconsistencies, gaps, improvement opportunities, etc. |
-| 2 | Validate what was implemented | Validate what was implemented, using this file as a source of truth. What was discovered should be registered on the specific topic of this file. For example: Create patient (feature) has XYZ implemented, but is missing ABC. This info should be registered on a table in the feature section. |
-| 3 | Implement what is missing for existing features | Adjust what is not correct in the existing features and implement what is missing for each one of them. |
-| 4 | Implement new features | Implement the remaining non-existing features. |
-| 5 | Create Design System for the app | Work like a senior designer and: 1) identify and understand the target-user profile, their possible preferences and what is the best UX/UI for them; 2) determine color palette, spacings, etc. tokens for the app; 3) update widgets and screens to follow new Design System directives. |
-| 6 | Refactor | Go through the database and find code gaps, such as code repetition, widgets that should be design system reusable components, etc. |
-| 7 | Create Dark Mode | Create dark mode for app. |
+| 1 | Create DB migration mechanism | `AppDatabaseService.init()` only runs `CREATE TABLE IF NOT EXISTS` per table (`lib/core/services/database/app_database_service.dart`) — there is no `onUpgrade`/versioning. Any column added to an already-created table (e.g. new `PATIENT` fields for [2.1.1](#211-create-patient), new `WEIGHTS` columns for [Calculators](#calculators)) will silently never materialize on devices that installed an earlier schema. This blocks all further schema changes and must land first. |
+| 2 | Validate this roadmap | Look for inconsistencies, gaps, improvement opportunities, etc. |
+| 3 | Validate what was implemented | Validate what was implemented, using this file as a source of truth. What was discovered should be registered on the specific topic of this file. For example: Create patient (feature) has XYZ implemented, but is missing ABC. This info should be registered on a table in the feature section. |
+| 4 | Implement what is missing for existing features | Adjust what is not correct in the existing features and implement what is missing for each one of them. |
+| 5 | Implement new features | Implement the remaining non-existing features. |
+| 6 | Create Design System for the app | Work like a senior designer and: 1) identify and understand the target-user profile, their possible preferences and what is the best UX/UI for them; 2) determine color palette, spacings, etc. tokens for the app; 3) update widgets and screens to follow new Design System directives. |
+| 7 | Refactor | Go through the database and find code gaps, such as code repetition, widgets that should be design system reusable components, etc. |
+| 8 | Create Dark Mode | Create dark mode for app. |
 
 ---
 
@@ -39,7 +40,7 @@ Describes the features and their current implementation status.
 
 #### 2.1.1. Create Patient
 
-**Status:** Incomplete 🟣
+**Status:** Implementing 🟡 (was: Incomplete 🟣 — corrected per product decision, see Implementation Notes)
 
 **Description:**
 
@@ -71,9 +72,16 @@ Describes the features and their current implementation status.
 
 - Easily accessible from any screen, through a blue FAB (with a "plus and avatar" icon).
 
+##### Implementation Notes (validated against code, 2026-09-06)
+
+- Implemented: ID, Patient ID, First/Last Name, Age, Age Unit, Birthdate (with auto-calc + readonly toggle), future-date and negative-age validation, save success/error dialogs, redirect home on success. FAB present on Home (`lib/features/home/presentation/pages/home_page.dart`), though its icon is `Icons.person_add`, not the documented "plus and avatar" icon — cosmetic, flagged for `senior-designer`.
+- **Gap (not partially done — entirely missing):** Enteral Nutrition, Parenteral Nutrition, Hospitalized and Confined to bed are not implemented anywhere — no UI fields, no `NewPatientFormEntity`/`PatientModel` fields, no `PATIENT` table columns (`lib/features/patients/new/domain/entities/new_patient_form_entity.dart`, `lib/features/patients/data/models/patient_model.dart`, `lib/core/services/database/app_database_tables.dart`). These 4 fields also feed the [Calculator Relevance](#calculator-relevance) table, so Energy Expenditure/Nitrogen Balance/Weight/Screening relevance cannot be computed until this lands.
+- **Technical Debt:** none of the above is optional polish — it's core schema. Needs a DB migration story once `PATIENT` gets new columns — see [priority 1](#1-roadmap-prioritization), "Create DB migration mechanism".
+- **Resolved:** given 4/10 documented fields are fully unbuilt, status corrected from "Incomplete 🟣" to "Implementing 🟡" per the status legend's distinction ("works fine, has some things to add" vs. "on the way") — product decision, 2026-09-06.
+
 #### 2.1.2. List Patients
 
-**Status:** Awaiting validation 🧪
+**Status:** Incomplete 🟣 (was: Awaiting validation 🧪 — downgraded, see notes)
 
 **Description:**
 
@@ -97,6 +105,12 @@ Describes the features and their current implementation status.
 ##### Empty state
 
 - If list is empty, should display a message "Você ainda não tem pacientes cadastrados".
+
+##### Implementation Notes (validated against code, 2026-09-06)
+
+- Implemented: list rendering, first/last name display, age display, tap-to-navigate to Patient Details (`lib/features/patients/list/presentation/pages/list_patients_page.dart`).
+- **Gap — status downgraded from "Awaiting validation 🧪" to "Incomplete 🟣":** the empty state shows `"No patients to display"` (English, hardcoded) instead of the documented `"Você ainda não tem pacientes cadastrados"`; the error state shows `"Error loading patients"` (also English, no retry action). Both violate the CLAUDE.md rule that UI copy must be Portuguese, and neither matches the acceptance criteria above. The list/loading/error states also use raw `Text`/`CircularProgressIndicator`/`ListTile` instead of DS widgets.
+- **Next:** fix copy to match spec, add a retry affordance for the error state, migrate to DS widgets before re-marking as "Awaiting validation".
 
 #### 2.1.3. Patient Details
 
@@ -137,11 +151,33 @@ Describes the features and their current implementation status.
 
 > For more information on each tab: [2.1.4. Patient Details - Tabs](#214-patient-details---tabs)
 
+##### Implementation Notes (validated against code, 2026-09-06)
+
+- Implemented: read-only form for Patient Id, First/Last name, Age, Age Unit, Birthdate; pencil→save→check/close icon cycle; tabview with the 5 documented tabs (`lib/features/patients/details/presentation/widgets/patient_details_form.dart`, `lib/features/patients/details/presentation/pages/patient_details_page.dart`).
+- **Gap — BMI not implemented at all:** no BMI field exists in the form, and no wiring to the standalone `CalculateBmi` use case (`lib/shared/services/calculator/domain/use_cases/bmi/calculate_bmi.usecase.dart`) using the latest weight/height from the Weights/Heights tabs (which are themselves implemented, so the dependency is unblocked — this is just not wired up yet).
+- **Bug — save error does not keep edit mode:** `PatientDetailsCubit._handleSaveResult` (`lib/features/patients/details/presentation/cubit/patient_details_cubit.dart`) always sets `isEditing: false` regardless of `isSuccess`, contradicting "On save error: the form remains in edit mode". No error dialog is shown either — the spec's error dialog with retry is entirely missing.
+- **Gap:** age-negative and birthdate-future validation (documented as following the "same rules as create patient form") are not enforced on edit — `updateAge`/`updateBirthdate` in the cubit accept any value.
+- **Gap:** "Should update the calculators list for relevance" on save success cannot be validated — the Calculators tab is a placeholder (see 2.1.4).
+- **Next:** wire BMI, fix the edit-mode-on-error bug, add the error dialog, add edit-time validation parity with Create Patient.
+
 #### 2.1.4. Patient Details - Tabs
 
 **Status:** Incomplete 🟣
 
 **Description:**
+
+##### Implementation Notes — per tab (validated against code, 2026-09-06)
+
+| Tab | Status | Notes |
+| --- | ------ | ----- |
+| Calculators | Not started 🔵 | `DsPlaceholder()` only (`patient_details_page.dart`). No calculator relevance logic, no bottom sheet, no per-calculation tables exist yet (see DB schema gap below). |
+| Weights | Implementing 🟡 | Save works (value + auto `DateTime.now()`), curve icon (asc/desc) and empty-state message implemented. Missing: date/time input field (spec requires an optional, defaults-to-now, non-future date/time picker — currently hardcoded to `now()`), "weight type" display, delete-on-swipe (`Dismissible` is commented out in `measurements_list.dart`), disabled-while-required-fields-empty rule not verified against `MeasurementInputField`. **Bug (architecture review, 2026-09-06):** `PatientDetailsCubit.saveWeight`/`saveHeight` call the create use case without awaiting/checking the `Result` and without re-fetching weights/heights or clearing the form afterwards — the spec's "on save success: fields cleared, list updated, BMI updated" cannot work as written until this is fixed. |
+| Heights | Implementing 🟡 | Same gaps as Weights (shares `PatientMeasurementsTab`/`MeasurementsList`), including the `saveHeight` Result-handling bug above. |
+| Body Measurements | Implementing 🟡 | Accordion grouping by type, collapsed-by-default, curve icons and empty-state implemented (`patient_body_measurements_tab.dart`). **Known bug, flagged in code:** `saveNewBodyMeasurement` has a `// TODO - nao ta salvando ainda (erro)` comment in `patient_details_cubit.dart` — save is not reliably working. Missing: date/time field, delete-on-swipe with confirmation dialog, curve recompute after deletion (all per spec). |
+| History | Not started 🔵 | `DsPlaceholder()` only. **Hard dependency, not parallel work:** History only displays Calculators' output, so it has nothing to show until the Calculators tab exists — Calculators must ship first, not be scheduled alongside it. |
+
+- **Empty-state copy mismatch vs. spec:** Weights/Heights show `"Não encontramos pesos/alturas para esse paciente."` (spec: `"Nenhum peso cadastrado"`); Body Measurements shows `"Nenhuma medida encontrada para esse paciente."` (spec: `"Sem medidas cadastradas para esse paciente ainda"`). Implementation deviated from the documented copy — not editing the requirement text since the deviation looks unintentional (dev tech debt), not a documented decision.
+- **Missing design-system primitive:** no `DsBottomSheet` widget exists under `lib/shared/design_system/widgets/` and no `showModalBottomSheet` usage exists anywhere in the codebase. Both Calculators ("tap a calculator → bottom sheet to insert data") and History ("tap a result → bottom sheet with parameters and result") depend on this component — needs to be designed/built before either tab's core interaction can be implemented.
 
 ##### Calculators
 
@@ -176,6 +212,12 @@ Describes the features and their current implementation status.
     | Water needs | WATER_NEEDS |
     | Weight | WEIGHTS (existing - just include the new needed columns) |
     | Weight Loss Classification | WEIGHT_LOSS_CLASSIFICATIONS |
+
+**DB schema gap (checked against `lib/core/services/database/app_database_tables.dart`, 2026-09-06):** only `PATIENT`, `WEIGHTS`, `HEIGHTS` and `BODY_MEASUREMENTS` exist today. None of `BMI`, `ENERGY_EXPENDITURES`, `ENTERAL_NUTRITIONS_DRIPPING/SPEED/VOLUME`, `GLUCOSE_INFUSION_RATES`, `NITROGEN_BALANCES`, `PROTEIN_NEEDS`, the per-screening tables, `WATER_NEEDS` or `WEIGHT_LOSS_CLASSIFICATIONS` exist yet — expected, since the Calculators tab itself is unbuilt (see notes above). `WEIGHTS` also does not yet have the "consider for calculations" / "weight type" columns this section calls for — it currently only has `id, value, createdAt, patientId` (shared with `HEIGHTS` via `_baseMeasurementTableFields`). No DB migration mechanism exists in `AppDatabaseService` yet — see [priority 1](#1-roadmap-prioritization); this blocks the `WEIGHTS` column addition and every new table below.
+
+**ADRs needed before implementation (architecture review, 2026-09-06):**
+- **DB migration strategy** — how schema changes to already-created tables (sqflite `onUpgrade` + version counter, or an additive "add column if missing" helper) get applied on devices that installed an earlier schema. Blocks the `WEIGHTS` columns above and this entire table list. Same underlying gap as [priority 1](#1-roadmap-prioritization) and the Create Patient `PATIENT`-table gap in [2.1.1](#211-create-patient) — one tech-debt item, not two.
+- **Screening storage granularity** — one table per screening tool (`SCREENING_MST`, `SCREENING_STRONG_KIDS`, `SCREENING_MUST`, `SCREENING_NRS_2002`, future `SCREENING_ASG`) as currently documented above, vs. a single `SCREENINGS` table with a `type` discriminant column + a JSON-in-TEXT `answers` blob. No existing precedent for either approach in this codebase (`TableSqlTypes` has no JSON/blob convention today) — needs a decision since it sets the pattern for all 5 screening tools.
 
 ##### Weights
 
