@@ -49,3 +49,6 @@ lib/shared/di/di.config.dart
 
 *.g.dart
 lib/di/di.config.dart
+
+# run-nutri-calc skill driver scratch state
+.claude/skills/run-nutri-calc/.state.json
