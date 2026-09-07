@@ -1,10 +1,11 @@
 import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/core/services/database/app_database_tables.dart';
+import 'package:nutri_calc/core/services/database/app_database_version.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:sqflite/sqflite.dart';
 
 abstract class AppDatabaseService {
-  Future<void> init();
+  Future<void> init({String? dbPath, int? version});
 
   Future<Result<List<Map<String, Object?>>, String>> read(
     AppDatabaseTables table, {
@@ -40,13 +41,40 @@ class AppDatabaseServiceImpl implements AppDatabaseService {
   AppDatabaseServiceImpl();
 
   @override
-  Future<void> init() async {
-    _db = await openDatabase("nutri_calc.db");
+  Future<void> init({String? dbPath, int? version}) async {
+    final path = dbPath ?? "nutri_calc.db";
+    final targetVersion = version ?? kAppDatabaseVersion;
 
-    // Create Tables
-    for (final table in AppDatabaseTables.values) {
-      await _db.execute(table.sql);
-    }
+    _db = await openDatabase(
+      path,
+      version: targetVersion,
+      onCreate: (db, version) async {
+        // Fresh install
+        for (final table in AppDatabaseTables.values) {
+          await db.execute(table.sql);
+        }
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        for (final table in AppDatabaseTables.values) {
+          if (table.sinceVersion > oldVersion) {
+            // Table didn't exist at oldVersion — create it whole at its
+            // current shape.
+            await db.execute(table.sql);
+            continue;
+          }
+          // Table already existed — apply only the columns introduced
+          // since oldVersion.
+          for (final field in table.fields) {
+            if (field.sinceVersion > oldVersion &&
+                field.sinceVersion <= newVersion) {
+              await db.execute(
+                "ALTER TABLE ${table.name} ADD COLUMN ${field.addColumnSql}",
+              );
+            }
+          }
+        }
+      },
+    );
   }
 
   @override

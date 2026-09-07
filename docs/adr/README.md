@@ -40,4 +40,4 @@ Keep this list current — one line per ADR — so an agent can decide relevance
 
 | ADR | Title | Status |
 | --- | ----- | ------ |
-| — | (none yet) | — |
+| [0001](0001-database-schema-migrations.md) | Database schema migrations via sqflite version + self-describing versioned fields | Accepted |
