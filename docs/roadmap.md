@@ -19,16 +19,21 @@
 
 ## 1. Roadmap Prioritization
 
-| Priority | What | Description |
-| -------- | ---- | ----------- |
-| 1 | Create DB migration mechanism | **Done ✅ (2026-09-06).** `AppDatabaseService.init()` now opens the DB with sqflite native `version`/`onCreate`/`onUpgrade`, driven by `sinceVersion` metadata on `AppDatabaseTables` (table) and `TableSqlField` (column) plus a `kAppDatabaseVersion` constant — see [ADR 0001](adr/0001-database-schema-migrations.md). Additive-only (new columns/new tables); fresh install and upgrade both converge to the same schema from the same `fields`/`sql` source. Covered by 13 tests in `test/core/services/database/app_database_service_test.dart` (fresh-install schema/column correctness, full-row insert across all tables, reopen-at-higher-version data integrity, `onUpgrade` mechanics via a versioned fixture, `addColumnSql` guards for PRIMARY KEY/UNIQUE-via-migration and NOT-NULL-without-default). **Tech debt:** the `onCreate`/`onUpgrade` dispatch loop is inlined in `init()` rather than extracted into an independently-testable unit — revisit extraction when a second real migration ships; downgrade (opening an older-versioned request against a newer-schema DB file) is sqflite's silent no-op and is unspecified/untested — flag if it ever becomes a real scenario. **Unblocks (not yet built):** the 4 missing `PATIENT` columns ([2.1.1](#211-create-patient)), the `WEIGHTS` "consider for calculations"/"weight type" columns, and all new calculator tables ([2.1.4 Calculators](#calculators)) can now be added using this pattern. |
-| 2 | Validate this roadmap | Look for inconsistencies, gaps, improvement opportunities, etc. |
-| 3 | Validate what was implemented | Validate what was implemented, using this file as a source of truth. What was discovered should be registered on the specific topic of this file. For example: Create patient (feature) has XYZ implemented, but is missing ABC. This info should be registered on a table in the feature section. |
-| 4 | Implement what is missing for existing features | Adjust what is not correct in the existing features and implement what is missing for each one of them. |
-| 5 | Implement new features | Implement the remaining non-existing features. |
-| 6 | Create Design System for the app | Work like a senior designer and: 1) identify and understand the target-user profile, their possible preferences and what is the best UX/UI for them; 2) determine color palette, spacings, etc. tokens for the app; 3) update widgets and screens to follow new Design System directives. |
-| 7 | Refactor | Go through the database and find code gaps, such as code repetition, widgets that should be design system reusable components, etc. |
-| 8 | Create Dark Mode | Create dark mode for app. |
+| Priority | What | Status | Last Action Date | Description |
+| -------- | ---- | ------ | ----------------- | ----------- |
+| 1 | Create DB migration mechanism | Implemented ✅ | 2026-09-06 | `AppDatabaseService.init()` now opens the DB with sqflite native `version`/`onCreate`/`onUpgrade`, driven by `sinceVersion` metadata on `AppDatabaseTables` (table) and `TableSqlField` (column) plus a `kAppDatabaseVersion` constant — see [ADR 0001](adr/0001-database-schema-migrations.md). Additive-only (new columns/new tables); fresh install and upgrade both converge to the same schema from the same `fields`/`sql` source. Covered by 13 tests in `test/core/services/database/app_database_service_test.dart` (fresh-install schema/column correctness, full-row insert across all tables, reopen-at-higher-version data integrity, `onUpgrade` mechanics via a versioned fixture, `addColumnSql` guards for PRIMARY KEY/UNIQUE-via-migration and NOT-NULL-without-default). **Tech debt:** the `onCreate`/`onUpgrade` dispatch loop is inlined in `init()` rather than extracted into an independently-testable unit — revisit extraction when a second real migration ships; downgrade (opening an older-versioned request against a newer-schema DB file) is sqflite's silent no-op and is unspecified/untested — flag if it ever becomes a real scenario. **Unblocks (not yet built):** the 4 missing `PATIENT` columns ([2.1.1](#211-create-patient)), the `WEIGHTS` "consider for calculations"/"weight type" columns, and all new calculator tables ([2.1.4 Calculators](#calculators)) can now be added using this pattern. |
+| 2 | Validate this roadmap | Implemented ✅ | 2026-09-07 | Ran the `po` → `senior-analyst` review pass: cross-checked every feature's documented status against code (results folded into each feature's "Implementation Notes" in section 2.1), resolved the screening-storage and calculator-input-storage conventions (base+`inputParams` JSON, see [2.1.4 Calculators](#calculators)), and surfaced the two new priorities below (3, 4) plus 11. Also substantially covers priority 5 below for the features that exist today (2.1.1–2.1.4) — see that row. |
+| 3 | Build `DsBottomSheet` design-system component | Ready for Dev 🔵 | 2026-09-07 (added) | Added 2026-09-07, product decision. Blocks core interactions for both Calculators (2.1.4) — "tap a calculator → bottom sheet to insert data" — and History (2.1.4) — "tap a result → bottom sheet with parameters and result". No `DsBottomSheet`/`showModalBottomSheet` precedent exists in the codebase today; must be built before either tab can be implemented. |
+| 4 | Add `enabled`/`disabled` parameter to `DsButton` | Ready for Dev 🔵 | 2026-09-07 (added) | Added 2026-09-07, product decision. `DsButton` (`lib/shared/design_system/widgets/ds_button/ds_button.dart`) currently only supports `isLoading`/`onTap`. Needed for the "disable Save while required fields empty / while saving" rules already documented for Weights, Heights and Body Measurements (2.1.4), and will recur in every Calculators bottom-sheet form. |
+| 5 | Validate what was implemented | Implementing 🟡 | 2026-09-07 | For existing features (2.1.1–2.1.4): **largely done as of 2026-09-07** via priority 2's pass — see each feature's "Implementation Notes" for the registered gaps. Remaining scope: re-validate 2.1.1–2.1.4 after priority 6 lands (confirm fixes actually closed the documented gaps), and validate the new features built under priority 7 (Calculators, History) once they exist, the same way — status + gaps registered in this file's feature-section tables. |
+| 6 | Implement what is missing for existing features | Ready for Dev 🔵 | — | Adjust what is not correct in the existing features and implement what is missing for each one of them. |
+| 7 | Implement new features | Ready for Dev 🔵 | — | Implement the remaining non-existing features. |
+| 8 | Design System audit & expansion | Ready for Dev 🔵 | — | A partial design system already exists (`lib/shared/design_system/` — `ds_*` widgets, `tokens/`, per `CLAUDE.md`), and priorities 3–4 already patch specific gaps in it (`DsBottomSheet`, `DsButton`) as blockers surface ad hoc. This priority is the broader systematic pass on top of that: 1) identify and understand the target-user profile, their possible preferences and what is the best UX/UI for them; 2) review/extend the color palette, spacing, etc. tokens for the app; 3) update widgets and screens for consistency with the resulting Design System directives. |
+| 9 | Refactor | Ready for Dev 🔵 | — | Go through the codebase and find code gaps — code repetition, widgets that should be design-system reusable components, repeated database schema/query patterns, etc. |
+| 10 | Create Dark Mode | Ready for Dev 🔵 | — | Create dark mode for app. |
+| 11 | Internationalization | Ready for Dev 🔵 | 2026-09-07 (added) | Added 2026-09-07, product decision. Support multiple languages/locales for user-facing copy. Relevant precedent already exists: the calculator `inputParams` JSON structure ([2.1.4 Calculators](#calculators)) stores each parameter's `label` as an i18n-able reference rather than a hardcoded string specifically so this can land later without a data migration. All current UI copy is hardcoded Portuguese (per `CLAUDE.md`); scope includes introducing an i18n mechanism (e.g. `flutter_localizations`/ARB files) and migrating existing hardcoded strings. |
+
+Statuses use the same legend as [3.2](#32-implementation-statuses). "Last Action Date" is the date of the most recent status-relevant change to that row (completion, re-validation, or the row's own addition) — not a general roadmap-edit timestamp.
 
 ---
 
@@ -106,10 +111,11 @@ Describes the features and their current implementation status.
 
 - If list is empty, should display a message "Você ainda não tem pacientes cadastrados".
 
-##### Implementation Notes (validated against code, 2026-09-06)
+##### Implementation Notes (validated against code, 2026-09-06; re-verified unchanged 2026-09-07)
 
 - Implemented: list rendering, first/last name display, age display, tap-to-navigate to Patient Details (`lib/features/patients/list/presentation/pages/list_patients_page.dart`).
 - **Gap — status downgraded from "Awaiting validation 🧪" to "Incomplete 🟣":** the empty state shows `"No patients to display"` (English, hardcoded) instead of the documented `"Você ainda não tem pacientes cadastrados"`; the error state shows `"Error loading patients"` (also English, no retry action). Both violate the CLAUDE.md rule that UI copy must be Portuguese, and neither matches the acceptance criteria above. The list/loading/error states also use raw `Text`/`CircularProgressIndicator`/`ListTile` instead of DS widgets.
+- **Gap not previously noted (2026-09-07):** the list also renders `patient.patientId` above the name (`list_patients_page.dart:45-47`) when present — undocumented in the "Information shown" requirement above (spec only lists First/Last Name and Age). Not flagged as a bug (harmless/likely useful), but the requirement is missing this acceptance criterion; add it explicitly if the behavior is intentional.
 - **Next:** fix copy to match spec, add a retry affordance for the error state, migrate to DS widgets before re-marking as "Awaiting validation".
 
 #### 2.1.3. Patient Details
@@ -155,6 +161,7 @@ Describes the features and their current implementation status.
 
 - Implemented: read-only form for Patient Id, First/Last name, Age, Age Unit, Birthdate; pencil→save→check/close icon cycle; tabview with the 5 documented tabs (`lib/features/patients/details/presentation/widgets/patient_details_form.dart`, `lib/features/patients/details/presentation/pages/patient_details_page.dart`).
 - **Gap — BMI not implemented at all:** no BMI field exists in the form, and no wiring to the standalone `CalculateBmi` use case (`lib/shared/services/calculator/domain/use_cases/bmi/calculate_bmi.usecase.dart`) using the latest weight/height from the Weights/Heights tabs (which are themselves implemented, so the dependency is unblocked — this is just not wired up yet).
+- **Gap — confirmed, cross-reference (2026-09-07):** the requirement above ("Patient Id, Enteral/Parenteral nutrition, Confined to bed, Hospitalized, First/Last name, Age, Age Unit and Birthdate are allowed to edit") lists 4 fields (Enteral Nutrition, Parenteral Nutrition, Hospitalized, Confined to bed) that `EditPatientFormEntity` (`lib/features/patients/details/domain/entities/edit_patient_form_entity.dart`) does not have at all — same underlying gap as [2.1.1 Create Patient](#211-create-patient) (missing `PATIENT` columns/`NewPatientFormEntity` fields), not a separate bug. Once those 4 fields land on Create Patient's schema/entities, they still need to be added here too.
 - **Bug — save error does not keep edit mode:** `PatientDetailsCubit._handleSaveResult` (`lib/features/patients/details/presentation/cubit/patient_details_cubit.dart`) always sets `isEditing: false` regardless of `isSuccess`, contradicting "On save error: the form remains in edit mode". No error dialog is shown either — the spec's error dialog with retry is entirely missing.
 - **Gap:** age-negative and birthdate-future validation (documented as following the "same rules as create patient form") are not enforced on edit — `updateAge`/`updateBirthdate` in the cubit accept any value.
 - **Gap:** "Should update the calculators list for relevance" on save success cannot be validated — the Calculators tab is a placeholder (see 2.1.4).
@@ -162,28 +169,31 @@ Describes the features and their current implementation status.
 
 #### 2.1.4. Patient Details - Tabs
 
-**Status:** Incomplete 🟣
+**Status:** Implementing 🟡 (was: Incomplete 🟣 — corrected 2026-09-07, same rationale as [2.1.1](#211-create-patient): 2 of 5 sub-tabs (Calculators, History) are entirely unbuilt, not "works fine, has some things to add" per the status legend)
 
 **Description:**
 
-##### Implementation Notes — per tab (validated against code, 2026-09-06)
+##### Implementation Notes — per tab (validated against code, 2026-09-07)
 
 | Tab | Status | Notes |
 | --- | ------ | ----- |
-| Calculators | Not started 🔵 | `DsPlaceholder()` only (`patient_details_page.dart`). No calculator relevance logic, no bottom sheet, no per-calculation tables exist yet (see DB schema gap below). |
-| Weights | Implementing 🟡 | Save works (value + auto `DateTime.now()`), curve icon (asc/desc) and empty-state message implemented. Missing: date/time input field (spec requires an optional, defaults-to-now, non-future date/time picker — currently hardcoded to `now()`), "weight type" display, delete-on-swipe (`Dismissible` is commented out in `measurements_list.dart`), disabled-while-required-fields-empty rule not verified against `MeasurementInputField`. **Bug (architecture review, 2026-09-06):** `PatientDetailsCubit.saveWeight`/`saveHeight` call the create use case without awaiting/checking the `Result` and without re-fetching weights/heights or clearing the form afterwards — the spec's "on save success: fields cleared, list updated, BMI updated" cannot work as written until this is fixed. |
-| Heights | Implementing 🟡 | Same gaps as Weights (shares `PatientMeasurementsTab`/`MeasurementsList`), including the `saveHeight` Result-handling bug above. |
-| Body Measurements | Implementing 🟡 | Accordion grouping by type, collapsed-by-default, curve icons and empty-state implemented (`patient_body_measurements_tab.dart`). **Known bug, flagged in code:** `saveNewBodyMeasurement` has a `// TODO - nao ta salvando ainda (erro)` comment in `patient_details_cubit.dart` — save is not reliably working. Missing: date/time field, delete-on-swipe with confirmation dialog, curve recompute after deletion (all per spec). |
-| History | Not started 🔵 | `DsPlaceholder()` only. **Hard dependency, not parallel work:** History only displays Calculators' output, so it has nothing to show until the Calculators tab exists — Calculators must ship first, not be scheduled alongside it. |
+| Calculators | Ready for Dev 🔵 (was labeled "Not started 🔵", which is not a value in the [status legend](#32-implementation-statuses) — relabeled to the closest legend term, 2026-09-07) | `DsPlaceholder()` only (`patient_details_page.dart`). No calculator relevance logic, no bottom sheet, no per-calculation tables exist yet (see DB schema gap below). |
+| Weights | Implementing 🟡 | Save works (value + auto `DateTime.now()`), curve icon (asc/desc) and empty-state message implemented. Missing: date/time input field (spec requires an optional, defaults-to-now, non-future date/time picker — currently hardcoded to `now()`), "weight type" display, delete-on-swipe with confirmation dialog and curve recompute (`Dismissible` is commented out in `measurements_list.dart` — **product decision, 2026-09-07: Weights/Heights must implement delete-on-swipe matching Body Measurements' pattern; this is now a stated requirement below, not an open question**), **confirmed missing (2026-09-07): no disabled-while-required-fields-empty and no disabled-while-saving behavior** — `DsButton` (`lib/shared/design_system/widgets/ds_button/ds_button.dart`) only takes `isLoading`/`onTap`, it has no `disabled`/`enabled` parameter at all (see [priority 4](#1-roadmap-prioritization)), and `MeasurementInputField` never gates `saveCallback`, so the Save button is tappable even with an empty/invalid value or mid-save. **Bug (architecture review, 2026-09-06):** `PatientDetailsCubit.saveWeight`/`saveHeight` call the create use case without awaiting/checking the `Result` and without re-fetching weights/heights or clearing the form afterwards — the spec's "on save success: fields cleared, list updated, BMI updated" cannot work as written until this is fixed. |
+| Heights | Implementing 🟡 | Same gaps as Weights (shares `PatientMeasurementsTab`/`MeasurementsList`/`MeasurementInputField`), including the `saveHeight` Result-handling bug and the disabled-state gap above. |
+| Body Measurements | Implementing 🟡 | Accordion grouping by type, collapsed-by-default, curve icons and empty-state implemented (`patient_body_measurements_tab.dart`). **Known bug, flagged in code:** `saveNewBodyMeasurement` has a `// TODO - nao ta salvando ainda (erro)` comment in `patient_details_cubit.dart` — save is not reliably working. **Confirmed missing (2026-09-07):** same `DsButton`/`MeasurementInputField` disabled-state gap as Weights/Heights above. Also missing: date/time field, delete-on-swipe with confirmation dialog, curve recompute after deletion (all per spec). |
+| History | Ready for Dev 🔵 (relabeled, see Calculators row) | `DsPlaceholder()` only. **Hard dependency, not parallel work:** History only displays Calculators' output, so it has nothing to show until the Calculators tab exists — Calculators must ship first, not be scheduled alongside it. |
 
 - **Empty-state copy mismatch vs. spec:** Weights/Heights show `"Não encontramos pesos/alturas para esse paciente."` (spec: `"Nenhum peso cadastrado"`); Body Measurements shows `"Nenhuma medida encontrada para esse paciente."` (spec: `"Sem medidas cadastradas para esse paciente ainda"`). Implementation deviated from the documented copy — not editing the requirement text since the deviation looks unintentional (dev tech debt), not a documented decision.
-- **Missing design-system primitive:** no `DsBottomSheet` widget exists under `lib/shared/design_system/widgets/` and no `showModalBottomSheet` usage exists anywhere in the codebase. Both Calculators ("tap a calculator → bottom sheet to insert data") and History ("tap a result → bottom sheet with parameters and result") depend on this component — needs to be designed/built before either tab's core interaction can be implemented.
+- **Missing design-system primitive:** no `DsBottomSheet` widget exists under `lib/shared/design_system/widgets/` and no `showModalBottomSheet` usage exists anywhere in the codebase. Both Calculators ("tap a calculator → bottom sheet to insert data") and History ("tap a result → bottom sheet with parameters and result") depend on this component — needs to be designed/built before either tab's core interaction can be implemented. Tracked as [priority 3](#1-roadmap-prioritization).
+- **Resolved (product decision, 2026-09-07):** Weights and Heights must implement delete-on-swipe with confirmation dialog and curve recompute, matching Body Measurements' pattern ([2.1.4 Body Measurements](#body-measurements)). This was previously an open question (the functional requirements below only documented deletion for Body Measurements) — now stated explicitly in the Weights/Heights sections below.
 
 ##### Calculators
 
 **Name:** Calculadoras
 
 **Description:** Based on the patient's data, shows the most relevant calculators (see [Calculator Relevance](#calculator-relevance)). At the end of the list, should show a button "See All Calculators". The list should expand and show all available calculators.
+
+**Architecture (product decision, 2026-09-07):** each calculator (BMI persistence, Energy Expenditure, the 3 Enteral Nutrition sub-types, Glucose Infusion Rate, Nitrogen Balance, Protein Needs, each Screening tool, Water Needs, Weight Loss Classification) is its own sub-feature under a new `lib/features/calculators/` directory, following the standard domain/data/presentation layering. `lib/features/calculators/` itself also holds the logic shared across all calculators: the "See All"/"See Relevant Only" toggle, relevance-filtering logic, and the tap-to-bottom-sheet interaction shell.
 
 **Functional Requirements:**
 
@@ -192,7 +202,7 @@ Describes the features and their current implementation status.
 - When tapping a calculator, should open bottom sheet to insert data.
 - When calculating weight, there should be a checkbox to indicate if the dietitian wants to use that weight for calculation.
     - For example, the patient could have a very recent real weight (measured by a scale), but the dietitian calculated the adjusted weight at the moment. If they don't want to use the adjusted weight, but the scale weight, they should be able to.
-    - If a weight is not considered for calculation, the previous allowed weight will be considered.
+    - If a weight is not considered for calculation, the previous allowed weight will be considered — meaning the preceding weight (by date) that was itself marked "consider for calculations" = true, not simply the immediately-prior weight row regardless of that flag (product decision, 2026-09-07, resolving prior ambiguity).
     - The calculated weight should be saved in the existing Weights table. Other columns will have to be added, such as: consider for calculations; weight type (adjusted, measured by scale, ideal...).
 - All the data (except for weight) must be saved in separate tables.
 - Every data saved should reference the parameters used - weight, height, gender, injury factor...
@@ -215,9 +225,14 @@ Describes the features and their current implementation status.
 
 **DB schema gap (checked against `lib/core/services/database/app_database_tables.dart`, 2026-09-06):** only `PATIENT`, `WEIGHTS`, `HEIGHTS` and `BODY_MEASUREMENTS` exist today. None of `BMI`, `ENERGY_EXPENDITURES`, `ENTERAL_NUTRITIONS_DRIPPING/SPEED/VOLUME`, `GLUCOSE_INFUSION_RATES`, `NITROGEN_BALANCES`, `PROTEIN_NEEDS`, the per-screening tables, `WATER_NEEDS` or `WEIGHT_LOSS_CLASSIFICATIONS` exist yet — expected, since the Calculators tab itself is unbuilt (see notes above). `WEIGHTS` also does not yet have the "consider for calculations" / "weight type" columns this section calls for — it currently only has `id, value, createdAt, patientId` (shared with `HEIGHTS` via `_baseMeasurementTableFields`). The DB migration mechanism ([priority 1](#1-roadmap-prioritization), [ADR 0001](adr/0001-database-schema-migrations.md)) has shipped, so the `WEIGHTS` column addition and every new table below are no longer blocked — none of them are built yet, though.
 
+**Storage convention (product decision reversed 2026-09-07, supersedes the same-day "fixed typed columns per table" decision):** each calculation table uses a base+`inputParams` JSON structure, not one fixed column per input parameter. Fixed base columns are specific to that calculation (result value(s), `createdAt`, `patientId`, and a discriminant where relevant — e.g. `formula` enum for Energy Expenditure's 5 formulas, `type` for Enteral Nutrition's 3 sub-types), plus a single `inputParams` column storing a JSON array of `{ key, label, value }` entries: `key` is a stable, language-independent identifier (e.g. `"weight_kg"`, `"injury_factor"`) that does not change with app locale; `label` is a user-facing display label (may be an i18n key rather than a hardcoded string); `value` is the actual value used for that parameter at calculation time. This applies uniformly to every calculator table listed above, including the per-screening-tool tables — one convention everywhere, rather than deciding case-by-case, because formulas within a calculator type often need different params (Energy Expenditure's 5 formulas, Enteral Nutrition's 3 sub-types) and a fixed-column-per-param design would otherwise require sparse/nullable columns per variant or one table per formula variant.
+
+**Hard prerequisite (2026-09-07):** the 4 missing `PATIENT` columns (Enteral Nutrition, Parenteral Nutrition, Hospitalized, Confined to bed — see [2.1.1 Create Patient](#211-create-patient) gap) are not just a form-completeness gap; they are a hard prerequisite for Calculator Relevance filtering specifically (see [Calculator Relevance](#calculator-relevance)). The Calculators tab's relevance logic cannot ship correctly until those columns land end-to-end (DB + entity + Create/Edit Patient forms).
+
 **ADRs needed before implementation (architecture review, 2026-09-06):**
 - ~~**DB migration strategy**~~ — resolved: [ADR 0001](adr/0001-database-schema-migrations.md) (sqflite `version`/`onCreate`/`onUpgrade` driven by `sinceVersion` metadata). Unblocks the `WEIGHTS` columns above and this entire table list — still not implemented.
-- **Screening storage granularity** — one table per screening tool (`SCREENING_MST`, `SCREENING_STRONG_KIDS`, `SCREENING_MUST`, `SCREENING_NRS_2002`, future `SCREENING_ASG`) as currently documented above, vs. a single `SCREENINGS` table with a `type` discriminant column + a JSON-in-TEXT `answers` blob. No existing precedent for either approach in this codebase (`TableSqlTypes` has no JSON/blob convention today) — needs a decision since it sets the pattern for all 5 screening tools.
+- ~~**Screening storage granularity**~~ — resolved (product decision, 2026-09-07; JSON-storage part reversed same day, see storage convention above): one table per screening tool (`SCREENING_MST`, `SCREENING_STRONG_KIDS`, `SCREENING_MUST`, `SCREENING_NRS_2002`, future `SCREENING_ASG`) still stands — a single `SCREENINGS` table with a `type` discriminant was rejected in favor of per-tool tables. However, each per-tool table now uses the base+`inputParams` JSON structure like every other calculator table (questions/answers stored as `{ key, label, value }` entries in `inputParams`, not as fixed typed columns per question) — the original "no JSON/blob column" part of this decision is reversed. `mobile-dev`/`senior-analyst` should still write a short ADR under `docs/adr/` documenting this decision and rationale before/during implementation — not written here.
+- **New technical dependency surfaced (2026-09-07):** `AppDatabaseTables`/`TableSqlType` (`lib/core/services/database/app_database_tables.dart`) currently has no JSON/blob column type — storing `inputParams` requires adding a new `TableSqlType` case (likely a TEXT column with JSON serialization at the model layer, per sqflite convention) before any calculator table can be created. Small enough to be done as part of the first calculator table's implementation (likely BMI or Energy Expenditure), not a separate priority-table entry — flagged here so it isn't rediscovered as a surprise.
 
 ##### Weights
 
@@ -241,10 +256,15 @@ Describes the features and their current implementation status.
     - Order by the most recent first.
     - Show the curve (asc, desc) or nothing if there was no change from the last weight to the new.
     - Show the weight, the date and time, and the type of the weight.
+- A weight can be deleted when the tile is dragged to the left (product decision, 2026-09-07, matching Body Measurements' pattern):
+    - On deletion attempt, a confirmation dialog will appear.
+    - On confirm, the weight should be removed from the local database.
+    - On deletion error, an error dialog should be shown.
+    - On deletion success, a success dialog (auto-closeable) should appear. The curves for the weights that came after the one that was deleted should be updated.
 
 ##### Heights
 
-- Same as weights, but for heights.
+- Same as weights, but for heights (including delete-on-swipe with confirmation dialog and curve recompute).
 
 ##### Body Measurements
 
@@ -291,7 +311,7 @@ Describes the features and their current implementation status.
 
 #### All calculators
 
-- **BMI:** Calculates patient BMI. Available for all ages (from 19+).
+- **BMI:** Calculates patient BMI. The raw BMI value is shown on the patient profile for all ages. BMI *classification* (this calculator) is available only for patients 19+ — the calculator only classifies adult/elder BMI, there is no pediatric classification. This age restriction is intentional and permanent, not a gap to fill later (product decision, 2026-09-07).
 
 - **Energy Expenditure:** Calculates the patient's energy expenditure. There are several different formulas:
     - Harris Benedict
@@ -344,7 +364,7 @@ The table below displays the calculator type and the patient params that make th
 
 | Calculator Type | Patient Params |
 | --------------- | --------------- |
-| BMI | Always Relevant |
+| BMI | Always Relevant (19+); for patients under 19, only the raw BMI value is shown on the profile — not classified (product decision, 2026-09-07) |
 | Energy Expenditure | Age, Confined to bed, Hospitalized |
 | Enteral/Parenteral Nutrition | Patient uses parenteral/enteral nutrition |
 | Nitrogen Balance | Hospitalized, Parenteral/Enteral nutrition, Confined to bed |
@@ -354,6 +374,8 @@ The table below displays the calculator type and the patient params that make th
 | Weight - Estimated | Hospitalized, Confined to bed |
 | Weight Loss Classification | If the patient's 2 last weights form a desc curve (there was weight loss) |
 | Screening | Age, Hospitalized, Confined to bed |
+
+**Resolved (product decision, 2026-09-07):** the prior conflict between "BMI: Always Relevant" and "Available for all ages (from 19+)" is resolved above — BMI classification is relevant/available only for patients 19+; this matches the implemented `CalculateBmi` (`lib/shared/services/calculator/domain/use_cases/bmi/calculate_bmi.usecase.dart`, adult/elder branches only, no pediatric branch) and is intentional, not a gap.
 
 ### 3.2. Implementation Statuses
 
