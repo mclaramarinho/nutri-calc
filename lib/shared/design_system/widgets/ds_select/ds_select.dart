@@ -6,7 +6,7 @@ class DsSelect<T> extends StatelessWidget {
   final String label;
   final void Function(T?)? onDropdownSelect;
 
-  const DsSelect({
+  const DsSelect({super.key, 
     required this.dropdownOptions,
     required this.label,
     required this.onDropdownSelect,

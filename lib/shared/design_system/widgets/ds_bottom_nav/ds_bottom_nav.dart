@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_bottom_nav/ds_bottom_nav_data.dart';

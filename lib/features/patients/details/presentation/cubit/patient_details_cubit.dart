@@ -218,8 +218,9 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   Future<void> saveNewBodyMeasurement() async {
     _executeOnStateLoaded((current) async {
       if (current.newBodyMeasurementValue == null ||
-          current.newBodyMeasurementType == null)
+          current.newBodyMeasurementType == null) {
         return;
+      }
 
       if (current.newBodyMeasurementValue! <= 0) return;
 

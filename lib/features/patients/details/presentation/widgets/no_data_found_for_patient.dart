@@ -4,7 +4,7 @@ import 'package:nutri_calc/shared/design_system/widgets/ds_placeholder/ds_placeh
 class NoDataFoundForPatient extends StatelessWidget {
   final String message;
 
-  const NoDataFoundForPatient({required this.message});
+  const NoDataFoundForPatient({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
