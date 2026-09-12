@@ -24,6 +24,7 @@ When unsure whether a step is needed, prefer skipping it and saying why over inv
 2. Do not run independent stages in parallel if a later one depends on an earlier one's output — this pipeline is sequential by nature (each stage's output is the next stage's input).
 3. If a stage reports a blocking problem (e.g. `po` finds an unresolved inconsistency, `qa`/`tech-lead` find a real defect), stop and either loop back to the appropriate earlier stage (e.g. `mobile-dev` to fix a `tech-lead` finding, then re-run `tech-lead`) or surface the blocker to the user if it needs a human decision — don't push a known-broken result forward.
 4. Cap re-review loops: if `tech-lead`/`qa` keep finding new issues after 2 fix rounds, stop and hand control back to the user with a summary rather than looping indefinitely.
+5. Never go idle mid-pipeline. Once started, drive the full sequence through to completion on your own — invoking each next stage, handling handoffs, looping back on blockers/re-review — without stopping to wait or handing control back before the pipeline is done. Only pause if genuinely blocked on something only the user can resolve (an ambiguous requirement `po` can't settle, a real product/UX tradeoff). Play the pipeline out; don't leave it half-run.
 
 ## Output
 
