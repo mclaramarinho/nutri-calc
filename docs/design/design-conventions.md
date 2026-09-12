@@ -76,3 +76,46 @@ void pop<T extends Object?>([T? result]); // instead of void pop();
 - `body` accepts arbitrary widgets, most commonly a `Column` of `DsTextfield`s (form entry) or a read-only summary (`Text`/`DsTextfield(disabled: true)` pairs for history detail) — no bottom-sheet-specific wrapper needed beyond the scroll/padding shell above.
 - `actions` accepts `DsButton`s exactly like `DsDialog.actions` — same `Row` shape, so a caller migrating a save/cancel action pair from a dialog to a bottom sheet doesn't need to change the buttons themselves.
 - No new variant is introduced (no separate "compact" vs. "scrollable" widget) — `maxHeightFraction` plus the content-driven default cover both cases the roadmap currently anticipates (a calculator input form, a history detail view). Don't add more configurability than that until a concrete need surfaces.
+
+---
+
+## `DsButton` disabled state (new, Roadmap priority 4)
+
+Location: `lib/shared/design_system/widgets/ds_button/ds_button.dart`.
+
+### Param name/shape: `disabled` (bool, default `false`)
+
+Not `enabled`. `DsTextfield` already established the DS-internal convention of a `disabled` bool defaulting to `false` (see `lib/shared/design_system/widgets/ds_textfield/ds_textfield.dart`) — match it for cross-widget consistency rather than following bare Material's `enabled: true` convention (`DsSelect` still does that internally, but doesn't expose it as a public param, so it isn't a competing public-API precedent). One DS-wide rule: **disableable DS widgets expose `disabled` (default `false`), not `enabled`.** This is an API-shape call but stated here so it isn't re-litigated per widget.
+
+```dart
+const DsButton({
+  required this.label,
+  required this.isLoading,
+  required this.onTap,
+  this.disabled = false,
+  super.key,
+});
+```
+
+### `isLoading` implies disabled interaction, but is visually distinct
+
+- A loading button (`isLoading: true`) is always non-tappable, regardless of `disabled`'s value — callers shouldn't have to also pass `disabled: true` while saving; `isLoading` already means "an operation is in flight, don't let the user double-submit." Internally: `onPressed: (disabled || isLoading) ? null : onTap`.
+- Visual treatment differs between the two states — they communicate different things to the user:
+  - **`isLoading: true`**: keep today's look (button stays in its normal/enabled visual style, `CircularProgressIndicator` replaces the label) — this already reads as "working on it," not "unavailable."
+  - **`disabled: true` (and not loading)**: dimmed/flat treatment (spec below) — reads as "unavailable right now," e.g. required fields still empty.
+- If both are somehow true at once, `isLoading`'s visual wins (spinner), since "in flight" is the more specific/urgent state and this combination shouldn't occur in practice given the use cases described (a button is either waiting on required fields, or saving — not both).
+
+### Visual spec for `disabled: true` (not loading)
+
+Token gap found: `lib/shared/design_system/tokens/ds_colors.dart` only has `white`/`blue`/`black`/`gray` (`gray` = `Colors.grey.shade200`, already used as the `DsBottomSheet` divider/drag-handle color) — there's no dedicated "disabled" or "on-disabled-text" color, and no opacity-scale token anywhere in `tokens/`. Rather than inventing a new token file entry for a one-off, and given `DsButton` itself is still an unstyled `ElevatedButton` (`// TODO - style this button`), use `ElevatedButton.styleFrom`'s dedicated disabled slots so the treatment is deliberate and reads consistently once the button gets its full restyle:
+  - `disabledBackgroundColor: DsColors.gray` (reuses the existing light-gray token — same "inert/inactive" association it already carries as a divider/handle color, no new token needed).
+  - `disabledForegroundColor: DsColors.black.withValues(alpha: 0.38)` — approximates Material's own disabled-content-opacity convention (38%) using an existing token (`DsColors.black`) rather than adding a new gray shade. Flag as a candidate for a proper `DsColors.textDisabled` token in the priority-8 DS color/token audit if this alpha-on-token pattern recurs elsewhere.
+  - No elevation/shadow while disabled (`elevation: 0` in the disabled branch, or rely on Material's default of dropping elevation for a null `onPressed` — either is acceptable, just confirm it doesn't float above content once the button gets real elevation styling).
+  - Cursor/tap feedback: comes for free once `onPressed` is `null` — Material already suppresses ripple/hover/cursor changes for a disabled `ElevatedButton`; no extra code needed beyond wiring `onPressed` as described above.
+  - This state must look visually distinct from both enabled (currently default `ElevatedButton` color, e.g. Material's default primary) and loading (same look as enabled + spinner) — the gray fill + reduced-opacity label achieves that without a new token family.
+
+### Copy / scope confirmation
+
+- Copy-agnostic: no label/text changes are needed for the disabled state itself (the label stays e.g. "Salvar"; only enablement and paint change). Roadmap 2.1.4's rules ("disabled while required fields empty," "disabled while saving") are pure state-gating, not new copy.
+- No other DS token gap blocks this beyond the `DsColors`/opacity note above, which has a workaround (alpha on an existing token) and doesn't need to block implementation.
+- Out of scope here (per task boundaries): wiring `disabled:` into the actual Weights/Heights/Body Measurements Save buttons — that's the separate, still-open roadmap item that will consume this new param.
