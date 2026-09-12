@@ -52,3 +52,6 @@ lib/di/di.config.dart
 
 # run-nutri-calc skill driver scratch state
 .claude/skills/run-nutri-calc/.state.json
+
+# agent/skill output files
+.claude/outputs/

@@ -22,6 +22,10 @@ Code generation (`build_runner`) is required after changing any `@JsonSerializab
 
 To drive/screenshot the running app programmatically (not just run its tests), use the `run-nutri-calc` skill (`.claude/skills/run-nutri-calc/`).
 
+## Agent/skill output files
+
+Temporary Markdown output an agent or skill produces for human validation (e.g. a QA bug-reproduction dossier, a review summary, a draft plan) must be written to `.claude/outputs/<AGENT_OR_SKILL_NAME>/<FILE_NAME>.md`, where `<AGENT_OR_SKILL_NAME>` is the name of the agent or skill that produced it (e.g. `.claude/outputs/qa/weight-tab-crash-repro.md`). This directory is gitignored — it's scratch space for the user to review, not a place for deliverables meant to be committed (ADRs, docs, code stay in their normal locations).
+
 ## Architecture
 
 **Feature-based, layered.** Each feature under `lib/features/<feature>/` (and nested sub-features like `patients/new`, `patients/details`, `measurements/weight`) follows the same three-layer split:
