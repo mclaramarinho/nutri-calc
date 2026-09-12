@@ -10,7 +10,7 @@ abstract class AppRouter {
   Object? get params;
 
   void push(AppRoutes route, {Map<String, dynamic>? params});
-  void pop();
+  void pop<T extends Object?>([T? result]);
   void replace(AppRoutes route, {Map<String, dynamic>? params});
 }
 
@@ -52,8 +52,8 @@ class AppRouterImpl implements AppRouter {
   }
 
   @override
-  void pop() {
-    router.canPop() ? router.pop() : debugPrint("Can't pop");
+  void pop<T extends Object?>([T? result]) {
+    router.canPop() ? router.pop(result) : debugPrint("Can't pop");
   }
 
   @override

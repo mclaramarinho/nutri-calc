@@ -41,3 +41,4 @@ Keep this list current — one line per ADR — so an agent can decide relevance
 | ADR | Title | Status |
 | --- | ----- | ------ |
 | [0001](0001-database-schema-migrations.md) | Database schema migrations via sqflite version + self-describing versioned fields | Accepted |
+| [0002](0002-approuter-pop-generic-result.md) | `AppRouter.pop` gains a generic optional result parameter | Accepted |
