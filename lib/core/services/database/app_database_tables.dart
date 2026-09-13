@@ -25,6 +25,34 @@ enum AppDatabaseTables {
           TableSqlField(name: "birthdate", type: .text),
           TableSqlField(name: "age", type: .integer),
           TableSqlField(name: "ageUnit", type: .text),
+          TableSqlField(
+            name: "enteralNutrition",
+            type: .boolean,
+            constraints: [.notNull],
+            sinceVersion: 2,
+            defaultValue: 0,
+          ),
+          TableSqlField(
+            name: "parenteralNutrition",
+            type: .boolean,
+            constraints: [.notNull],
+            sinceVersion: 2,
+            defaultValue: 0,
+          ),
+          TableSqlField(
+            name: "hospitalized",
+            type: .boolean,
+            constraints: [.notNull],
+            sinceVersion: 2,
+            defaultValue: 0,
+          ),
+          TableSqlField(
+            name: "confinedToBed",
+            type: .boolean,
+            constraints: [.notNull],
+            sinceVersion: 2,
+            defaultValue: 0,
+          ),
         ];
       case .weights:
         return _baseMeasurementTableFields;

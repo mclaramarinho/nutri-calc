@@ -26,6 +26,10 @@ class UpdatePatientUseCaseImpl implements UpdatePatientUseCase {
           age: form.age,
           ageUnit: form.ageUnit,
           id: form.patientLocalId,
+          enteralNutrition: form.enteralNutrition,
+          parenteralNutrition: form.parenteralNutrition,
+          hospitalized: form.hospitalized,
+          confinedToBed: form.confinedToBed,
         ),
       );
     } catch (err) {

@@ -8,6 +8,10 @@ class EditPatientFormEntity {
   final int? age;
   final TimeUnit? ageUnit;
   final String patientLocalId;
+  final bool enteralNutrition;
+  final bool parenteralNutrition;
+  final bool hospitalized;
+  final bool confinedToBed;
 
   const EditPatientFormEntity({
     required this.firstName,
@@ -17,6 +21,10 @@ class EditPatientFormEntity {
     this.birthdate,
     this.age,
     this.ageUnit,
+    this.enteralNutrition = false,
+    this.parenteralNutrition = false,
+    this.hospitalized = false,
+    this.confinedToBed = false,
   });
 
   EditPatientFormEntity copyWith({
@@ -26,6 +34,10 @@ class EditPatientFormEntity {
     DateTime? birthdate,
     int? age,
     TimeUnit? ageUnit,
+    bool? enteralNutrition,
+    bool? parenteralNutrition,
+    bool? hospitalized,
+    bool? confinedToBed,
   }) => EditPatientFormEntity(
     firstName: firstName ?? this.firstName,
     lastName: lastName ?? this.lastName,
@@ -33,6 +45,10 @@ class EditPatientFormEntity {
     patientId: patientId ?? this.patientId,
     birthdate: birthdate ?? this.birthdate,
     age: age ?? this.age,
-    ageUnit: ageUnit ?? this.ageUnit
+    ageUnit: ageUnit ?? this.ageUnit,
+    enteralNutrition: enteralNutrition ?? this.enteralNutrition,
+    parenteralNutrition: parenteralNutrition ?? this.parenteralNutrition,
+    hospitalized: hospitalized ?? this.hospitalized,
+    confinedToBed: confinedToBed ?? this.confinedToBed,
   );
 }

@@ -40,6 +40,10 @@ class LoadPatientDetailsUseCaseImpl implements LoadPatientDetailsUseCase {
           birthdate: pat.birthdate,
           age: pat.age,
           ageUnit: pat.ageUnit,
+          enteralNutrition: pat.enteralNutrition,
+          parenteralNutrition: pat.parenteralNutrition,
+          hospitalized: pat.hospitalized,
+          confinedToBed: pat.confinedToBed,
         ),
       );
     } catch (err) {

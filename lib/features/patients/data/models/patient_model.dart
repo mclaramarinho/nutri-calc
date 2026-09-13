@@ -19,6 +19,16 @@ class PatientModel {
   final int? age;
   final TimeUnit? ageUnit;
 
+  // Clinical flags
+  @JsonKey(toJson: _boolToInt, fromJson: _intToBool)
+  final bool enteralNutrition;
+  @JsonKey(toJson: _boolToInt, fromJson: _intToBool)
+  final bool parenteralNutrition;
+  @JsonKey(toJson: _boolToInt, fromJson: _intToBool)
+  final bool hospitalized;
+  @JsonKey(toJson: _boolToInt, fromJson: _intToBool)
+  final bool confinedToBed;
+
   const PatientModel({
     this.id,
     required this.firstName,
@@ -27,7 +37,14 @@ class PatientModel {
     this.birthdate,
     this.age,
     this.ageUnit,
+    this.enteralNutrition = false,
+    this.parenteralNutrition = false,
+    this.hospitalized = false,
+    this.confinedToBed = false,
   });
+
+  static int _boolToInt(bool value) => value ? 1 : 0;
+  static bool _intToBool(dynamic value) => value == 1 || value == true;
 
   // Wire up the generated `toJson` in `example.g.dart`.
   Map<String, dynamic> toJson() => _$PatientModelToJson(this);
@@ -44,7 +61,11 @@ class PatientModel {
       patientId: patientId,
       birthdate: birthdate,
       age: age,
-      ageUnit: ageUnit
+      ageUnit: ageUnit,
+      enteralNutrition: enteralNutrition,
+      parenteralNutrition: parenteralNutrition,
+      hospitalized: hospitalized,
+      confinedToBed: confinedToBed,
     );
   }
 }

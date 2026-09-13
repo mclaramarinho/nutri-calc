@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nutri_calc/core/services/database/app_database_service.dart';
 import 'package:nutri_calc/core/services/database/app_database_tables.dart';
 import 'package:nutri_calc/core/services/database/app_database_version.dart';
+import 'package:nutri_calc/features/patients/data/models/patient_model.dart';
 import 'package:nutri_calc/core/services/database/entities/table_sql_constraints.enum.dart';
 import 'package:nutri_calc/core/services/database/entities/table_sql_field.entity.dart';
 import 'package:nutri_calc/core/services/database/entities/table_sql_types.enum.dart';
@@ -160,6 +161,133 @@ void main() {
       },
     );
   });
+
+  group(
+    'PATIENT clinical boolean columns migration (real production schema, '
+    'v1 -> v2)',
+    () {
+      test(
+        'fresh install (straight at v2) creates PATIENT with all 4 boolean '
+        'columns as INTEGER NOT NULL DEFAULT 0',
+        () async {
+          final path = _newTempDbPath('boolean_columns_fresh_v2');
+          final service = AppDatabaseServiceImpl();
+          await service.init(dbPath: path, version: 2);
+
+          final db = await openDatabase(path);
+          try {
+            final columns = await db.rawQuery(
+              'PRAGMA table_info(${AppDatabaseTables.patient.name})',
+            );
+            final byName = {
+              for (final c in columns) c['name'] as String: c,
+            };
+
+            for (final name in [
+              'enteralNutrition',
+              'parenteralNutrition',
+              'hospitalized',
+              'confinedToBed',
+            ]) {
+              expect(byName.containsKey(name), isTrue, reason: name);
+              expect(byName[name]!['type'], 'INTEGER', reason: name);
+              expect(byName[name]!['notnull'], 1, reason: name);
+              expect(byName[name]!['dflt_value'], '0', reason: name);
+            }
+          } finally {
+            await db.close();
+          }
+        },
+      );
+
+      test(
+        'an existing v1 PATIENT row upgrading to v2 gets the 4 new columns '
+        'added, defaulting existing rows to 0/false, without crashing '
+        'PatientModel.fromJson',
+        () async {
+          final path = _newTempDbPath('boolean_columns_upgrade_v1_to_v2');
+
+          // Seed at v1: PATIENT table exists without the 4 new columns.
+          final v1Service = AppDatabaseServiceImpl();
+          await v1Service.init(dbPath: path, version: 1);
+          final insertResult = await v1Service.insert(
+            AppDatabaseTables.patient,
+            {
+              'id': 'p1',
+              'patientId': 'PID-1',
+              'firstName': 'Ana',
+              'lastName': 'Silva',
+              'birthdate': '2000-01-01',
+              'age': 26,
+              // Must match a `TimeUnit` enum name ('day'/'month'/'year') for
+              // `PatientModel.fromJson` below to decode it; 'years' is not a
+              // valid enum name.
+              'ageUnit': 'year',
+            },
+          );
+          expect(insertResult.isOk, isTrue);
+
+          // Reopen at v2 - onUpgrade must ALTER TABLE ADD COLUMN for the 4
+          // new fields.
+          final v2Service = AppDatabaseServiceImpl();
+          await v2Service.init(dbPath: path, version: 2);
+
+          // Opened with `singleInstance: false` so that closing this
+          // inspection-only connection doesn't tear down the shared,
+          // path-cached connection `v2Service` still needs for the `read`
+          // call below (sqflite caches `openDatabase` by path when
+          // `singleInstance: true`, its default).
+          final db = await openDatabase(path, singleInstance: false);
+          try {
+            final columns = await db.rawQuery(
+              'PRAGMA table_info(${AppDatabaseTables.patient.name})',
+            );
+            final columnNames = columns.map((c) => c['name']).toSet();
+            expect(
+              columnNames,
+              containsAll([
+                'enteralNutrition',
+                'parenteralNutrition',
+                'hospitalized',
+                'confinedToBed',
+              ]),
+            );
+          } finally {
+            await db.close();
+          }
+
+          final readResult = await v2Service.read(
+            AppDatabaseTables.patient,
+            where: 'id = ?',
+            whereArgs: ['p1'],
+          );
+          expect(readResult.isOk, isTrue);
+          readResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              final row = rows.first;
+              expect(row['firstName'], 'Ana', reason: 'pre-existing data intact');
+              // Pre-existing row should default to 0 (false) for all 4
+              // new columns, not null/crash.
+              expect(row['enteralNutrition'], 0);
+              expect(row['parenteralNutrition'], 0);
+              expect(row['hospitalized'], 0);
+              expect(row['confinedToBed'], 0);
+
+              // Must decode through PatientModel.fromJson without throwing,
+              // and all 4 flags must read back as false.
+              final model = PatientModel.fromJson(row);
+              expect(model.enteralNutrition, isFalse);
+              expect(model.parenteralNutrition, isFalse);
+              expect(model.hospitalized, isFalse);
+              expect(model.confinedToBed, isFalse);
+            },
+            error: (_) => fail('expected Ok'),
+          );
+        },
+      );
+    },
+  );
 
   group('Migration mechanics (onCreate/onUpgrade algorithm) against a versioned fixture', () {
     // Local fixture mirroring AppDatabaseTables' shape: a "patient"-like

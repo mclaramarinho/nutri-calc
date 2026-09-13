@@ -28,6 +28,10 @@ class CreatePatientUseCaseImpl implements CreatePatientUseCase {
         age: formData.age,
         birthdate: formData.birthdate,
         ageUnit: formData.ageUnit,
+        enteralNutrition: formData.enteralNutrition,
+        parenteralNutrition: formData.parenteralNutrition,
+        hospitalized: formData.hospitalized,
+        confinedToBed: formData.confinedToBed,
       );
       final res = await _newPatientRepository.createPatient(patient);
 

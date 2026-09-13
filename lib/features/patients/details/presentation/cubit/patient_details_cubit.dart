@@ -138,6 +138,30 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
+  void updateEnteralNutrition(bool value) {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(form: current.form.copyWith(enteralNutrition: value)));
+    });
+  }
+
+  void updateParenteralNutrition(bool value) {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(form: current.form.copyWith(parenteralNutrition: value)));
+    });
+  }
+
+  void updateHospitalized(bool value) {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(form: current.form.copyWith(hospitalized: value)));
+    });
+  }
+
+  void updateConfinedToBed(bool value) {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(form: current.form.copyWith(confinedToBed: value)));
+    });
+  }
+
   // WEIGHT TAB ============================================================
   void updateWeightValue(String? value) {
     if (value == null) return;

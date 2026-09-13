@@ -119,3 +119,58 @@ Token gap found: `lib/shared/design_system/tokens/ds_colors.dart` only has `whit
 - Copy-agnostic: no label/text changes are needed for the disabled state itself (the label stays e.g. "Salvar"; only enablement and paint change). Roadmap 2.1.4's rules ("disabled while required fields empty," "disabled while saving") are pure state-gating, not new copy.
 - No other DS token gap blocks this beyond the `DsColors`/opacity note above, which has a workaround (alpha on an existing token) and doesn't need to block implementation.
 - Out of scope here (per task boundaries): wiring `disabled:` into the actual Weights/Heights/Body Measurements Save buttons — that's the separate, still-open roadmap item that will consume this new param.
+
+---
+
+## `DsCheckbox` (new, Roadmap priority 5 — 4 missing Patient boolean fields)
+
+No checkbox/switch widget existed anywhere in the app before this. Resolves the 5 open questions logged in `docs/roadmap.md` 2.1.1 "Confirmed requirement for the 4 missing fields".
+
+Location (to be created by `mobile-dev`): `lib/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart`.
+
+### API
+
+Stateless, controlled component (value comes from the cubit's state, not an internal controller) — unlike `DsTextfield`'s internal-`TextEditingController` pattern, a `bool` has no equivalent reason to own its own state, and `BlocBuilder` already rebuilds on every state change:
+
+```dart
+const DsCheckbox({
+  required this.label,
+  required this.value,
+  this.onChanged,
+  this.disabled = false,
+  this.helperText,
+  super.key,
+});
+```
+
+- `label` (`String`, required) — rendered beside the box, tappable (see below).
+- `value` (`bool`, required) — current checked state, driven by the caller's state (same pattern as `DsTextfield(customController: ...)` being fed from cubit state).
+- `onChanged` (`void Function(bool value)?`) — fires on toggle. Nullable (not `required`) for future read-only/display-only use beyond this feature's `disabled` case.
+- `disabled` (`bool`, default `false`) — follows the DS-wide rule already established for `DsTextfield`/`DsButton`: disableable DS widgets expose `disabled` defaulting to `false`, never `enabled`. Don't re-litigate this per widget.
+- `helperText` (`String?`, optional) — single line of caption copy rendered under the label, left-aligned with the label (not the box). Omit when not needed; see "Confined to bed" decision below for the one field that uses it.
+
+### Visual spec
+
+- Layout: `Row` — `Checkbox` (Material `Checkbox`, not a custom paint — no DS precedent for a custom checkbox paint, and Material's own gives correct platform tap/ripple/accessibility semantics for free) + `SizedBox(width: DsSpacing.sm)` + `Expanded` containing label (+ optional helper line below it in a `Column`).
+- Whole row wrapped in a tap target (`InkWell`/`GestureDetector`) that toggles `value` when tapped anywhere on the row (box or label) — matches the general mobile-forms convention of a large tap target for boolean toggles, and avoids a precuse requiring users to hit the small box itself.
+- Label text: `DsTypography.small` (16), `DsColors.black`, regular weight — same text size `DsTextfield` uses for its field text, for visual parity between the two input types on the same form.
+- Helper text (when present): `DsTypography.xxs` (12), `DsColors.black.withValues(alpha: 0.54)` — smaller and dimmer than the label, same "secondary copy" intent as `DsTextfield`'s `hintText`, no existing token for this muted color so reuse alpha-on-black per the precedent already accepted for `DsButton`'s disabled spec (see above) rather than inventing a new token.
+- Checked state: box fill `DsColors.blue`, check glyph white — `DsColors.blue` is the app's only brand/primary color today (used by `DsButton`'s default `ElevatedButton` color), so reuse it rather than adding a new "primary" token.
+- Unchecked state: box outline only (no fill), outline color `DsColors.black` at Material's default unselected-checkbox opacity (no fill token needed — this is Material's default `Checkbox` unselected visual, don't override it).
+- Disabled (checked or unchecked), mirrors `DsTextfield`'s/`DsButton`'s disabled treatment exactly, for visual consistency across all three disableable DS widgets:
+  - Box: fill/outline `DsColors.gray` (reuses the same "inert" token `DsButton.disabledBackgroundColor` already uses).
+  - Label + helper text: `DsColors.black.withValues(alpha: 0.38)` (same 38% convention as `DsButton`'s `disabledForegroundColor`).
+  - Row's `InkWell` has no tap handler when `disabled: true` (`onChanged` not called; no ripple) — same "comes for free once the tap callback is null" approach `DsButton` already relies on.
+
+### Open item for `mobile-dev`/`senior-analyst`, not blocking
+
+A proper `DsColors.textDisabled`/`textMuted` token (replacing the repeated `DsColors.black.withValues(alpha: ...)` pattern now used by `DsButton`, and here by `DsCheckbox`'s disabled label and helper text) is a good candidate for the priority-8 DS color/token audit — flagging again since it's now recurring, not introducing it ad hoc for a single widget.
+
+### Feature-specific decisions for the 4 Patient boolean fields
+
+- **Labels (final):** "Nutrição Enteral", "Nutrição Parenteral", "Hospitalizado", "Restrito ao leito" — the proposed labels in the roadmap are confirmed as-is, no wording changes.
+- **Helper text:** only "Restrito ao leito" gets one — `helperText: "Paciente não consegue andar ou tem dificuldade significativa para caminhar."` The other 3 fields are unambiguous clinical shorthand a dietitian already uses verbatim ("nutrição enteral/parenteral", "hospitalizado"); "confinado ao leito" is the one term where the roadmap's own clarifying sentence ("can't walk, or requires a lot of effort to walk") adds real disambiguation value (e.g. distinguishing from "restrito à casa"/homebound), so it's worth surfacing to the user, not just keeping as internal doc.
+- **Order (within the group of 4, both forms):** Enteral Nutrition → Parenteral Nutrition → Hospitalized → Confined to bed — matches the roadmap field table's canonical order; no reason to reorder.
+- **Placement (both Create Patient and Patient Details forms):** after Birthdate, as the last field group before the Save button (Create Patient) / before the form ends (Patient Details). Deliberately **not** matching 2.1.3's prose order (booleans right after Patient Id) — that prose ordering was never confirmed as an intentional spec (roadmap's own open question 3 says so), whereas the field table order is explicit, and Patient Details is a read/edit mirror of the Create form today (same fields, same `DsTextfield`s, same top-to-bottom order) — keeping the two forms' field order identical avoids a dietitian having to re-learn a different layout when editing vs. creating.
+- **Layout/grouping:** single column (one `DsCheckbox` per row, full width), not a 2x2 grid. The 4 labels vary in length and one (`Restrito ao leito`) carries a helper line that needs full row width to read as one clause without wrapping awkwardly in a half-width column; single column also keeps a consistent vertical scan pattern with the rest of the form's fields. `DsSpacing.sm` vertical gap between the 4 checkboxes (tight, since they're one related group).
+- **Section label (new pattern — first use of a section header in a DS form):** yes, add a plain section label **"Informações Clínicas"** directly above the 4 checkboxes, in both forms. Style: `DsTypography.medium` (18), `fontWeight: FontWeight.w600`, `DsColors.black`, `DsSpacing.md` top margin / `DsSpacing.sm` bottom margin. This is a new structural pattern (the forms were flat `Column`s with no headers before) — introduced here because the 4 booleans are visually/semantically a distinct group (clinical status flags) from the identity/demographic fields above them (ID, name, age, birthdate), and a plain `Text` label is the minimal way to signal that without inventing a new DS widget (e.g. a "section divider" component) for a single use case. If a second feature needs grouped sections, consider promoting this to a small `DsSectionLabel` widget instead of repeating the raw `Text` styling — noting this here so it isn't missed when that need arises, but not building it preemptively for one call site. **Flag for `senior-analyst`:** this is a new-enough structural precedent (not just a token reuse) that a short ADR recording "flat forms may introduce a plain text section label for grouped fields, promote to a widget on the second use case" could be warranted — judgment call, not mandatory.

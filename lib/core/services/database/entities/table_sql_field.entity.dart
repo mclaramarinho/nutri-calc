@@ -17,8 +17,15 @@ class TableSqlField {
   });
 
   String get sql {
+    final constraintsSql =
+        constraints != null && constraints!.isNotEmpty
+        ? constraints!.map((ct) => "${ct.sql} ").join("")
+        : "";
+    final defaultSql = defaultValue != null
+        ? "DEFAULT ${_sqlLiteral(defaultValue!)}"
+        : "";
     return '''
-        $name ${type.sql} ${constraints != null && constraints!.isNotEmpty ? constraints!.map((ct) => "${ct.sql} ").join("") : ""}
+        $name ${type.sql} $constraintsSql$defaultSql
     ''';
   }
 

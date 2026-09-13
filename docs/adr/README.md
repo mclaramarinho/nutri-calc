@@ -43,3 +43,4 @@ Keep this list current — one line per ADR — so an agent can decide relevance
 | [0001](0001-database-schema-migrations.md) | Database schema migrations via sqflite version + self-describing versioned fields | Accepted |
 | [0002](0002-approuter-pop-generic-result.md) | `AppRouter.pop` gains a generic optional result parameter | Accepted |
 | [0003](0003-ds-button-disabled-parameter.md) | `DsButton` gains a `disabled` parameter; `isLoading` now also blocks taps | Accepted |
+| [0004](0004-table-sql-types-boolean-case.md) | `TableSqlTypes` gains a self-documenting `.boolean` case (maps to SQL `INTEGER`) | Accepted |

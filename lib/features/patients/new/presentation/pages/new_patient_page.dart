@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/features/patients/new/presentation/cubit/new_patient_state.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_typography.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_dialog/ds_dialog.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
@@ -135,7 +138,52 @@ class _NewPatientPageContent extends StatelessWidget {
                           cubit.setValue(.birthdate, DateTime.tryParse(val)),
                       type: .datetime,
                     ),
-              
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: DsSpacing.md,
+                        bottom: DsSpacing.sm,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Informações Clínicas",
+                          style: TextStyle(
+                            fontSize: DsTypography.medium,
+                            fontWeight: FontWeight.w600,
+                            color: DsColors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                    DsCheckbox(
+                      label: "Nutrição Enteral",
+                      value: state.form?.enteralNutrition ?? false,
+                      onChanged: (val) =>
+                          cubit.setValue(.enteralNutrition, val),
+                    ),
+                    SizedBox(height: DsSpacing.sm),
+                    DsCheckbox(
+                      label: "Nutrição Parenteral",
+                      value: state.form?.parenteralNutrition ?? false,
+                      onChanged: (val) =>
+                          cubit.setValue(.parenteralNutrition, val),
+                    ),
+                    SizedBox(height: DsSpacing.sm),
+                    DsCheckbox(
+                      label: "Hospitalizado",
+                      value: state.form?.hospitalized ?? false,
+                      onChanged: (val) => cubit.setValue(.hospitalized, val),
+                    ),
+                    SizedBox(height: DsSpacing.sm),
+                    DsCheckbox(
+                      label: "Restrito ao leito",
+                      value: state.form?.confinedToBed ?? false,
+                      onChanged: (val) =>
+                          cubit.setValue(.confinedToBed, val),
+                      helperText:
+                          "Paciente não consegue andar ou tem dificuldade significativa para caminhar.",
+                    ),
+
                     Row(
                       children: [
                         DsButton(

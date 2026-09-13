@@ -6,7 +6,11 @@ enum PatientPropertiesToEdit<T> {
   patientId<String>(),
   birthdate<DateTime>(),
   age<int>(),
-  ageUnit<TimeUnit>();
+  ageUnit<TimeUnit>(),
+  enteralNutrition<bool>(),
+  parenteralNutrition<bool>(),
+  hospitalized<bool>(),
+  confinedToBed<bool>();
 
   const PatientPropertiesToEdit();
 
@@ -131,6 +135,18 @@ class NewPatientCubit extends Cubit<NewPatientState> {
         break;
       case .ageUnit:
         newForm = newForm.copyWith(ageUnit: value);
+        break;
+      case .enteralNutrition:
+        newForm = newForm.copyWith(enteralNutrition: value as bool);
+        break;
+      case .parenteralNutrition:
+        newForm = newForm.copyWith(parenteralNutrition: value as bool);
+        break;
+      case .hospitalized:
+        newForm = newForm.copyWith(hospitalized: value as bool);
+        break;
+      case .confinedToBed:
+        newForm = newForm.copyWith(confinedToBed: value as bool);
         break;
     }
     emit(
