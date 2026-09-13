@@ -164,7 +164,7 @@ const DsCheckbox({
 
 ### Open item for `mobile-dev`/`senior-analyst`, not blocking
 
-A proper `DsColors.textDisabled`/`textMuted` token (replacing the repeated `DsColors.black.withValues(alpha: ...)` pattern now used by `DsButton`, and here by `DsCheckbox`'s disabled label and helper text) is a good candidate for the priority-8 DS color/token audit — flagging again since it's now recurring, not introducing it ad hoc for a single widget.
+A proper `DsColors.textDisabled`/`textMuted` token (replacing the repeated `DsColors.black.withValues(alpha: ...)` pattern now used by `DsButton`, and here by `DsCheckbox`'s disabled label and helper text) is a good candidate for the priority-8 DS color/token audit — flagging again since it's now recurring, not introducing it ad hoc for a single widget. (Now recurring a third time — see `DsListTile`'s trailing-icon color below.)
 
 ### Feature-specific decisions for the 4 Patient boolean fields
 
@@ -174,3 +174,42 @@ A proper `DsColors.textDisabled`/`textMuted` token (replacing the repeated `DsCo
 - **Placement (both Create Patient and Patient Details forms):** after Birthdate, as the last field group before the Save button (Create Patient) / before the form ends (Patient Details). Deliberately **not** matching 2.1.3's prose order (booleans right after Patient Id) — that prose ordering was never confirmed as an intentional spec (roadmap's own open question 3 says so), whereas the field table order is explicit, and Patient Details is a read/edit mirror of the Create form today (same fields, same `DsTextfield`s, same top-to-bottom order) — keeping the two forms' field order identical avoids a dietitian having to re-learn a different layout when editing vs. creating.
 - **Layout/grouping:** single column (one `DsCheckbox` per row, full width), not a 2x2 grid. The 4 labels vary in length and one (`Restrito ao leito`) carries a helper line that needs full row width to read as one clause without wrapping awkwardly in a half-width column; single column also keeps a consistent vertical scan pattern with the rest of the form's fields. `DsSpacing.sm` vertical gap between the 4 checkboxes (tight, since they're one related group).
 - **Section label (new pattern — first use of a section header in a DS form):** yes, add a plain section label **"Informações Clínicas"** directly above the 4 checkboxes, in both forms. Style: `DsTypography.medium` (18), `fontWeight: FontWeight.w600`, `DsColors.black`, `DsSpacing.md` top margin / `DsSpacing.sm` bottom margin. This is a new structural pattern (the forms were flat `Column`s with no headers before) — introduced here because the 4 booleans are visually/semantically a distinct group (clinical status flags) from the identity/demographic fields above them (ID, name, age, birthdate), and a plain `Text` label is the minimal way to signal that without inventing a new DS widget (e.g. a "section divider" component) for a single use case. If a second feature needs grouped sections, consider promoting this to a small `DsSectionLabel` widget instead of repeating the raw `Text` styling — noting this here so it isn't missed when that need arises, but not building it preemptively for one call site. **Flag for `senior-analyst`:** this is a new-enough structural precedent (not just a token reuse) that a short ADR recording "flat forms may introduce a plain text section label for grouped fields, promote to a widget on the second use case" could be warranted — judgment call, not mandatory.
+
+---
+
+## `DsLoadingIndicator` (new, Roadmap priority 5 — List Patients Gap 3)
+
+Location (to be created by `mobile-dev`): `lib/shared/design_system/widgets/ds_loading_indicator/ds_loading_indicator.dart`. Full spec: `.claude/outputs/senior-designer/list_patients_ds_components.md`.
+
+Wraps `CircularProgressIndicator` with two variants selected by a required-with-default enum param (`variant`, default `DsLoadingIndicatorVariant.page`), not two separate widgets — same "one component, param-driven variants" shape as `DsBottomSheet`'s `maxHeightFraction` rather than a `DsFullPageLoadingIndicator`/`DsInlineLoadingIndicator` pair.
+
+- `page` (default): `48×48` (new token `DsSizing.loadingIndicatorPage`), `strokeWidth: 4`, self-centers via `Center` (safe because callers are always a bounded `Scaffold`/tab body), color defaults to `DsColors.blue`. First consumer: List Patients' `ListPatientsStateLoading` case.
+- `inline`: `20×20` (new token `DsSizing.loadingIndicatorInline`), `strokeWidth: 2.5`, no `Center` (caller positions it, e.g. inside a `Row`/button), color defaults to `DsColors.white` (assumes it sits on a filled primary-colored surface unless overridden via the optional `color` param). Not consumed by any feature yet — specced now so `DsButton`'s own still-unstyled `isLoading` spinner (`lib/shared/design_system/widgets/ds_button/ds_button.dart`, bare `CircularProgressIndicator` today) has a ready-made target for a future retrofit, without a breaking API change then. That retrofit is explicitly **not** done as part of this pass.
+
+New tokens (`lib/shared/design_system/tokens/ds_sizing.dart`, which previously only had `iconAppBar`/`iconButton` — neither fit a spinner): `loadingIndicatorPage => 48.w`, `loadingIndicatorInline => 20.w`.
+
+---
+
+## `DsListTile` (new, Roadmap priority 5 — List Patients Gap 3)
+
+Location (to be created by `mobile-dev`): `lib/shared/design_system/widgets/ds_list_tile/ds_list_tile.dart`. Full spec: `.claude/outputs/senior-designer/list_patients_ds_components.md`.
+
+Generic row component (`overline?`, `title`, `subtitle?`, `leading?`, `trailing?`, `onTap?`) — introduced now, not after a second call site, because one already exists in embryonic form: `lib/features/patients/details/presentation/widgets/measurements_list.dart` uses a raw `ListTile` with the same title+subtitle+optional-trailing-icon shape. `DsListTile` is not wired into `MeasurementsList` in this pass (separate call site/ticket) but the API was shaped so it can be later without redesign.
+
+- `title`/`subtitle`/`overline` are typed `String` (not `Widget`), matching the DS-wide convention of plain-text params for text content (`DsButton.label`, `DsCheckbox.label`).
+- `overline` is DS-new (no Material `ListTile` equivalent) — a small muted line above `title`, added specifically so List Patients' optional `patient.patientId` line doesn't force every consumer into building its own two-line title `Column`. Omitted entirely (no reserved space) when `null`.
+- **No auto-injected trailing chevron** when `onTap != null` — callers pass their own `trailing` explicitly (a chevron for List Patients, a trend icon with no `onTap` for `MeasurementsList`). Matches `DsBottomSheet`'s already-documented explicit-slots-over-auto-content philosophy (see above).
+- Visual: `overline`/`subtitle` both use `DsTypography.xxs` (12) + `DsColors.black.withValues(alpha: 0.54)` — the same muted-secondary-copy treatment already established for `DsCheckbox.helperText`, reused rather than inventing a second muted style. `title` uses `DsTypography.small` (16) + `FontWeight.w600` (bolder than `DsCheckbox`'s label — a list row's title is the primary at-a-glance anchor, unlike a form label beside its own input). `DsSpacing.xxs` gap between the three text lines (one semantic block, not independent paragraphs). Outer padding `DsSpacing.md` horizontal / `DsSpacing.sm` vertical.
+- Tap handling: `onTap == null` ⇒ plain `Row`, no ripple/semantics; `onTap != null` ⇒ whole row wrapped in `InkWell`. Same "null callback ⇒ no interaction, comes free" pattern as `DsButton`/`DsCheckbox`.
+
+**List-separator convention (DS-wide, not `DsListTile`-internal):** a row component doesn't own its own divider — separators are the caller's `ListView.separated` responsibility. `MeasurementsList` already established this hairline style; reuse it verbatim rather than inventing a second one:
+
+```dart
+separatorBuilder: (context, index) => SizedBox(
+  height: 1,
+  width: MediaQuery.sizeOf(context).width,
+  child: Container(color: DsColors.gray),
+),
+```
+
+**Recurring token gap (3rd occurrence):** List Patients' trailing chevron uses `DsColors.black.withValues(alpha: 0.38)` for a subtle (not disabled) affordance icon — the same alpha-on-`DsColors.black` value `DsButton`/`DsCheckbox` already use for their *disabled* states, reused here for a different semantic (de-emphasis, not disability) purely because no dedicated muted/tertiary color token exists. Still flagging for the priority-8 `DsColors.textMuted`/`textDisabled` token audit, not blocking.

@@ -1,6 +1,6 @@
 part of 'list_patients_cubit.dart';
 
-abstract class ListPatientsState extends Equatable {}
+sealed class ListPatientsState extends Equatable {}
 
 class ListPatientsStateInitial extends ListPatientsState {
   final List<PatientListCardEntity> patients;

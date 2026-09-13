@@ -3,6 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/features/patients/list/presentation/cubit/list_patients_cubit.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
+import 'package:nutri_calc/routing/app_routes.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_list_tile/ds_list_tile.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_loading_indicator/ds_loading_indicator.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_placeholder/ds_placeholder.dart';
 
 /// Consumed by Home (feature) to render it as a tab
 class ListPatientsPage extends StatelessWidget {
@@ -27,42 +34,55 @@ class _ListPatientsPageContent extends StatelessWidget {
           case ListPatientsStateInitial():
             final patients = state.patients;
             if (patients.isEmpty) {
-              return Text("No patients to display");
+              return DsPlaceholder(
+                message: "Você ainda não tem pacientes cadastrados",
+              );
             }
-            return ListView.builder(
-              itemCount: state.patients.length,
+            return ListView.separated(
+              itemCount: patients.length,
+              separatorBuilder: (context, index) => SizedBox(
+                height: 1,
+                width: MediaQuery.sizeOf(context).width,
+                child: Container(color: DsColors.gray),
+              ),
               itemBuilder: (context, index) {
-                final patient = state.patients[index];
-                return ListTile(
+                final patient = patients[index];
+                return DsListTile(
+                  overline: patient.patientId,
+                  title: "${patient.firstName} ${patient.lastName}",
+                  subtitle: patient.age == null || patient.ageUnit == null
+                      ? "Idade não informada"
+                      : "${patient.age} ${patient.ageUnit!.value.toLowerCase()}",
+                  trailing: Icon(
+                    Icons.chevron_right_outlined,
+                    color: DsColors.black.withValues(alpha: 0.38),
+                  ),
                   onTap: () => getIt.get<AppRouter>().push(
-                    .patientDetails,
+                    AppRoutes.patientDetails,
                     params: {"patientId": patient.localId},
-                  ),
-                  trailing: Icon(Icons.chevron_right_outlined),
-                  title: Column(
-                    crossAxisAlignment: .start,
-                    children: [
-                      if (patient.patientId != null) ...[
-                        Text(patient.patientId!),
-                      ],
-                      Text("${patient.firstName} ${patient.lastName}"),
-                    ],
-                  ),
-                  subtitle: Text(
-                    patient.age == null || patient.ageUnit == null
-                        ? "Idade não informada"
-                        : "${patient.age} ${patient.ageUnit?.value.toLowerCase()}",
                   ),
                 );
               },
             );
 
           case ListPatientsStateLoading():
-            return CircularProgressIndicator();
+            return const DsLoadingIndicator();
+
           case ListPatientsStateError():
-            return Text("Error loading patients");
-          default:
-            return Text("Error loading patients");
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                DsPlaceholder(
+                  message: "Não foi possível carregar seus pacientes",
+                ),
+                SizedBox(height: DsSpacing.md),
+                DsButton(
+                  label: "Tentar novamente",
+                  isLoading: false,
+                  onTap: () => context.read<ListPatientsCubit>().init(),
+                ),
+              ],
+            );
         }
       },
     );

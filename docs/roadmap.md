@@ -135,12 +135,20 @@ Scope: land Enteral Nutrition, Parenteral Nutrition, Hospitalized, Confined to b
 
 - If list is empty, should display a message "Você ainda não tem pacientes cadastrados".
 
-##### Implementation Notes (validated against code, 2026-09-06; re-verified unchanged 2026-09-07)
+##### Error state
+
+- If loading the list fails, should display the message "Não foi possível carregar seus pacientes" plus a retry control below it.
+- Retry control: a button labeled "Tentar novamente".
+- Tapping it re-runs the same list-load operation triggered on page entry (i.e. re-invokes the use case backing `ListPatientsCubit.init()`), replacing the error state with loading, then with the empty/populated/error state per the result — same states/copy as the initial load, no new state is introduced.
+
+##### Implementation Notes (validated against code, 2026-09-06; re-verified unchanged 2026-09-07; requirements expanded 2026-09-13, human decisions recorded)
 
 - Implemented: list rendering, first/last name display, age display, tap-to-navigate to Patient Details (`lib/features/patients/list/presentation/pages/list_patients_page.dart`).
 - **Gap — status downgraded from "Awaiting validation 🧪" to "Incomplete 🟣":** the empty state shows `"No patients to display"` (English, hardcoded) instead of the documented `"Você ainda não tem pacientes cadastrados"`; the error state shows `"Error loading patients"` (also English, no retry action). Both violate the CLAUDE.md rule that UI copy must be Portuguese, and neither matches the acceptance criteria above. The list/loading/error states also use raw `Text`/`CircularProgressIndicator`/`ListTile` instead of DS widgets.
 - **Gap not previously noted (2026-09-07):** the list also renders `patient.patientId` above the name (`list_patients_page.dart:45-47`) when present — undocumented in the "Information shown" requirement above (spec only lists First/Last Name and Age). Not flagged as a bug (harmless/likely useful), but the requirement is missing this acceptance criterion; add it explicitly if the behavior is intentional.
-- **Next:** fix copy to match spec, add a retry affordance for the error state, migrate to DS widgets before re-marking as "Awaiting validation".
+- **2026-09-13 — Error state spec'd (human decision, see `.claude/outputs/po/list_patients_gaps_inconsistencies.md`):** the "Error state" Functional Requirements subsection above (copy + retry) is now fully spec'd and implementable as-is — no further senior-designer input needed for that copy/behavior. Implementing the retry control will likely require `ListPatientsCubit` to expose a public re-trigger method (currently only `init()`, called once from `BlocProvider.create`) — this is a cubit API detail for `mobile-dev`/`senior-analyst` to resolve, not a requirements gap.
+- **2026-09-13 — DS widgets, still open (human decision):** fixing this feature's raw-widget usage (`CircularProgressIndicator`, `ListTile`) requires new shared DS components (`DsLoadingIndicator`, a DS list-row/item widget) rather than ad hoc composition — decided as bigger, reusable scope. **Blocked on `senior-designer`** for the component spec (visual design, API) before `mobile-dev` implements. `DsPlaceholder` already covers the empty/error text+retry composition (see Gap 1 analysis in the linked report) and needs no new widget.
+- **Next:** fix copy to match spec (empty + error), add the retry control per the Error state requirement above, get `senior-designer` spec for `DsLoadingIndicator`/DS list-row, then migrate to DS widgets, before re-marking as "Awaiting validation".
 
 #### 2.1.3. Patient Details
 
