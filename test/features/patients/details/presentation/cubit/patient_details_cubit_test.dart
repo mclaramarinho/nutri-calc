@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/measurements/body_measurement/domain/entities/body_measurement_entity.dart';
+import 'package:nutri_calc/features/measurements/body_measurement/domain/entities/body_measurement_type_enum.dart';
 import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cases/create_body_measurement_use_case.dart';
 import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cases/get_body_measurement_use_case.dart';
 import 'package:nutri_calc/features/measurements/height/domain/entities/height_entity.dart';
@@ -67,38 +68,52 @@ class _FakeGetHeightsUseCase implements GetHeightsUseCase {
 }
 
 class _FakeGetBodyMeasurementUseCase implements GetBodyMeasurementUseCase {
+  List<BodyMeasurementEntity> measurementsToReturn = [];
+
   @override
   Future<Result<List<BodyMeasurementEntity>, String>> call(
     String patientId,
   ) async {
-    return Ok(<BodyMeasurementEntity>[]);
+    return Ok(measurementsToReturn);
   }
 }
 
 class _FakeCreateWeightUseCase implements CreateWeightUseCase {
+  Result<WeightEntity, String>? resultToReturn;
+  WeightEntity? lastCall;
+
   @override
   Future<Result<WeightEntity, String>> call({
     required WeightEntity weight,
   }) async {
-    return Ok(weight);
+    lastCall = weight;
+    return resultToReturn ?? Ok(weight);
   }
 }
 
 class _FakeCreateHeightUseCase implements CreateHeightUseCase {
+  Result<HeightEntity, String>? resultToReturn;
+  HeightEntity? lastCall;
+
   @override
   Future<Result<HeightEntity, String>> call({
     required HeightEntity height,
   }) async {
-    return Ok(height);
+    lastCall = height;
+    return resultToReturn ?? Ok(height);
   }
 }
 
 class _FakeCreateBodyMeasurementUseCase implements CreateBodyMeasurementUseCase {
+  Result<BodyMeasurementEntity, String>? resultToReturn;
+  BodyMeasurementEntity? lastCall;
+
   @override
   Future<Result<BodyMeasurementEntity, String>> call(
     BodyMeasurementEntity entity,
   ) async {
-    return Ok(entity);
+    lastCall = entity;
+    return resultToReturn ?? Ok(entity);
   }
 }
 
@@ -110,6 +125,9 @@ void main() {
   late _FakeGetWeightsUseCase fakeGetWeights;
   late _FakeGetHeightsUseCase fakeGetHeights;
   late _FakeGetBodyMeasurementUseCase fakeGetMeasurements;
+  late _FakeCreateWeightUseCase fakeCreateWeight;
+  late _FakeCreateHeightUseCase fakeCreateHeight;
+  late _FakeCreateBodyMeasurementUseCase fakeCreateMeasurement;
   late PatientDetailsCubit cubit;
 
   setUp(() {
@@ -118,15 +136,18 @@ void main() {
     fakeGetWeights = _FakeGetWeightsUseCase();
     fakeGetHeights = _FakeGetHeightsUseCase();
     fakeGetMeasurements = _FakeGetBodyMeasurementUseCase();
+    fakeCreateWeight = _FakeCreateWeightUseCase();
+    fakeCreateHeight = _FakeCreateHeightUseCase();
+    fakeCreateMeasurement = _FakeCreateBodyMeasurementUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
       updatePatientUseCase: fakeUpdate,
-      createWeightUseCase: _FakeCreateWeightUseCase(),
+      createWeightUseCase: fakeCreateWeight,
       getWeightsUseCase: fakeGetWeights,
-      createHeightUseCase: _FakeCreateHeightUseCase(),
+      createHeightUseCase: fakeCreateHeight,
       getHeightsUseCase: fakeGetHeights,
-      createBodyMeasurementUseCase: _FakeCreateBodyMeasurementUseCase(),
+      createBodyMeasurementUseCase: fakeCreateMeasurement,
       getBodyMeasurementUseCase: fakeGetMeasurements,
     );
   });
@@ -300,6 +321,230 @@ void main() {
       await cubit.updatePatientData();
 
       expect(fakeUpdate.lastCall, isNotNull);
+    });
+  });
+
+  group('saveWeight (Bug 2)', () {
+    setUp(() {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId),
+      ];
+      fakeGetHeights.heightsToReturn = [
+        HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
+      ];
+    });
+
+    test('on error: sets isSaveError, keeps newWeight for retry, clears isSavingWeight', () async {
+      await cubit.init(patientId);
+      cubit.updateWeightValue("80.5");
+      fakeCreateWeight.resultToReturn = Error("db failure");
+
+      await cubit.saveWeight();
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSaveError, isTrue);
+      expect(
+        state.saveErrorMessage,
+        "Não foi possível salvar o peso. Tente novamente.",
+      );
+      expect(state.newWeight, 80.5, reason: 'form input must be preserved for retry');
+      expect(state.isSavingWeight, isFalse);
+    });
+
+    test('on success: refetches weights, clears form, recomputes bmi', () async {
+      await cubit.init(patientId);
+      cubit.updateWeightValue("80.5");
+
+      // simulate the refetch returning the newly-created weight too
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(createdAt: DateTime.now(), value: 80.5, patientId: patientId),
+        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId),
+      ];
+
+      await cubit.saveWeight();
+      // saveWeight's outer Future resolves before the inner async callback's
+      // second await (the weights refetch) settles - see
+      // _executeOnStateLoaded, which invokes the async callback without
+      // awaiting it. Pump the microtask queue so the refetch/emit completes.
+      await Future.delayed(Duration.zero);
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSaveError, isFalse);
+      expect(state.isSavingWeight, isFalse);
+      expect(state.newWeight, isNull, reason: 'form must be cleared on success');
+      expect(state.weights.length, 2);
+      expect(state.bmi, isNotNull);
+      expect(
+        state.bmi!.value,
+        closeTo(80.5 / (1.75 * 1.75), 0.001),
+        reason: 'bmi must be recomputed from the refetched (latest) weight',
+      );
+    });
+
+    test('after a failed save, a subsequent successful save resets isSaveError to false', () async {
+      await cubit.init(patientId);
+      cubit.updateWeightValue("80.5");
+      fakeCreateWeight.resultToReturn = Error("db failure");
+
+      await cubit.saveWeight();
+
+      expect((cubit.state as PatientDetailsStateLoaded).isSaveError, isTrue);
+
+      cubit.updateWeightValue("81.0");
+      fakeCreateWeight.resultToReturn = null;
+
+      await cubit.saveWeight();
+      // see saveWeight's success test for why this pump is needed.
+      await Future.delayed(Duration.zero);
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSaveError, isFalse);
+    });
+  });
+
+  group('saveHeight (Bug 2)', () {
+    setUp(() {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId),
+      ];
+      fakeGetHeights.heightsToReturn = [
+        HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
+      ];
+    });
+
+    test('on error: sets isSaveError, keeps newHeight for retry, clears isSavingHeight', () async {
+      await cubit.init(patientId);
+      cubit.updateHeightValue("180");
+      fakeCreateHeight.resultToReturn = Error("db failure");
+
+      await cubit.saveHeight();
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSaveError, isTrue);
+      expect(
+        state.saveErrorMessage,
+        "Não foi possível salvar a altura. Tente novamente.",
+      );
+      expect(state.newHeight, 180.0, reason: 'form input must be preserved for retry');
+      expect(state.isSavingHeight, isFalse);
+    });
+
+    test('on success: refetches heights, clears form, recomputes bmi', () async {
+      await cubit.init(patientId);
+      cubit.updateHeightValue("180");
+
+      fakeGetHeights.heightsToReturn = [
+        HeightEntity(createdAt: DateTime.now(), value: 180, patientId: patientId),
+        HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
+      ];
+
+      await cubit.saveHeight();
+      // see saveWeight's success test for why this pump is needed.
+      await Future.delayed(Duration.zero);
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSaveError, isFalse);
+      expect(state.isSavingHeight, isFalse);
+      expect(state.newHeight, isNull, reason: 'form must be cleared on success');
+      expect(state.heights.length, 2);
+      expect(state.bmi, isNotNull);
+      expect(
+        state.bmi!.value,
+        closeTo(70 / (1.8 * 1.8), 0.001),
+        reason: 'bmi must be recomputed from the refetched (latest) height',
+      );
+    });
+
+    test('after a failed save, a subsequent successful save resets isSaveError to false', () async {
+      await cubit.init(patientId);
+      cubit.updateHeightValue("180");
+      fakeCreateHeight.resultToReturn = Error("db failure");
+
+      await cubit.saveHeight();
+
+      expect((cubit.state as PatientDetailsStateLoaded).isSaveError, isTrue);
+
+      cubit.updateHeightValue("182");
+      fakeCreateHeight.resultToReturn = null;
+
+      await cubit.saveHeight();
+      // see saveWeight's success test for why this pump is needed.
+      await Future.delayed(Duration.zero);
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSaveError, isFalse);
+    });
+  });
+
+  group('saveNewBodyMeasurement (Bug 2)', () {
+    test('on error: sets isSaveError, keeps form for retry, clears isSavingNewBodyMeasurement', () async {
+      await cubit.init(patientId);
+      cubit.updateBodyMeasurementForm("armCircumference");
+      cubit.updateBodyMeasurementForm(30.0);
+      fakeCreateMeasurement.resultToReturn = Error("db failure");
+
+      await cubit.saveNewBodyMeasurement();
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSaveError, isTrue);
+      expect(
+        state.saveErrorMessage,
+        "Não foi possível salvar a medida. Tente novamente.",
+      );
+      expect(
+        state.newBodyMeasurementValue,
+        30.0,
+        reason: 'form input must be preserved for retry',
+      );
+      expect(state.newBodyMeasurementType, BodyMeasurementTypeEnum.armCircumference);
+      expect(state.isSavingNewBodyMeasurement, isFalse);
+    });
+
+    test('on success: refetches measurements (reversed), clears form', () async {
+      await cubit.init(patientId);
+      cubit.updateBodyMeasurementForm("armCircumference");
+      cubit.updateBodyMeasurementForm(30.0);
+
+      final saved = BodyMeasurementEntity(
+        createdAt: DateTime.now(),
+        patientId: patientId,
+        value: 30.0,
+        measurementType: BodyMeasurementTypeEnum.armCircumference,
+      );
+      fakeGetMeasurements.measurementsToReturn = [saved];
+
+      await cubit.saveNewBodyMeasurement();
+      // see saveWeight's success test for why this pump is needed.
+      await Future.delayed(Duration.zero);
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSaveError, isFalse);
+      expect(state.isSavingNewBodyMeasurement, isFalse);
+      expect(state.newBodyMeasurementValue, isNull);
+      expect(state.newBodyMeasurementType, isNull);
+      expect(state.measurements, [saved]);
+    });
+
+    test('after a failed save, a subsequent successful save resets isSaveError to false', () async {
+      await cubit.init(patientId);
+      cubit.updateBodyMeasurementForm("armCircumference");
+      cubit.updateBodyMeasurementForm(30.0);
+      fakeCreateMeasurement.resultToReturn = Error("db failure");
+
+      await cubit.saveNewBodyMeasurement();
+
+      expect((cubit.state as PatientDetailsStateLoaded).isSaveError, isTrue);
+
+      cubit.updateBodyMeasurementForm("armCircumference");
+      cubit.updateBodyMeasurementForm(32.0);
+      fakeCreateMeasurement.resultToReturn = null;
+
+      await cubit.saveNewBodyMeasurement();
+      // see saveWeight's success test for why this pump is needed.
+      await Future.delayed(Duration.zero);
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSaveError, isFalse);
     });
   });
 }

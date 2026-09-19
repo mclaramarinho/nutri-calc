@@ -50,8 +50,12 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
         BlocConsumer<PatientDetailsCubit, PatientDetailsState>(
           listenWhen: (previous, current) =>
               current is PatientDetailsStateLoaded &&
-              current.isSaveError &&
-              (previous is! PatientDetailsStateLoaded || !previous.isSaveError),
+              ((current.isSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isSaveError)) ||
+                  (current.isSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isSaved))),
           listener: (context, state) {
             if (state is PatientDetailsStateLoaded && state.isSaveError) {
               DsDialog.show(
@@ -62,6 +66,15 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                     "Não foi possível salvar as alterações. Tente novamente.",
                 showCloseButton: true,
                 onClose: context.read<PatientDetailsCubit>().closedErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded && state.isSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Dados do paciente atualizados com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
               );
             }
           },

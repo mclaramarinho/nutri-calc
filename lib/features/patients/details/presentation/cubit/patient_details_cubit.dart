@@ -246,14 +246,44 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   }
 
   Future<void> saveWeight() async {
-    _executeOnStateLoaded((current) {
+    _executeOnStateLoaded((current) async {
       if (current.newWeight == null) return;
-      _createWeightUseCase(
+
+      emit(current.copyWith(isSavingWeight: true));
+
+      final res = await _createWeightUseCase(
         weight: WeightEntity(
           createdAt: DateTime.now(),
           value: current.newWeight!,
           patientId: current.form.patientLocalId,
         ),
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingWeight: false,
+            isSaveError: true,
+            saveErrorMessage: "Não foi possível salvar o peso. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      final weightsRes = await _getWeightsUseCase(
+        current.form.patientLocalId,
+      );
+      final weights = weightsRes.getOrElse(() => current.weights);
+
+      emit(
+        current
+            .copyWith(
+              isSavingWeight: false,
+              isSaveError: false,
+              weights: weights,
+              bmi: _computeBmi(weights, current.heights, current.form.age),
+            )
+            .clearForm(.weights),
       );
     });
   }
@@ -267,14 +297,45 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   }
 
   Future<void> saveHeight() async {
-    _executeOnStateLoaded((current) {
+    _executeOnStateLoaded((current) async {
       if (current.newHeight == null) return;
-      _createHeightUseCase(
+
+      emit(current.copyWith(isSavingHeight: true));
+
+      final res = await _createHeightUseCase(
         height: HeightEntity(
           createdAt: DateTime.now(),
           value: current.newHeight!,
           patientId: current.form.patientLocalId,
         ),
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingHeight: false,
+            isSaveError: true,
+            saveErrorMessage:
+                "Não foi possível salvar a altura. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      final heightsRes = await _getHeightsUseCase(
+        current.form.patientLocalId,
+      );
+      final heights = heightsRes.getOrElse(() => current.heights);
+
+      emit(
+        current
+            .copyWith(
+              isSavingHeight: false,
+              isSaveError: false,
+              heights: heights,
+              bmi: _computeBmi(current.weights, heights, current.form.age),
+            )
+            .clearForm(.heights),
       );
     });
   }
@@ -313,7 +374,6 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
-  // TODO - nao ta salvando ainda (erro)
   Future<void> saveNewBodyMeasurement() async {
     _executeOnStateLoaded((current) async {
       if (current.newBodyMeasurementValue == null ||
@@ -322,6 +382,8 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       }
 
       if (current.newBodyMeasurementValue! <= 0) return;
+
+      emit(current.copyWith(isSavingNewBodyMeasurement: true));
 
       final res = await _createBodyMeasurementUseCase(
         BodyMeasurementEntity(
@@ -332,12 +394,37 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
         ),
       );
 
-      if (res is Ok) {
-        emit(current.clearForm(.bodyMeasurements));
-      } else {
-        print("Error saving body measurement");
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingNewBodyMeasurement: false,
+            isSaveError: true,
+            saveErrorMessage:
+                "Não foi possível salvar a medida. Tente novamente.",
+          ),
+        );
         return;
       }
+
+      final measurementsRes = await _getBodyMeasurementUseCase(
+        current.form.patientLocalId,
+      );
+      final measurements = measurementsRes.isOk
+          ? measurementsRes
+                .getOrElse(() => <BodyMeasurementEntity>[])
+                .reversed
+                .toList()
+          : current.measurements;
+
+      emit(
+        current
+            .copyWith(
+              isSavingNewBodyMeasurement: false,
+              isSaveError: false,
+              measurements: measurements,
+            )
+            .clearForm(.bodyMeasurements),
+      );
     });
   }
 
