@@ -11,6 +11,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._getHeightsUseCase,
     required this._createBodyMeasurementUseCase,
     required this._getBodyMeasurementUseCase,
+    required this._saveBmiCalculationUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
@@ -24,6 +25,8 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
 
   final CreateBodyMeasurementUseCase _createBodyMeasurementUseCase;
   final GetBodyMeasurementUseCase _getBodyMeasurementUseCase;
+
+  final SaveBmiCalculationUseCase _saveBmiCalculationUseCase;
 
   // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
@@ -159,6 +162,40 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
           newBodyMeasurementValue: current.newBodyMeasurementValue,
           isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
           measurements: current.measurements,
+          isSavingBmi: current.isSavingBmi,
+          isBmiSaveError: current.isBmiSaveError,
+          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
+          isBmiSaved: current.isBmiSaved,
+        ),
+      );
+    });
+  }
+
+  void closedBmiErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        PatientDetailsStateLoaded(
+          form: current.form,
+          isEditing: current.isEditing,
+          isSaving: current.isSaving,
+          isSaved: current.isSaved,
+          isSaveError: current.isSaveError,
+          saveErrorMessage: current.saveErrorMessage,
+          bmi: current.bmi,
+          isSavingWeight: current.isSavingWeight,
+          weights: current.weights,
+          newWeight: current.newWeight,
+          isSavingHeight: current.isSavingHeight,
+          heights: current.heights,
+          newHeight: current.newHeight,
+          newBodyMeasurementType: current.newBodyMeasurementType,
+          newBodyMeasurementValue: current.newBodyMeasurementValue,
+          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
+          measurements: current.measurements,
+          isSavingBmi: current.isSavingBmi,
+          isBmiSaveError: false,
+          bmiSaveErrorMessage: null,
+          isBmiSaved: current.isBmiSaved,
         ),
       );
     });
@@ -256,6 +293,8 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
           createdAt: DateTime.now(),
           value: current.newWeight!,
           patientId: current.form.patientLocalId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
         ),
       );
 
@@ -425,6 +464,53 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
             )
             .clearForm(.bodyMeasurements),
       );
+    });
+  }
+
+  // CALCULATORS TAB ========================================================
+  Future<void> saveBmiCalculation() async {
+    _executeOnStateLoaded((current) async {
+      if (current.weights.isEmpty || current.heights.isEmpty) return;
+
+      emit(current.copyWith(isSavingBmi: true));
+
+      final latestWeight = current.weights.first; // newest, per §0's sort
+      final latestHeight = current.heights.first;
+
+      final res = await _saveBmiCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        weightKg: latestWeight.value,
+        heightM: latestHeight.value / 100, // cm -> m
+        age: current.form.age ?? 0,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingBmi: false,
+            isBmiSaveError: true,
+            bmiSaveErrorMessage:
+                "Não foi possível salvar o cálculo de IMC. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingBmi: false,
+          isBmiSaveError: false,
+          isBmiSaved: true,
+        ),
+      );
+      // Mirrors `_handleSaveResult`'s reset-after-delay: without resetting
+      // `isBmiSaved` back to `false`, the page's `listenWhen`
+      // previous-vs-current true-transition check would never fire again
+      // for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isBmiSaved: false));
+      });
     });
   }
 

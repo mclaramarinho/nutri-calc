@@ -5,6 +5,8 @@ import 'package:nutri_calc/core/services/database/app_database_service.dart';
 import 'package:nutri_calc/core/services/database/app_database_tables.dart';
 import 'package:nutri_calc/core/services/database/app_database_version.dart';
 import 'package:nutri_calc/features/patients/data/models/patient_model.dart';
+import 'package:nutri_calc/features/measurements/weight/data/models/weight_model.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 import 'package:nutri_calc/core/services/database/entities/table_sql_constraints.enum.dart';
 import 'package:nutri_calc/core/services/database/entities/table_sql_field.entity.dart';
 import 'package:nutri_calc/core/services/database/entities/table_sql_types.enum.dart';
@@ -281,6 +283,173 @@ void main() {
               expect(model.parenteralNutrition, isFalse);
               expect(model.hospitalized, isFalse);
               expect(model.confinedToBed, isFalse);
+            },
+            error: (_) => fail('expected Ok'),
+          );
+        },
+      );
+    },
+  );
+
+  group(
+    'WEIGHTS/BMI columns migration (real production schema, v2 -> v3)',
+    () {
+      test(
+        'fresh install (straight at v3) creates WEIGHTS with the 2 new '
+        'columns and the BMI table in their final shape',
+        () async {
+          final path = _newTempDbPath('weights_bmi_fresh_v3');
+          final service = AppDatabaseServiceImpl();
+          await service.init(dbPath: path, version: 3);
+
+          final db = await openDatabase(path);
+          try {
+            final weightColumns = await db.rawQuery(
+              'PRAGMA table_info(${AppDatabaseTables.weights.name})',
+            );
+            final byName = {
+              for (final c in weightColumns) c['name'] as String: c,
+            };
+
+            expect(byName.containsKey('considerForCalculations'), isTrue);
+            expect(byName['considerForCalculations']!['type'], 'INTEGER');
+            expect(byName['considerForCalculations']!['notnull'], 1);
+            expect(byName['considerForCalculations']!['dflt_value'], '1');
+
+            expect(byName.containsKey('weightType'), isTrue);
+            expect(byName['weightType']!['type'], 'TEXT');
+            expect(byName['weightType']!['notnull'], 1);
+            expect(
+              byName['weightType']!['dflt_value'],
+              "'measuredByScale'",
+            );
+
+            final bmiTables = await db.rawQuery(
+              "SELECT name FROM sqlite_master WHERE type='table' AND name='BMI'",
+            );
+            expect(bmiTables, hasLength(1));
+
+            final bmiColumns = await db.rawQuery(
+              'PRAGMA table_info(${AppDatabaseTables.bmi.name})',
+            );
+            expect(
+              bmiColumns.map((c) => c['name']).toSet(),
+              AppDatabaseTables.bmi.fields.map((f) => f.name).toSet(),
+            );
+          } finally {
+            await db.close();
+          }
+        },
+      );
+
+      test(
+        'an existing v2 WEIGHTS row upgrading to v3 gets the 2 new columns '
+        'added, defaulting to considerForCalculations=1/weightType='
+        "'measuredByScale', without crashing WeightModel.fromJson",
+        () async {
+          final path = _newTempDbPath('weights_bmi_upgrade_v2_to_v3');
+
+          // Seed at v2: WEIGHTS table exists without the 2 new columns
+          // (BMI does not exist at all yet, sinceVersion 3).
+          final v2Service = AppDatabaseServiceImpl();
+          await v2Service.init(dbPath: path, version: 2);
+          final insertResult = await v2Service.insert(
+            AppDatabaseTables.weights,
+            {
+              'id': 'w1',
+              'value': 70.5,
+              'createdAt': '2026-09-06',
+              'patientId': 'p1',
+            },
+          );
+          expect(insertResult.isOk, isTrue);
+
+          // Reopen at v3 - onUpgrade must ALTER TABLE ADD COLUMN for the 2
+          // new WEIGHTS fields, and CREATE TABLE BMI whole (it didn't exist
+          // at oldVersion 2 - exercises onUpgrade's "table didn't exist at
+          // oldVersion" branch, not onCreate's fresh-install branch).
+          final v3Service = AppDatabaseServiceImpl();
+          await v3Service.init(dbPath: path, version: 3);
+
+          // Opened with `singleInstance: false` so that closing this
+          // inspection-only connection doesn't tear down the shared,
+          // path-cached connection `v3Service` still needs below.
+          final db = await openDatabase(path, singleInstance: false);
+          try {
+            final weightColumns = await db.rawQuery(
+              'PRAGMA table_info(${AppDatabaseTables.weights.name})',
+            );
+            final weightColumnNames = weightColumns
+                .map((c) => c['name'])
+                .toSet();
+            expect(
+              weightColumnNames,
+              containsAll(['considerForCalculations', 'weightType']),
+            );
+
+            final bmiTables = await db.rawQuery(
+              "SELECT name FROM sqlite_master WHERE type='table' AND name='BMI'",
+            );
+            expect(
+              bmiTables,
+              hasLength(1),
+              reason:
+                  'BMI table must be created via onUpgrade, not just onCreate',
+            );
+          } finally {
+            await db.close();
+          }
+
+          final readResult = await v3Service.read(
+            AppDatabaseTables.weights,
+            where: 'id = ?',
+            whereArgs: ['w1'],
+          );
+          expect(readResult.isOk, isTrue);
+          readResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              final row = rows.first;
+              expect(row['value'], 70.5, reason: 'pre-existing data intact');
+              // Pre-existing row should default to 1 (true) / 'measuredByScale'
+              // for the 2 new columns, not null/crash.
+              expect(row['considerForCalculations'], 1);
+              expect(row['weightType'], 'measuredByScale');
+
+              final model = WeightModel.fromJson(row);
+              expect(model.considerForCalculations, isTrue);
+              expect(model.weightType, WeightTypeEnum.measuredByScale);
+            },
+            error: (_) => fail('expected Ok'),
+          );
+
+          // The new BMI table, created via onUpgrade's "table didn't exist
+          // at oldVersion" branch, must actually be usable for real
+          // insert/read - not just present in the schema.
+          final bmiInsertResult = await v3Service.insert(
+            AppDatabaseTables.bmi,
+            {
+              'id': 'bmi1',
+              'patientId': 'p1',
+              'value': 24.4,
+              'classification': 'eutrophy',
+              'createdAt': '2026-09-19',
+              'inputParams': '[]',
+            },
+          );
+          expect(bmiInsertResult.isOk, isTrue);
+
+          final bmiReadResult = await v3Service.read(
+            AppDatabaseTables.bmi,
+            where: 'id = ?',
+            whereArgs: ['bmi1'],
+          );
+          expect(bmiReadResult.isOk, isTrue);
+          bmiReadResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['patientId'], 'p1');
+              expect(rows.first['classification'], 'eutrophy');
             },
             error: (_) => fail('expected Ok'),
           );

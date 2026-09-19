@@ -22,9 +22,16 @@ class CreateWeightUseCaseImpl implements CreateWeightUseCase {
       final res = await _repository.createWeight(
         value: weight.value,
         patientId: weight.patientId,
+        considerForCalculations: weight.considerForCalculations,
+        weightType: weight.weightType,
       );
-      if (res.isOk && (res as Ok).value >= 1) {
-        return Ok(weight.copyWith(id: ((res as Ok).value as WeightModel).id));
+      // `res.isOk` guards the cast below; using `.value` off the raw
+      // `Result` (or casting to a generics-erased `Ok`) previously threw
+      // `NoSuchMethodError`/produced a bogus `>=` check on every successful
+      // create — fixed to check `isOk` and use the typed `Ok`'s `.value`.
+      if (res.isOk) {
+        final id = (res as Ok<WeightModel, String>).value.id;
+        return Ok(weight.copyWith(id: id));
       }
       return Error("Could not create weight");
     } catch (ex) {

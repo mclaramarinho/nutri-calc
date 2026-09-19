@@ -6,6 +6,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/patient_details_form.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_body_measurements_tab.dart';
+import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_calculators_tab.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_measurements_tab.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
@@ -55,7 +56,13 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                           !previous.isSaveError)) ||
                   (current.isSaved &&
                       (previous is! PatientDetailsStateLoaded ||
-                          !previous.isSaved))),
+                          !previous.isSaved)) ||
+                  (current.isBmiSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isBmiSaveError)) ||
+                  (current.isBmiSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isBmiSaved))),
           listener: (context, state) {
             if (state is PatientDetailsStateLoaded && state.isSaveError) {
               DsDialog.show(
@@ -72,6 +79,28 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                 context,
                 title: "Sucesso",
                 message: "Dados do paciente atualizados com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isBmiSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.bmiSaveErrorMessage ??
+                    "Não foi possível salvar o cálculo de IMC. Tente novamente.",
+                showCloseButton: true,
+                onClose:
+                    context.read<PatientDetailsCubit>().closedBmiErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isBmiSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de IMC salvo com sucesso.",
                 showCloseButton: false,
                 isDismissible: false,
                 duration: Duration(seconds: 2),
@@ -97,7 +126,7 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                   Text("Histórico"),
                 ],
                 tabsContents: [
-                  DsPlaceholder(),
+                  PatientCalculatorsTab(),
                   PatientMeasurementsTab(type: .weight),
                   PatientMeasurementsTab(type: .height),
                   PatientBodyMeasurementsTab(),

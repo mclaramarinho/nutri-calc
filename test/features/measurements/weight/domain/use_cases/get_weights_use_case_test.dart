@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/measurements/weight/data/models/weight_model.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/repositories/weight_repository.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/get_weights_use_case.dart';
 
@@ -11,6 +12,8 @@ class _FakeWeightRepository implements WeightRepository {
   Future<Result<WeightModel, String>> createWeight({
     required double value,
     required String patientId,
+    required bool considerForCalculations,
+    required WeightTypeEnum weightType,
   }) async {
     throw UnimplementedError();
   }
@@ -32,18 +35,24 @@ void main() {
         value: 70,
         createdAt: DateTime(2024, 1, 1),
         patientId: 'p1',
+        considerForCalculations: true,
+        weightType: WeightTypeEnum.measuredByScale,
       ),
       WeightModel(
         id: 'w2',
         value: 75,
         createdAt: DateTime(2024, 3, 1),
         patientId: 'p1',
+        considerForCalculations: true,
+        weightType: WeightTypeEnum.measuredByScale,
       ),
       WeightModel(
         id: 'w3',
         value: 72,
         createdAt: DateTime(2024, 2, 1),
         patientId: 'p1',
+        considerForCalculations: true,
+        weightType: WeightTypeEnum.measuredByScale,
       ),
     ];
 

@@ -15,11 +15,13 @@ import 'package:nutri_calc/features/patients/details/domain/use_cases/update_pat
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_entity.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/create_weight_use_case.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/get_weights_use_case.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi.entity.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/use_cases/bmi/calculate_bmi.usecase.dart';
 import 'package:nutri_calc/shared/utils/entities/age_entity.dart';
 import 'package:nutri_calc/shared/utils/enums/time_unit.dart';
 import 'package:nutri_calc/shared/utils/extensions/ext_age.dart';
+import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_calculation_use_case.dart';
 
 part 'patient_details_cubit.dart';
 
@@ -62,6 +64,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isSavingNewBodyMeasurement = false,
     this.measurements = const [],
     this.bmi,
+    this.isSavingBmi = false,
+    this.isBmiSaveError = false,
+    this.bmiSaveErrorMessage,
+    this.isBmiSaved = false,
   });
 
   final EditPatientFormEntity form;
@@ -84,6 +90,11 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final bool isSavingNewBodyMeasurement;
   final List<BodyMeasurementEntity> measurements;
 
+  final bool isSavingBmi;
+  final bool isBmiSaveError;
+  final String? bmiSaveErrorMessage;
+  final bool isBmiSaved;
+
   PatientDetailsStateLoaded copyWith({
     EditPatientFormEntity? form,
     bool? isEditing,
@@ -102,6 +113,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     double? newBodyMeasurementValue,
     bool? isSavingNewBodyMeasurement,
     List<BodyMeasurementEntity>? measurements,
+    bool? isSavingBmi,
+    bool? isBmiSaveError,
+    String? bmiSaveErrorMessage,
+    bool? isBmiSaved,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
@@ -121,6 +136,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isSavingNewBodyMeasurement:
         isSavingNewBodyMeasurement ?? this.isSavingNewBodyMeasurement,
     measurements: measurements ?? this.measurements,
+    isSavingBmi: isSavingBmi ?? this.isSavingBmi,
+    isBmiSaveError: isBmiSaveError ?? this.isBmiSaveError,
+    bmiSaveErrorMessage: bmiSaveErrorMessage ?? this.bmiSaveErrorMessage,
+    isBmiSaved: isBmiSaved ?? this.isBmiSaved,
   );
 
   PatientDetailsStateLoaded clearForm(PatientDetailsFormOptions formOption) {
@@ -148,6 +167,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
           ? false
           : isSavingNewBodyMeasurement,
       measurements: measurements,
+      isSavingBmi: isSavingBmi,
+      isBmiSaveError: isBmiSaveError,
+      bmiSaveErrorMessage: bmiSaveErrorMessage,
+      isBmiSaved: isBmiSaved,
     );
   }
 
@@ -168,6 +191,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     newBodyMeasurementType,
     newBodyMeasurementValue,
     isSavingNewBodyMeasurement,
+    isSavingBmi,
+    isBmiSaveError,
+    bmiSaveErrorMessage,
+    isBmiSaved,
     measurements,
   ];
 }

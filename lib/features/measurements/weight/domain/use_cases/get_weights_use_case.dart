@@ -26,6 +26,8 @@ class GetWeightsUseCaseImpl implements GetWeightsUseCase {
                 value: wt.value,
                 patientId: wt.patientId,
                 id: wt.id,
+                considerForCalculations: wt.considerForCalculations,
+                weightType: wt.weightType,
               ),
             )
             .toList();

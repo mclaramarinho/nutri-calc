@@ -7,9 +7,13 @@ import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cas
 import 'package:nutri_calc/features/measurements/height/domain/entities/height_entity.dart';
 import 'package:nutri_calc/features/measurements/height/domain/use_cases/create_height_use_case.dart';
 import 'package:nutri_calc/features/measurements/height/domain/use_cases/get_heights_use_case.dart';
+import 'package:nutri_calc/features/calculators/bmi/domain/entities/bmi_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_calculation_use_case.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_entity.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/create_weight_use_case.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/get_weights_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi_classification.enum.dart';
 import 'package:nutri_calc/features/patients/details/domain/entities/edit_patient_form_entity.dart';
 import 'package:nutri_calc/features/patients/details/domain/use_cases/load_patient_details_use_case.dart';
 import 'package:nutri_calc/features/patients/details/domain/use_cases/update_patient_use_case.dart';
@@ -104,6 +108,30 @@ class _FakeCreateHeightUseCase implements CreateHeightUseCase {
   }
 }
 
+class _FakeSaveBmiCalculationUseCase implements SaveBmiCalculationUseCase {
+  Result<BmiCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<BmiCalculationEntity, String>> call({
+    required String patientId,
+    required double weightKg,
+    required double heightM,
+    required int age,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          BmiCalculationEntity(
+            id: 'bmi-1',
+            patientId: patientId,
+            value: weightKg / (heightM * heightM),
+            classification: BmiClassification.eutrophy,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
 class _FakeCreateBodyMeasurementUseCase implements CreateBodyMeasurementUseCase {
   Result<BodyMeasurementEntity, String>? resultToReturn;
   BodyMeasurementEntity? lastCall;
@@ -128,6 +156,7 @@ void main() {
   late _FakeCreateWeightUseCase fakeCreateWeight;
   late _FakeCreateHeightUseCase fakeCreateHeight;
   late _FakeCreateBodyMeasurementUseCase fakeCreateMeasurement;
+  late _FakeSaveBmiCalculationUseCase fakeSaveBmiCalculation;
   late PatientDetailsCubit cubit;
 
   setUp(() {
@@ -139,6 +168,7 @@ void main() {
     fakeCreateWeight = _FakeCreateWeightUseCase();
     fakeCreateHeight = _FakeCreateHeightUseCase();
     fakeCreateMeasurement = _FakeCreateBodyMeasurementUseCase();
+    fakeSaveBmiCalculation = _FakeSaveBmiCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -149,13 +179,14 @@ void main() {
       getHeightsUseCase: fakeGetHeights,
       createBodyMeasurementUseCase: fakeCreateMeasurement,
       getBodyMeasurementUseCase: fakeGetMeasurements,
+      saveBmiCalculationUseCase: fakeSaveBmiCalculation,
     );
   });
 
   group('BMI', () {
     test('weight and height both present computes correct BMI', () async {
       fakeGetWeights.weightsToReturn = [
-        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId),
+        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId, considerForCalculations: true, weightType: WeightTypeEnum.measuredByScale),
       ];
       fakeGetHeights.heightsToReturn = [
         HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
@@ -182,7 +213,7 @@ void main() {
 
     test('height list empty -> bmi is null', () async {
       fakeGetWeights.weightsToReturn = [
-        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId),
+        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId, considerForCalculations: true, weightType: WeightTypeEnum.measuredByScale),
       ];
       fakeGetHeights.heightsToReturn = [];
 
@@ -204,7 +235,7 @@ void main() {
 
     test('height fed in cm produces a plausible BMI (cm->m conversion)', () async {
       fakeGetWeights.weightsToReturn = [
-        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId),
+        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId, considerForCalculations: true, weightType: WeightTypeEnum.measuredByScale),
       ];
       fakeGetHeights.heightsToReturn = [
         HeightEntity(createdAt: DateTime.now(), value: 170, patientId: patientId),
@@ -327,7 +358,7 @@ void main() {
   group('saveWeight (Bug 2)', () {
     setUp(() {
       fakeGetWeights.weightsToReturn = [
-        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId),
+        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId, considerForCalculations: true, weightType: WeightTypeEnum.measuredByScale),
       ];
       fakeGetHeights.heightsToReturn = [
         HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
@@ -357,8 +388,8 @@ void main() {
 
       // simulate the refetch returning the newly-created weight too
       fakeGetWeights.weightsToReturn = [
-        WeightEntity(createdAt: DateTime.now(), value: 80.5, patientId: patientId),
-        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId),
+        WeightEntity(createdAt: DateTime.now(), value: 80.5, patientId: patientId, considerForCalculations: true, weightType: WeightTypeEnum.measuredByScale),
+        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId, considerForCalculations: true, weightType: WeightTypeEnum.measuredByScale),
       ];
 
       await cubit.saveWeight();
@@ -405,7 +436,7 @@ void main() {
   group('saveHeight (Bug 2)', () {
     setUp(() {
       fakeGetWeights.weightsToReturn = [
-        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId),
+        WeightEntity(createdAt: DateTime.now(), value: 70, patientId: patientId, considerForCalculations: true, weightType: WeightTypeEnum.measuredByScale),
       ];
       fakeGetHeights.heightsToReturn = [
         HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
@@ -546,5 +577,106 @@ void main() {
       final state = cubit.state as PatientDetailsStateLoaded;
       expect(state.isSaveError, isFalse);
     });
+  });
+
+  group('saveBmiCalculation', () {
+    setUp(() {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime.now(),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+      fakeGetHeights.heightsToReturn = [
+        HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
+      ];
+    });
+
+    test('on success: sets isBmiSaved true and clears isSavingBmi', () async {
+      await cubit.init(patientId);
+
+      await cubit.saveBmiCalculation();
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isBmiSaved, isTrue);
+      expect(state.isSavingBmi, isFalse);
+      expect(state.isBmiSaveError, isFalse);
+    });
+
+    test(
+      'on error: sets isBmiSaveError/bmiSaveErrorMessage and clears isSavingBmi',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveBmiCalculation.resultToReturn = Error("db failure");
+
+        await cubit.saveBmiCalculation();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isBmiSaveError, isTrue);
+        expect(
+          state.bmiSaveErrorMessage,
+          "Não foi possível salvar o cálculo de IMC. Tente novamente.",
+        );
+        expect(state.isSavingBmi, isFalse);
+      },
+    );
+
+    test(
+      'closedBmiErrorModal() resets isBmiSaveError/bmiSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveBmiCalculation.resultToReturn = Error("db failure");
+        await cubit.saveBmiCalculation();
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isBmiSaveError,
+          isTrue,
+        );
+
+        cubit.closedBmiErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isBmiSaveError, isFalse);
+        expect(state.bmiSaveErrorMessage, isNull);
+      },
+    );
+
+    test('no weight/height data: does nothing', () async {
+      fakeGetWeights.weightsToReturn = [];
+      await cubit.init(patientId);
+
+      await cubit.saveBmiCalculation();
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingBmi, isFalse);
+      expect(state.isBmiSaved, isFalse);
+      expect(state.isBmiSaveError, isFalse);
+    });
+
+    test(
+      // Regression test for the same "stuck true forever" bug class fixed
+      // for isSaveError (roadmap 2.1.4 general notes, 2026-09-19): isBmiSaved
+      // must revert to false ~2s after a successful save so the page's
+      // listenWhen previous-vs-current true-transition check can fire again
+      // for a later successful calculation.
+      'on success: isBmiSaved reverts to false after the auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveBmiCalculation();
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isBmiSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isBmiSaved, isFalse);
+      },
+    );
   });
 }

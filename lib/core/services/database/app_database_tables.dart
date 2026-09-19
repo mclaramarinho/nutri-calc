@@ -4,7 +4,8 @@ enum AppDatabaseTables {
   patient(name: "PATIENT", sinceVersion: 1),
   weights(name: "WEIGHTS", sinceVersion: 1),
   heights(name: "HEIGHTS", sinceVersion: 1),
-  bodyMeasurements(name: "BODY_MEASUREMENTS", sinceVersion: 1);
+  bodyMeasurements(name: "BODY_MEASUREMENTS", sinceVersion: 1),
+  bmi(name: "BMI", sinceVersion: 3);
 
   final String name;
   final int sinceVersion;
@@ -55,7 +56,23 @@ enum AppDatabaseTables {
           ),
         ];
       case .weights:
-        return _baseMeasurementTableFields;
+        return [
+          ..._baseMeasurementTableFields,
+          TableSqlField(
+            name: "considerForCalculations",
+            type: .boolean,
+            constraints: [.notNull],
+            sinceVersion: 3,
+            defaultValue: 1,
+          ),
+          TableSqlField(
+            name: "weightType",
+            type: .text,
+            constraints: [.notNull],
+            sinceVersion: 3,
+            defaultValue: "measuredByScale",
+          ),
+        ];
       case .heights:
         return _baseMeasurementTableFields;
 
@@ -65,6 +82,24 @@ enum AppDatabaseTables {
           TableSqlField(
             name: "measurementType",
             type: .text,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .bmi:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "value", type: .real, constraints: [.notNull]),
+          TableSqlField(
+            name: "classification",
+            type: .text,
+            constraints: [.notNull],
+          ),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
             constraints: [.notNull],
           ),
         ];

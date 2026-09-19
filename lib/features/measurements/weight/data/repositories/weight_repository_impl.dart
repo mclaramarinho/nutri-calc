@@ -2,6 +2,7 @@ import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/core/services/database/app_database_service.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/measurements/weight/data/models/weight_model.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/repositories/weight_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -34,21 +35,30 @@ class WeightRepositoryImpl implements WeightRepository {
   Future<Result<WeightModel, String>> createWeight({
     required double value,
     required String patientId,
+    required bool considerForCalculations,
+    required WeightTypeEnum weightType,
   }) async {
     try {
-      final res = await _databaseService.insert(
-        .weights,
-        WeightModel(
-          value: value,
-          createdAt: DateTime.now(),
-          patientId: patientId,
-          id: Uuid().v4(),
-        ).toJson(),
+      // Build the model locally (with a generated id) BEFORE inserting.
+      // `AppDatabaseService.insert` returns the sqflite rowid (an int), not
+      // the inserted row's data — calling `WeightModel.fromJson` on that raw
+      // int used to throw here, get swallowed by this method's own
+      // try/catch, and silently return `Error` on every real weight
+      // creation. Returning the locally-built model on success avoids the
+      // bogus round-trip through `fromJson(rowid)`.
+      final model = WeightModel(
+        value: value,
+        createdAt: DateTime.now(),
+        patientId: patientId,
+        id: Uuid().v4(),
+        considerForCalculations: considerForCalculations,
+        weightType: weightType,
       );
 
+      final res = await _databaseService.insert(.weights, model.toJson());
+
       if (res.isOk) {
-        final val = (res as Ok).value;
-        return Ok(WeightModel.fromJson(val));
+        return Ok(model);
       }
       return Error("Error creating weight.");
     } catch (ex) {
@@ -56,4 +66,3 @@ class WeightRepositoryImpl implements WeightRepository {
     }
   }
 }
-
