@@ -29,7 +29,7 @@ class GetHeightsUseCaseImpl implements GetHeightsUseCase {
               ),
             )
             .toList();
-        values.sort((a, b) => a.createdAt.isAfter(b.createdAt) ? 0 : 1);
+        values.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         return Ok(values);
       }
 

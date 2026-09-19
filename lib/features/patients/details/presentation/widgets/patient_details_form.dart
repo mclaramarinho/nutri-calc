@@ -18,6 +18,7 @@ class PatientDetailsForm extends StatefulWidget {
 }
 
 class _PatientDetailsFormState extends State<PatientDetailsForm> {
+  late final TextEditingController bmiController;
   late final TextEditingController idController;
   late final TextEditingController firstNameController;
   late final TextEditingController lastNameController;
@@ -27,6 +28,7 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
   @override
   void initState() {
     super.initState();
+    bmiController = TextEditingController();
     idController = TextEditingController();
     firstNameController = TextEditingController();
     lastNameController = TextEditingController();
@@ -46,6 +48,7 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
 
   @override
   void dispose() {
+    bmiController.dispose();
     idController.dispose();
     firstNameController.dispose();
     lastNameController.dispose();
@@ -76,6 +79,10 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
           );
         }
 
+        _syncController(
+          bmiController,
+          state.bmi != null ? state.bmi!.value.toStringAsFixed(1) : "-",
+        );
         _syncController(idController, state.form.patientId ?? "Não informado");
         _syncController(firstNameController, state.form.firstName);
         _syncController(lastNameController, state.form.lastName);
@@ -104,6 +111,12 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
 
             Column(
               children: [
+                DsTextfield(
+                  label: "IMC",
+                  customController: bmiController,
+                  disabled: true,
+                  type: .text,
+                ),
                 DsTextfield(
                   label: "ID",
                   customController: idController,

@@ -15,6 +15,8 @@ import 'package:nutri_calc/features/patients/details/domain/use_cases/update_pat
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_entity.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/create_weight_use_case.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/get_weights_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi.entity.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/use_cases/bmi/calculate_bmi.usecase.dart';
 import 'package:nutri_calc/shared/utils/entities/age_entity.dart';
 import 'package:nutri_calc/shared/utils/enums/time_unit.dart';
 import 'package:nutri_calc/shared/utils/extensions/ext_age.dart';
@@ -48,6 +50,7 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isSaving = false,
     this.isSaved = false,
     this.isSaveError = false,
+    this.saveErrorMessage,
     this.isSavingWeight = false,
     this.weights = const [],
     this.newWeight,
@@ -58,6 +61,7 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.newBodyMeasurementValue,
     this.isSavingNewBodyMeasurement = false,
     this.measurements = const [],
+    this.bmi,
   });
 
   final EditPatientFormEntity form;
@@ -65,6 +69,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final bool isSaving;
   final bool isSaved;
   final bool isSaveError;
+  final String? saveErrorMessage;
+  final Bmi? bmi;
   final double? newWeight;
   final bool isSavingWeight;
   final List<WeightEntity> weights;
@@ -84,6 +90,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     bool? isSaved,
     bool? isSaving,
     bool? isSaveError,
+    String? saveErrorMessage,
+    Bmi? bmi,
     double? newWeight,
     bool? isSavingWeight,
     List<WeightEntity>? weights,
@@ -100,6 +108,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isSaved: isSaved ?? this.isSaved,
     isSaving: isSaving ?? this.isSaving,
     isSaveError: isSaveError ?? this.isSaveError,
+    saveErrorMessage: saveErrorMessage ?? this.saveErrorMessage,
+    bmi: bmi ?? this.bmi,
     newWeight: newWeight ?? this.newWeight,
     isSavingWeight: isSavingWeight ?? this.isSavingWeight,
     weights: weights ?? this.weights,
@@ -120,6 +130,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       isSaved: isSaved,
       isSaving: isSaving,
       isSaveError: isSaveError,
+      saveErrorMessage: saveErrorMessage,
+      bmi: bmi,
       newWeight: formOption == .weights ? null : newWeight,
       isSavingWeight: formOption == .weights ? false : isSavingWeight,
       weights: weights,
@@ -145,6 +157,8 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isEditing,
     isSaved,
     isSaveError,
+    saveErrorMessage,
+    bmi,
     newWeight,
     isSavingWeight,
     weights,

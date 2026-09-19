@@ -14,7 +14,11 @@ class HeightRepositoryImpl implements HeightRepository {
   @override
   Future<Result<List<HeightModel>, String>> getHeights(String patientId) async {
     try {
-      final res = await _databaseService.read(.heights);
+      final res = await _databaseService.read(
+        .heights,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
       if (res.isOk) {
         final val = res as Ok<List<Map<String, dynamic>>, String>;
         return Ok(val.value.map((json) => HeightModel.fromJson(json)).toList());

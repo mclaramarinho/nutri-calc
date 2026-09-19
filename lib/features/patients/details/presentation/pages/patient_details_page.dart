@@ -10,6 +10,7 @@ import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/p
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_dialog/ds_dialog.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_placeholder/ds_placeholder.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_tab_view/ds_tab_view.dart';
@@ -47,7 +48,23 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
       ),
       children: [
         BlocConsumer<PatientDetailsCubit, PatientDetailsState>(
-          listener: (context, state) {},
+          listenWhen: (previous, current) =>
+              current is PatientDetailsStateLoaded &&
+              current.isSaveError &&
+              (previous is! PatientDetailsStateLoaded || !previous.isSaveError),
+          listener: (context, state) {
+            if (state is PatientDetailsStateLoaded && state.isSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.saveErrorMessage ??
+                    "Não foi possível salvar as alterações. Tente novamente.",
+                showCloseButton: true,
+                onClose: context.read<PatientDetailsCubit>().closedErrorModal,
+              );
+            }
+          },
           builder: (context, state) {
             if (state is PatientDetailsStateInitial) {
               return Expanded(

@@ -50,14 +50,36 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
         result[3].getOrElse(() => <BodyMeasurementEntity>[])
             as List<BodyMeasurementEntity>;
 
+    final form = (result[0] as Ok<EditPatientFormEntity, String>).value;
+
     emit(
       PatientDetailsStateLoaded(
-        form: (result[0] as Ok).value,
+        form: form,
         weights: weights,
         heights: heights,
         measurements: measurements.reversed.toList(),
+        bmi: _computeBmi(weights, heights, form.age),
       ),
     );
+  }
+
+  Bmi? _computeBmi(
+    List<WeightEntity> weights,
+    List<HeightEntity> heights,
+    int? age,
+  ) {
+    if (weights.isEmpty || heights.isEmpty) return null;
+
+    final latestWeight = weights.first; // first = newest, per §0's fixed sort
+    final latestHeight = heights.first;
+
+    final res = CalculateBmi().call(
+      weight: latestWeight.value,
+      height: latestHeight.value / 100, // cm -> m
+      age: age ?? 0,
+    );
+
+    return res.isOk ? (res as Ok<Bmi, String>).value : null;
   }
 
   // EDIT PATIENT DATA =====================================================
@@ -83,9 +105,62 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
 
   Future<void> updatePatientData() async {
     _executeOnStateLoaded((current) async {
-      final res = await _updatePatientUseCase(current.form);
+      final form = current.form;
 
-      await _handleSaveResult(current, res.isOk);
+      if (form.age != null && form.age! < 0) {
+        emit(
+          current.copyWith(
+            isEditing: true,
+            isSaving: false,
+            isSaveError: true,
+            saveErrorMessage: "Idade inválida.",
+          ),
+        );
+        return;
+      }
+
+      if (form.birthdate != null && form.birthdate!.isAfter(DateTime.now())) {
+        emit(
+          current.copyWith(
+            isEditing: true,
+            isSaving: false,
+            isSaveError: true,
+            saveErrorMessage:
+                "A data de nascimento precisa ser menor que a de agora.",
+          ),
+        );
+        return;
+      }
+
+      final res = await _updatePatientUseCase(form);
+
+      await _handleSaveResult(current, res);
+    });
+  }
+
+  void closedErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        PatientDetailsStateLoaded(
+          form: current.form,
+          isEditing: current.isEditing,
+          isSaving: current.isSaving,
+          isSaved: current.isSaved,
+          isSaveError: false,
+          saveErrorMessage: null,
+          bmi: current.bmi,
+          isSavingWeight: current.isSavingWeight,
+          weights: current.weights,
+          newWeight: current.newWeight,
+          isSavingHeight: current.isSavingHeight,
+          heights: current.heights,
+          newHeight: current.newHeight,
+          newBodyMeasurementType: current.newBodyMeasurementType,
+          newBodyMeasurementValue: current.newBodyMeasurementValue,
+          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
+          measurements: current.measurements,
+        ),
+      );
     });
   }
 
@@ -269,10 +344,28 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   // PRIVATE METHODS =======================================================
   Future<void> _handleSaveResult(
     PatientDetailsStateLoaded current,
-    bool isSuccess,
+    Result<void, String> result,
   ) async {
+    if (result.isError) {
+      emit(
+        current.copyWith(
+          isEditing: true,
+          isSaving: false,
+          isSaveError: true,
+          saveErrorMessage:
+              "Não foi possível salvar as alterações. Tente novamente.",
+        ),
+      );
+      return;
+    }
+
     emit(
-      current.copyWith(isEditing: false, isSaved: isSuccess, isSaving: false),
+      current.copyWith(
+        isEditing: false,
+        isSaved: true,
+        isSaving: false,
+        isSaveError: false,
+      ),
     );
     await Future.delayed(Duration(seconds: 2));
     emit(current.copyWith(isEditing: false, isSaved: false, isSaving: false));

@@ -14,7 +14,11 @@ class WeightRepositoryImpl implements WeightRepository {
   @override
   Future<Result<List<WeightModel>, String>> getWeights(String patientId) async {
     try {
-      final res = await _databaseService.read(.weights);
+      final res = await _databaseService.read(
+        .weights,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
       if (res.isOk) {
         final val = res as Ok<List<Map<String, dynamic>>, String>;
         return Ok(val.value.map((json) => WeightModel.fromJson(json)).toList());
