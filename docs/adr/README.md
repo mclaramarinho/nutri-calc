@@ -44,3 +44,5 @@ Keep this list current — one line per ADR — so an agent can decide relevance
 | [0002](0002-approuter-pop-generic-result.md) | `AppRouter.pop` gains a generic optional result parameter | Accepted |
 | [0003](0003-ds-button-disabled-parameter.md) | `DsButton` gains a `disabled` parameter; `isLoading` now also blocks taps | Accepted |
 | [0004](0004-table-sql-types-boolean-case.md) | `TableSqlTypes` gains a self-documenting `.boolean` case (maps to SQL `INTEGER`) | Accepted |
+| [0005](0005-table-sql-types-json-case.md) | `TableSqlTypes` gains a self-documenting `.json` case (maps to SQL `TEXT`) | Accepted |
+| [0006](0006-calculator-registry-static-list-not-di-multibinding.md) | Calculator registry is a plain static list assembled by the consuming tab, not an `injectable`/`get_it` multi-binding | Accepted |

@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nutri_calc/features/calculators/bmi/domain/bmi_calculator_relevance.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/calculator_definition.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/calculator_relevance_context.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/calculator_type_enum.dart';
+import 'package:nutri_calc/features/calculators/presentation/widgets/calculator_list.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_bottom_sheet/ds_bottom_sheet.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
-import 'package:nutri_calc/shared/design_system/widgets/ds_list_tile/ds_list_tile.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi_classification.enum.dart';
 
-// Slice 1 scope (roadmap 2.1.4, "Slice 1 scope" note, 2026-09-19): a single
-// tappable "IMC" entry point, in place of the full relevant/all-calculators
-// list — relevance filtering and the remaining ~12 calculator types are
-// explicitly deferred to later slices.
+// Slice 2 scope (roadmap 2.1.4, ADR 0006): a relevance-filtered/See All
+// calculator list, backed by a plain, non-injected CalculatorDefinition
+// registry assembled here. Only BMI registers this slice; the remaining
+// calculator types are deferred to later slices.
 class PatientCalculatorsTab extends StatelessWidget {
   const PatientCalculatorsTab({super.key});
 
@@ -104,6 +108,36 @@ class PatientCalculatorsTab extends StatelessWidget {
     }
   }
 
+  List<CalculatorDefinition> _buildDefinitions(
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) {
+    return [
+      CalculatorDefinition(
+        id: "bmi",
+        type: CalculatorType.bmi,
+        name: "IMC",
+        isRelevant: isBmiRelevant,
+        onTap: (ctx) => _openBmiBottomSheet(ctx, cubit, state),
+      ),
+    ];
+  }
+
+  CalculatorRelevanceContext _buildRelevanceContext(
+    PatientDetailsStateLoaded state,
+  ) {
+    return CalculatorRelevanceContext(
+      age: state.form.age,
+      ageUnit: state.form.ageUnit,
+      enteralNutrition: state.form.enteralNutrition,
+      parenteralNutrition: state.form.parenteralNutrition,
+      hospitalized: state.form.hospitalized,
+      confinedToBed: state.form.confinedToBed,
+      weights: state.weights,
+      bmi: state.bmi,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PatientDetailsCubit, PatientDetailsState>(
@@ -114,9 +148,9 @@ class PatientCalculatorsTab extends StatelessWidget {
 
         final cubit = context.read<PatientDetailsCubit>();
 
-        return DsListTile(
-          title: "IMC",
-          onTap: () => _openBmiBottomSheet(context, cubit, state),
+        return CalculatorList(
+          definitions: _buildDefinitions(cubit, state),
+          relevanceContext: _buildRelevanceContext(state),
         );
       },
     );
