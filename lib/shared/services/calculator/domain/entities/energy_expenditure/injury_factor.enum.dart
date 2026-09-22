@@ -50,6 +50,103 @@ enum InjuryFactor {
   final double max;
 
   const InjuryFactor({required this.min, required this.max});
+
+  String get label {
+    switch (this) {
+      case .aids:
+        return "AIDS";
+      case .cancer:
+        return "Câncer";
+      case .electiveSurgery:
+        return "Cirurgia eletiva";
+      case .nonComplicatedMalnutrition:
+        return "Desnutrição não complicada";
+      case .severeMalnutrition:
+        return "Desnutrição grave";
+      case .diabetes:
+        return "Diabetes";
+      case .cardioLungDiseaseWithSepsis:
+        return "Doença cardiopulmonar com sepse";
+      case .cardioLungDiseaseNoSepsis:
+        return "Doença cardiopulmonar sem sepse";
+      case .cardioLungDiseaseSurgery:
+        return "Cirurgia cardiopulmonar";
+      case .dpoc:
+        return "DPOC";
+      case .organFailure1to2:
+        return "Falência de 1-2 órgãos";
+      case .multipleFractures:
+        return "Fraturas múltiplas";
+      case .infection:
+        return "Infecção";
+      case .severeInfection:
+        return "Infecção grave";
+      case .cardiacInsuficiency:
+        return "Insuficiência cardíaca";
+      case .liverInsuficiency:
+        return "Insuficiência hepática";
+      case .ira:
+        return "Insuficiência renal aguda";
+      case .chronicRenalDisease:
+        return "Doença renal crônica";
+      case .nonComplicatedPatient:
+        return "Paciente não complicado";
+      case .polytraumaWithSepsis:
+        return "Politrauma com sepse";
+      case .polytraumaRehab:
+        return "Politrauma em reabilitação";
+      case .neuro:
+        return "Lesão neurológica";
+      case .coma:
+        return "Coma";
+      case .pancreatitis:
+        return "Pancreatite";
+      case .smallSurgery:
+        return "Pequena cirurgia";
+      case .smallTissueTrauma:
+        return "Pequeno trauma de tecido";
+      case .peritonitis:
+        return "Peritonite";
+      case .postOpcancer:
+        return "Pós-operatório de câncer";
+      case .postOpCardio:
+        return "Pós-operatório cardíaco";
+      case .postOpElective:
+        return "Pós-operatório eletivo";
+      case .postOpGeneral:
+        return "Pós-operatório geral";
+      case .burnUpTo20:
+        return "Queimadura até 20%";
+      case .burn20To50:
+        return "Queimadura 20-50%";
+      case .burn50To70:
+        return "Queimadura 50-70%";
+      case .burn70To90:
+        return "Queimadura 70-90%";
+      case .burn90To100:
+        return "Queimadura 90-100%";
+      case .retocolitisOrCrohn:
+        return "Retocolite ou Crohn";
+      case .sepsis:
+        return "Sepse";
+      case .respiratoryDistressSyndrome:
+        return "Síndrome do desconforto respiratório";
+      case .shortIntestineSyndrome:
+        return "Síndrome do intestino curto";
+      case .boneMarrowTransplant:
+        return "Transplante de medula óssea";
+      case .liverTransplant:
+        return "Transplante hepático";
+      case .traumaticBrainInjury:
+        return "Traumatismo cranioencefálico";
+      case .softTissueTrauma:
+        return "Trauma de tecido mole";
+      case .traumaWithSepsis:
+        return "Trauma com sepse";
+      case .boneTrauma:
+        return "Trauma ósseo";
+    }
+  }
 }
 // Fonte: SBNPE; ASBRAN, 2011.
 // https://www.gov.br/hubrasil/pt-br/hospitais-universitarios/regiao-centro-oeste/hc-ufg/comunicacao/noticias/unidade-de-nutricao-clinica-do-hc-lanca-protocolo-de-atendimento-nutricional/NutricaoProtocolo_Adulto.pdf

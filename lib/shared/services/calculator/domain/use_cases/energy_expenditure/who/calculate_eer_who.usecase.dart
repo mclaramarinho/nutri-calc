@@ -8,6 +8,8 @@ import 'package:nutri_calc/core/utils/result/result.dart';
 // https://espen.org/documents/A174-02PaedPNGuidel_ESPGHANESPENPNGuidelines2Energy.pdf
 
 class CalculateEerWho {
+  static const int maxAge = 18;
+
   Result<EER, String> call({
     required double weight,
     required int age,
@@ -21,7 +23,7 @@ class CalculateEerWho {
         return Error("INVALID_PARAMS");
       }
 
-      if (age > 18) {
+      if (age > maxAge) {
         return Error("INVALID_AGE");
       }
 

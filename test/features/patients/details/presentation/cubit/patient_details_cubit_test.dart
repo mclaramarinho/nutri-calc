@@ -9,6 +9,14 @@ import 'package:nutri_calc/features/measurements/height/domain/use_cases/create_
 import 'package:nutri_calc/features/measurements/height/domain/use_cases/get_heights_use_case.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/entities/bmi_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_formula.enum.dart';
+import 'package:nutri_calc/features/calculators/energy_expenditure/domain/use_cases/save_energy_expenditure_calculation_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/stress_level.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/temperature_factor.enum.dart';
+import 'package:nutri_calc/shared/utils/enums/gender.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_entity.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/create_weight_use_case.dart';
@@ -132,6 +140,38 @@ class _FakeSaveBmiCalculationUseCase implements SaveBmiCalculationUseCase {
   }
 }
 
+class _FakeSaveEnergyExpenditureCalculationUseCase
+    implements SaveEnergyExpenditureCalculationUseCase {
+  Result<EnergyExpenditureCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<EnergyExpenditureCalculationEntity, String>> call({
+    required String patientId,
+    required EnergyExpenditureFormulaEnum formula,
+    required double weightKg,
+    double? heightCm,
+    int? age,
+    Gender? gender,
+    ActivityFactor? activityFactor,
+    InjuryFactor? injuryFactor,
+    TemperatureFactor? temperatureFactor,
+    StressLevel stressLevel = StressLevel.noStress,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          EnergyExpenditureCalculationEntity(
+            id: 'ee-1',
+            patientId: patientId,
+            formula: formula,
+            minValue: 1000,
+            maxValue: 1200,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
 class _FakeCreateBodyMeasurementUseCase implements CreateBodyMeasurementUseCase {
   Result<BodyMeasurementEntity, String>? resultToReturn;
   BodyMeasurementEntity? lastCall;
@@ -157,6 +197,8 @@ void main() {
   late _FakeCreateHeightUseCase fakeCreateHeight;
   late _FakeCreateBodyMeasurementUseCase fakeCreateMeasurement;
   late _FakeSaveBmiCalculationUseCase fakeSaveBmiCalculation;
+  late _FakeSaveEnergyExpenditureCalculationUseCase
+  fakeSaveEnergyExpenditureCalculation;
   late PatientDetailsCubit cubit;
 
   setUp(() {
@@ -169,6 +211,8 @@ void main() {
     fakeCreateHeight = _FakeCreateHeightUseCase();
     fakeCreateMeasurement = _FakeCreateBodyMeasurementUseCase();
     fakeSaveBmiCalculation = _FakeSaveBmiCalculationUseCase();
+    fakeSaveEnergyExpenditureCalculation =
+        _FakeSaveEnergyExpenditureCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -180,6 +224,8 @@ void main() {
       createBodyMeasurementUseCase: fakeCreateMeasurement,
       getBodyMeasurementUseCase: fakeGetMeasurements,
       saveBmiCalculationUseCase: fakeSaveBmiCalculation,
+      saveEnergyExpenditureCalculationUseCase:
+          fakeSaveEnergyExpenditureCalculation,
     );
   });
 
@@ -676,6 +722,125 @@ void main() {
 
         final state = cubit.state as PatientDetailsStateLoaded;
         expect(state.isBmiSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveEnergyExpenditureCalculation', () {
+    setUp(() {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime.now(),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+    });
+
+    test(
+      'on success: sets isEnergyExpenditureSaved true and clears '
+      'isSavingEnergyExpenditure',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnergyExpenditureCalculation(
+          formula: EnergyExpenditureFormulaEnum.pocket,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnergyExpenditureSaved, isTrue);
+        expect(state.isSavingEnergyExpenditure, isFalse);
+        expect(state.isEnergyExpenditureSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isEnergyExpenditureSaveError/'
+      'energyExpenditureSaveErrorMessage and clears isSavingEnergyExpenditure',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveEnergyExpenditureCalculation.resultToReturn = Error(
+          "db failure",
+        );
+
+        await cubit.saveEnergyExpenditureCalculation(
+          formula: EnergyExpenditureFormulaEnum.pocket,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnergyExpenditureSaveError, isTrue);
+        expect(
+          state.energyExpenditureSaveErrorMessage,
+          "Não foi possível salvar o cálculo de gasto energético. Tente novamente.",
+        );
+        expect(state.isSavingEnergyExpenditure, isFalse);
+      },
+    );
+
+    test(
+      'closedEnergyExpenditureErrorModal() resets '
+      'isEnergyExpenditureSaveError/energyExpenditureSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveEnergyExpenditureCalculation.resultToReturn = Error(
+          "db failure",
+        );
+        await cubit.saveEnergyExpenditureCalculation(
+          formula: EnergyExpenditureFormulaEnum.pocket,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isEnergyExpenditureSaveError,
+          isTrue,
+        );
+
+        cubit.closedEnergyExpenditureErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnergyExpenditureSaveError, isFalse);
+        expect(state.energyExpenditureSaveErrorMessage, isNull);
+      },
+    );
+
+    test('no weight data: does nothing', () async {
+      fakeGetWeights.weightsToReturn = [];
+      await cubit.init(patientId);
+
+      await cubit.saveEnergyExpenditureCalculation(
+        formula: EnergyExpenditureFormulaEnum.pocket,
+      );
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingEnergyExpenditure, isFalse);
+      expect(state.isEnergyExpenditureSaved, isFalse);
+      expect(state.isEnergyExpenditureSaveError, isFalse);
+    });
+
+    test(
+      // Regression test for the same "stuck true forever" bug class fixed
+      // for isBmiSaved/isSaveError: isEnergyExpenditureSaved must revert to
+      // false ~2s after a successful save so the page's listenWhen
+      // previous-vs-current true-transition check can fire again for a
+      // later successful calculation.
+      'on success: isEnergyExpenditureSaved reverts to false after the '
+      'auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnergyExpenditureCalculation(
+          formula: EnergyExpenditureFormulaEnum.pocket,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isEnergyExpenditureSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnergyExpenditureSaved, isFalse);
       },
     );
   });

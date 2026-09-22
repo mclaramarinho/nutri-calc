@@ -458,6 +458,140 @@ void main() {
     },
   );
 
+  group(
+    'ENERGY_EXPENDITURES table migration (real production schema, v3 -> v4)',
+    () {
+      test(
+        'fresh install (straight at v4) creates ENERGY_EXPENDITURES with all '
+        'its declared columns',
+        () async {
+          final path = _newTempDbPath('energy_expenditures_fresh_v4');
+          final service = AppDatabaseServiceImpl();
+          await service.init(dbPath: path, version: 4);
+
+          final db = await openDatabase(path);
+          try {
+            final tables = await db.rawQuery(
+              "SELECT name FROM sqlite_master WHERE type='table' AND name='ENERGY_EXPENDITURES'",
+            );
+            expect(tables, hasLength(1));
+
+            final columns = await db.rawQuery(
+              'PRAGMA table_info(${AppDatabaseTables.energyExpenditures.name})',
+            );
+            expect(
+              columns.map((c) => c['name']).toSet(),
+              AppDatabaseTables.energyExpenditures.fields
+                  .map((f) => f.name)
+                  .toSet(),
+            );
+          } finally {
+            await db.close();
+          }
+        },
+      );
+
+      test(
+        'an existing v3 database upgrading to v4 gets the ENERGY_EXPENDITURES '
+        'table created whole (it did not exist at oldVersion 3), and it is '
+        'usable for real insert/read',
+        () async {
+          final path = _newTempDbPath('energy_expenditures_upgrade_v3_to_v4');
+
+          // Seed at v3: ENERGY_EXPENDITURES does not exist yet (sinceVersion 4),
+          // but BMI (sinceVersion 3) and the base tables do.
+          final v3Service = AppDatabaseServiceImpl();
+          await v3Service.init(dbPath: path, version: 3);
+          final insertResult = await v3Service.insert(
+            AppDatabaseTables.patient,
+            {
+              'id': 'p1',
+              'patientId': 'PID-1',
+              'firstName': 'Ana',
+              'lastName': 'Silva',
+              'birthdate': '2000-01-01',
+              'age': 26,
+              'ageUnit': 'year',
+            },
+          );
+          expect(insertResult.isOk, isTrue);
+
+          // Reopen at v4 - onUpgrade must CREATE TABLE ENERGY_EXPENDITURES
+          // whole (it didn't exist at oldVersion 3 - exercises onUpgrade's
+          // "table didn't exist at oldVersion" branch, not onCreate's
+          // fresh-install branch), mirroring BMI's v2->v3 migration test.
+          final v4Service = AppDatabaseServiceImpl();
+          await v4Service.init(dbPath: path, version: 4);
+
+          // Opened with `singleInstance: false` so that closing this
+          // inspection-only connection doesn't tear down the shared,
+          // path-cached connection `v4Service` still needs below.
+          final db = await openDatabase(path, singleInstance: false);
+          try {
+            final tables = await db.rawQuery(
+              "SELECT name FROM sqlite_master WHERE type='table' AND name='ENERGY_EXPENDITURES'",
+            );
+            expect(
+              tables,
+              hasLength(1),
+              reason:
+                  'ENERGY_EXPENDITURES table must be created via onUpgrade, '
+                  'not just onCreate',
+            );
+          } finally {
+            await db.close();
+          }
+
+          final readResult = await v4Service.read(
+            AppDatabaseTables.patient,
+            where: 'id = ?',
+            whereArgs: ['p1'],
+          );
+          expect(readResult.isOk, isTrue);
+          readResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['firstName'], 'Ana', reason: 'pre-existing data intact');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+
+          // The new table, created via onUpgrade's "table didn't exist at
+          // oldVersion" branch, must actually be usable for real
+          // insert/read - not just present in the schema.
+          final insertEnergyExpenditureResult = await v4Service.insert(
+            AppDatabaseTables.energyExpenditures,
+            {
+              'id': 'ee1',
+              'patientId': 'p1',
+              'formula': 'pocket',
+              'minValue': 1540.0,
+              'maxValue': 1750.0,
+              'createdAt': '2026-09-19',
+              'inputParams': '[]',
+            },
+          );
+          expect(insertEnergyExpenditureResult.isOk, isTrue);
+
+          final readEnergyExpenditureResult = await v4Service.read(
+            AppDatabaseTables.energyExpenditures,
+            where: 'id = ?',
+            whereArgs: ['ee1'],
+          );
+          expect(readEnergyExpenditureResult.isOk, isTrue);
+          readEnergyExpenditureResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['patientId'], 'p1');
+              expect(rows.first['formula'], 'pocket');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+        },
+      );
+    },
+  );
+
   group('Migration mechanics (onCreate/onUpgrade algorithm) against a versioned fixture', () {
     // Local fixture mirroring AppDatabaseTables' shape: a "patient"-like
     // table that exists since v1 and gains a column at v2, plus a brand new

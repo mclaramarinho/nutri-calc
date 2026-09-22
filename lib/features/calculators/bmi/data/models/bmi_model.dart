@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/entities/bmi_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/domain/entities/input_param_entity.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/input_params_json_codec.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi_classification.enum.dart';
 
 part "bmi_model.g.dart";
@@ -37,22 +36,11 @@ class BmiModel {
   static BmiClassification _classificationFromJson(dynamic value) =>
       BmiClassification.values.byName(value as String);
 
-  static String _paramsToJson(List<InputParamEntity> value) => jsonEncode(
-    value
-        .map((p) => {"key": p.key, "label": p.label, "value": p.value})
-        .toList(),
-  );
+  static String _paramsToJson(List<InputParamEntity> value) =>
+      InputParamsJsonCodec.toJson(value);
 
   static List<InputParamEntity> _paramsFromJson(dynamic value) =>
-      (jsonDecode(value as String) as List)
-          .map(
-            (e) => InputParamEntity(
-              key: (e as Map<String, dynamic>)["key"] as String,
-              label: e["label"] as String,
-              value: e["value"],
-            ),
-          )
-          .toList();
+      InputParamsJsonCodec.fromJson(value);
 
   Map<String, dynamic> toJson() => _$BmiModelToJson(this);
 

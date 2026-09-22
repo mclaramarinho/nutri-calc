@@ -4,6 +4,8 @@ import 'package:nutri_calc/features/calculators/bmi/domain/bmi_calculator_releva
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_definition.dart';
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_relevance_context.dart';
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_type_enum.dart';
+import 'package:nutri_calc/features/calculators/energy_expenditure/domain/energy_expenditure_relevance.dart';
+import 'package:nutri_calc/features/calculators/energy_expenditure/presentation/widgets/energy_expenditure_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/presentation/widgets/calculator_list.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/routing/app_router.dart';
@@ -108,6 +110,59 @@ class PatientCalculatorsTab extends StatelessWidget {
     }
   }
 
+  Future<void> _openEnergyExpenditureBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    if (state.weights.isEmpty) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Gasto Energético",
+        body: Text(
+          "Não há dados suficientes para calcular o gasto energético. Cadastre ao menos um peso para esse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final weight = state.weights.first;
+    final height = state.heights.isNotEmpty ? state.heights.first : null;
+    final age = state.form.age;
+
+    final gathered = await DsBottomSheet
+        .show<GatheredEnergyExpenditureInputs?>(
+          context,
+          title: "Gasto Energético",
+          body: EnergyExpenditureSheetBody(
+            weightKg: weight.value,
+            heightCm: height?.value,
+            age: age,
+          ),
+          actions: null,
+        );
+
+    if (gathered != null) {
+      await cubit.saveEnergyExpenditureCalculation(
+        formula: gathered.formula,
+        gender: gathered.gender,
+        activityFactor: gathered.activityFactor,
+        injuryFactor: gathered.injuryFactor,
+        temperatureFactor: gathered.temperatureFactor,
+        stressLevel: gathered.stressLevel,
+      );
+    }
+  }
+
   List<CalculatorDefinition> _buildDefinitions(
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
@@ -119,6 +174,13 @@ class PatientCalculatorsTab extends StatelessWidget {
         name: "IMC",
         isRelevant: isBmiRelevant,
         onTap: (ctx) => _openBmiBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "energy_expenditure",
+        type: CalculatorType.energyExpenditure,
+        name: "Gasto Energético",
+        isRelevant: isEnergyExpenditureRelevant,
+        onTap: (ctx) => _openEnergyExpenditureBottomSheet(ctx, cubit, state),
       ),
     ];
   }

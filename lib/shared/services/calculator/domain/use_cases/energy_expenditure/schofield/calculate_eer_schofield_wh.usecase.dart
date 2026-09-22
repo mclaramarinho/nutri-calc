@@ -9,6 +9,8 @@ import 'package:nutri_calc/shared/utils/enums/gender.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 
 class CalculateEerSchofield {
+  static const int maxAge = 10;
+
   Result<EER, String> call({
     required double weight,
     required double height,
@@ -24,7 +26,7 @@ class CalculateEerSchofield {
       }
 
       // TODO - add formulas para ate 18 anos depois
-      if (age > 10) {
+      if (age > maxAge) {
         return Error("INVALID_AGE");
       }
       final formula = gender == .female

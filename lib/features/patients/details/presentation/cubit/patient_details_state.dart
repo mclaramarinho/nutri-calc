@@ -22,6 +22,13 @@ import 'package:nutri_calc/shared/utils/entities/age_entity.dart';
 import 'package:nutri_calc/shared/utils/enums/time_unit.dart';
 import 'package:nutri_calc/shared/utils/extensions/ext_age.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_formula.enum.dart';
+import 'package:nutri_calc/features/calculators/energy_expenditure/domain/use_cases/save_energy_expenditure_calculation_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/stress_level.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/temperature_factor.enum.dart';
+import 'package:nutri_calc/shared/utils/enums/gender.dart';
 
 part 'patient_details_cubit.dart';
 
@@ -68,6 +75,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isBmiSaveError = false,
     this.bmiSaveErrorMessage,
     this.isBmiSaved = false,
+    this.isSavingEnergyExpenditure = false,
+    this.isEnergyExpenditureSaveError = false,
+    this.energyExpenditureSaveErrorMessage,
+    this.isEnergyExpenditureSaved = false,
   });
 
   final EditPatientFormEntity form;
@@ -95,6 +106,11 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final String? bmiSaveErrorMessage;
   final bool isBmiSaved;
 
+  final bool isSavingEnergyExpenditure;
+  final bool isEnergyExpenditureSaveError;
+  final String? energyExpenditureSaveErrorMessage;
+  final bool isEnergyExpenditureSaved;
+
   PatientDetailsStateLoaded copyWith({
     EditPatientFormEntity? form,
     bool? isEditing,
@@ -117,6 +133,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     bool? isBmiSaveError,
     String? bmiSaveErrorMessage,
     bool? isBmiSaved,
+    bool? isSavingEnergyExpenditure,
+    bool? isEnergyExpenditureSaveError,
+    String? energyExpenditureSaveErrorMessage,
+    bool? isEnergyExpenditureSaved,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
@@ -140,6 +160,15 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isBmiSaveError: isBmiSaveError ?? this.isBmiSaveError,
     bmiSaveErrorMessage: bmiSaveErrorMessage ?? this.bmiSaveErrorMessage,
     isBmiSaved: isBmiSaved ?? this.isBmiSaved,
+    isSavingEnergyExpenditure:
+        isSavingEnergyExpenditure ?? this.isSavingEnergyExpenditure,
+    isEnergyExpenditureSaveError:
+        isEnergyExpenditureSaveError ?? this.isEnergyExpenditureSaveError,
+    energyExpenditureSaveErrorMessage:
+        energyExpenditureSaveErrorMessage ??
+        this.energyExpenditureSaveErrorMessage,
+    isEnergyExpenditureSaved:
+        isEnergyExpenditureSaved ?? this.isEnergyExpenditureSaved,
   );
 
   PatientDetailsStateLoaded clearForm(PatientDetailsFormOptions formOption) {
@@ -171,6 +200,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       isBmiSaveError: isBmiSaveError,
       bmiSaveErrorMessage: bmiSaveErrorMessage,
       isBmiSaved: isBmiSaved,
+      isSavingEnergyExpenditure: isSavingEnergyExpenditure,
+      isEnergyExpenditureSaveError: isEnergyExpenditureSaveError,
+      energyExpenditureSaveErrorMessage: energyExpenditureSaveErrorMessage,
+      isEnergyExpenditureSaved: isEnergyExpenditureSaved,
     );
   }
 
@@ -195,6 +228,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isBmiSaveError,
     bmiSaveErrorMessage,
     isBmiSaved,
+    isSavingEnergyExpenditure,
+    isEnergyExpenditureSaveError,
+    energyExpenditureSaveErrorMessage,
+    isEnergyExpenditureSaved,
     measurements,
   ];
 }

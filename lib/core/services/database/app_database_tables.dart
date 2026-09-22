@@ -5,7 +5,8 @@ enum AppDatabaseTables {
   weights(name: "WEIGHTS", sinceVersion: 1),
   heights(name: "HEIGHTS", sinceVersion: 1),
   bodyMeasurements(name: "BODY_MEASUREMENTS", sinceVersion: 1),
-  bmi(name: "BMI", sinceVersion: 3);
+  bmi(name: "BMI", sinceVersion: 3),
+  energyExpenditures(name: "ENERGY_EXPENDITURES", sinceVersion: 4);
 
   final String name;
   final int sinceVersion;
@@ -96,6 +97,21 @@ enum AppDatabaseTables {
             type: .text,
             constraints: [.notNull],
           ),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .energyExpenditures:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "formula", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "minValue", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "maxValue", type: .real, constraints: [.notNull]),
           TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
           TableSqlField(
             name: "inputParams",

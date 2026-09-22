@@ -12,6 +12,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._createBodyMeasurementUseCase,
     required this._getBodyMeasurementUseCase,
     required this._saveBmiCalculationUseCase,
+    required this._saveEnergyExpenditureCalculationUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
@@ -27,6 +28,8 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   final GetBodyMeasurementUseCase _getBodyMeasurementUseCase;
 
   final SaveBmiCalculationUseCase _saveBmiCalculationUseCase;
+  final SaveEnergyExpenditureCalculationUseCase
+  _saveEnergyExpenditureCalculationUseCase;
 
   // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
@@ -196,6 +199,45 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
           isBmiSaveError: false,
           bmiSaveErrorMessage: null,
           isBmiSaved: current.isBmiSaved,
+          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
+          isEnergyExpenditureSaveError: current.isEnergyExpenditureSaveError,
+          energyExpenditureSaveErrorMessage:
+              current.energyExpenditureSaveErrorMessage,
+          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
+        ),
+      );
+    });
+  }
+
+  void closedEnergyExpenditureErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        PatientDetailsStateLoaded(
+          form: current.form,
+          isEditing: current.isEditing,
+          isSaving: current.isSaving,
+          isSaved: current.isSaved,
+          isSaveError: current.isSaveError,
+          saveErrorMessage: current.saveErrorMessage,
+          bmi: current.bmi,
+          isSavingWeight: current.isSavingWeight,
+          weights: current.weights,
+          newWeight: current.newWeight,
+          isSavingHeight: current.isSavingHeight,
+          heights: current.heights,
+          newHeight: current.newHeight,
+          newBodyMeasurementType: current.newBodyMeasurementType,
+          newBodyMeasurementValue: current.newBodyMeasurementValue,
+          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
+          measurements: current.measurements,
+          isSavingBmi: current.isSavingBmi,
+          isBmiSaveError: current.isBmiSaveError,
+          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
+          isBmiSaved: current.isBmiSaved,
+          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
+          isEnergyExpenditureSaveError: false,
+          energyExpenditureSaveErrorMessage: null,
+          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
         ),
       );
     });
@@ -510,6 +552,67 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       await Future.delayed(Duration(seconds: 2));
       _executeOnStateLoaded((latest) {
         emit(latest.copyWith(isBmiSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveEnergyExpenditureCalculation({
+    required EnergyExpenditureFormulaEnum formula,
+    Gender? gender,
+    ActivityFactor? activityFactor,
+    InjuryFactor? injuryFactor,
+    TemperatureFactor? temperatureFactor,
+    StressLevel stressLevel = StressLevel.noStress,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      if (current.weights.isEmpty) return;
+
+      emit(current.copyWith(isSavingEnergyExpenditure: true));
+
+      final latestWeight = current.weights.first; // newest, per §0's sort
+      final latestHeight = current.heights.isNotEmpty
+          ? current.heights.first
+          : null;
+
+      final res = await _saveEnergyExpenditureCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        formula: formula,
+        weightKg: latestWeight.value,
+        heightCm: latestHeight?.value,
+        age: current.form.age,
+        gender: gender,
+        activityFactor: activityFactor,
+        injuryFactor: injuryFactor,
+        temperatureFactor: temperatureFactor,
+        stressLevel: stressLevel,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingEnergyExpenditure: false,
+            isEnergyExpenditureSaveError: true,
+            energyExpenditureSaveErrorMessage:
+                "Não foi possível salvar o cálculo de gasto energético. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingEnergyExpenditure: false,
+          isEnergyExpenditureSaveError: false,
+          isEnergyExpenditureSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isEnergyExpenditureSaved` back to `false`, the page's `listenWhen`
+      // previous-vs-current true-transition check would never fire again
+      // for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isEnergyExpenditureSaved: false));
       });
     });
   }

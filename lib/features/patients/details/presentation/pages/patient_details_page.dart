@@ -62,7 +62,13 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                           !previous.isBmiSaveError)) ||
                   (current.isBmiSaved &&
                       (previous is! PatientDetailsStateLoaded ||
-                          !previous.isBmiSaved))),
+                          !previous.isBmiSaved)) ||
+                  (current.isEnergyExpenditureSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isEnergyExpenditureSaveError)) ||
+                  (current.isEnergyExpenditureSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isEnergyExpenditureSaved))),
           listener: (context, state) {
             if (state is PatientDetailsStateLoaded && state.isSaveError) {
               DsDialog.show(
@@ -101,6 +107,29 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                 context,
                 title: "Sucesso",
                 message: "Cálculo de IMC salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isEnergyExpenditureSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.energyExpenditureSaveErrorMessage ??
+                    "Não foi possível salvar o cálculo de gasto energético. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedEnergyExpenditureErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isEnergyExpenditureSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de gasto energético salvo com sucesso.",
                 showCloseButton: false,
                 isDismissible: false,
                 duration: Duration(seconds: 2),
