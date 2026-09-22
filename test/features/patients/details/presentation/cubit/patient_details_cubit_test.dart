@@ -12,6 +12,13 @@ import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_ca
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_formula.enum.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/use_cases/save_energy_expenditure_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/entities/nitrogen_balance_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/protein_needs/domain/entities/protein_needs_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/water_needs/domain/entities/water_needs_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
+import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/stress_level.enum.dart';
@@ -172,6 +179,76 @@ class _FakeSaveEnergyExpenditureCalculationUseCase
   }
 }
 
+class _FakeSaveNitrogenBalanceCalculationUseCase
+    implements SaveNitrogenBalanceCalculationUseCase {
+  Result<NitrogenBalanceCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<NitrogenBalanceCalculationEntity, String>> call({
+    required String patientId,
+    required double ingestedProtein,
+    required double urineNitrogen24h,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          NitrogenBalanceCalculationEntity(
+            id: 'nb-1',
+            patientId: patientId,
+            value: (ingestedProtein / 6.25) / (urineNitrogen24h / 4),
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
+class _FakeSaveProteinNeedsCalculationUseCase
+    implements SaveProteinNeedsCalculationUseCase {
+  Result<ProteinNeedsCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<ProteinNeedsCalculationEntity, String>> call({
+    required String patientId,
+    required double weightKg,
+    required PatientState patientState,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          ProteinNeedsCalculationEntity(
+            id: 'pn-1',
+            patientId: patientId,
+            minValue: weightKg * 0.8,
+            maxValue: weightKg * 1.0,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
+class _FakeSaveWaterNeedsCalculationUseCase
+    implements SaveWaterNeedsCalculationUseCase {
+  Result<WaterNeedsCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<WaterNeedsCalculationEntity, String>> call({
+    required String patientId,
+    required double weightKg,
+    required int age,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          WaterNeedsCalculationEntity(
+            id: 'wn-1',
+            patientId: patientId,
+            value: age >= 60 ? 25 * weightKg : 30 * weightKg,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
 class _FakeCreateBodyMeasurementUseCase implements CreateBodyMeasurementUseCase {
   Result<BodyMeasurementEntity, String>? resultToReturn;
   BodyMeasurementEntity? lastCall;
@@ -199,6 +276,10 @@ void main() {
   late _FakeSaveBmiCalculationUseCase fakeSaveBmiCalculation;
   late _FakeSaveEnergyExpenditureCalculationUseCase
   fakeSaveEnergyExpenditureCalculation;
+  late _FakeSaveNitrogenBalanceCalculationUseCase
+  fakeSaveNitrogenBalanceCalculation;
+  late _FakeSaveProteinNeedsCalculationUseCase fakeSaveProteinNeedsCalculation;
+  late _FakeSaveWaterNeedsCalculationUseCase fakeSaveWaterNeedsCalculation;
   late PatientDetailsCubit cubit;
 
   setUp(() {
@@ -213,6 +294,10 @@ void main() {
     fakeSaveBmiCalculation = _FakeSaveBmiCalculationUseCase();
     fakeSaveEnergyExpenditureCalculation =
         _FakeSaveEnergyExpenditureCalculationUseCase();
+    fakeSaveNitrogenBalanceCalculation =
+        _FakeSaveNitrogenBalanceCalculationUseCase();
+    fakeSaveProteinNeedsCalculation = _FakeSaveProteinNeedsCalculationUseCase();
+    fakeSaveWaterNeedsCalculation = _FakeSaveWaterNeedsCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -226,6 +311,9 @@ void main() {
       saveBmiCalculationUseCase: fakeSaveBmiCalculation,
       saveEnergyExpenditureCalculationUseCase:
           fakeSaveEnergyExpenditureCalculation,
+      saveNitrogenBalanceCalculationUseCase: fakeSaveNitrogenBalanceCalculation,
+      saveProteinNeedsCalculationUseCase: fakeSaveProteinNeedsCalculation,
+      saveWaterNeedsCalculationUseCase: fakeSaveWaterNeedsCalculation,
     );
   });
 
@@ -841,6 +929,353 @@ void main() {
 
         final state = cubit.state as PatientDetailsStateLoaded;
         expect(state.isEnergyExpenditureSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveNitrogenBalanceCalculation', () {
+    test(
+      'on success: sets isNitrogenBalanceSaved true and clears '
+      'isSavingNitrogenBalance',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveNitrogenBalanceCalculation(
+          ingestedProtein: 90,
+          urineNitrogen24h: 10,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isNitrogenBalanceSaved, isTrue);
+        expect(state.isSavingNitrogenBalance, isFalse);
+        expect(state.isNitrogenBalanceSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isNitrogenBalanceSaveError/'
+      'nitrogenBalanceSaveErrorMessage and clears isSavingNitrogenBalance',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveNitrogenBalanceCalculation.resultToReturn = Error(
+          "db failure",
+        );
+
+        await cubit.saveNitrogenBalanceCalculation(
+          ingestedProtein: 90,
+          urineNitrogen24h: 10,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isNitrogenBalanceSaveError, isTrue);
+        expect(
+          state.nitrogenBalanceSaveErrorMessage,
+          "Não foi possível salvar o balanço nitrogenado. Tente novamente.",
+        );
+        expect(state.isSavingNitrogenBalance, isFalse);
+      },
+    );
+
+    test(
+      'closedNitrogenBalanceErrorModal() resets '
+      'isNitrogenBalanceSaveError/nitrogenBalanceSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveNitrogenBalanceCalculation.resultToReturn = Error(
+          "db failure",
+        );
+        await cubit.saveNitrogenBalanceCalculation(
+          ingestedProtein: 90,
+          urineNitrogen24h: 10,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isNitrogenBalanceSaveError,
+          isTrue,
+        );
+
+        cubit.closedNitrogenBalanceErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isNitrogenBalanceSaveError, isFalse);
+        expect(state.nitrogenBalanceSaveErrorMessage, isNull);
+      },
+    );
+
+    test(
+      'on success: isNitrogenBalanceSaved reverts to false after the '
+      'auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveNitrogenBalanceCalculation(
+          ingestedProtein: 90,
+          urineNitrogen24h: 10,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isNitrogenBalanceSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isNitrogenBalanceSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveProteinNeedsCalculation', () {
+    setUp(() {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime.now(),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+    });
+
+    test(
+      'on success: sets isProteinNeedsSaved true and clears '
+      'isSavingProteinNeeds',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveProteinNeedsCalculation(
+          patientState: PatientState.healthy,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isProteinNeedsSaved, isTrue);
+        expect(state.isSavingProteinNeeds, isFalse);
+        expect(state.isProteinNeedsSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isProteinNeedsSaveError/proteinNeedsSaveErrorMessage '
+      'and clears isSavingProteinNeeds',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveProteinNeedsCalculation.resultToReturn = Error("db failure");
+
+        await cubit.saveProteinNeedsCalculation(
+          patientState: PatientState.healthy,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isProteinNeedsSaveError, isTrue);
+        expect(
+          state.proteinNeedsSaveErrorMessage,
+          "Não foi possível salvar o cálculo de necessidade proteica. Tente novamente.",
+        );
+        expect(state.isSavingProteinNeeds, isFalse);
+      },
+    );
+
+    test(
+      'closedProteinNeedsErrorModal() resets '
+      'isProteinNeedsSaveError/proteinNeedsSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveProteinNeedsCalculation.resultToReturn = Error("db failure");
+        await cubit.saveProteinNeedsCalculation(
+          patientState: PatientState.healthy,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isProteinNeedsSaveError,
+          isTrue,
+        );
+
+        cubit.closedProteinNeedsErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isProteinNeedsSaveError, isFalse);
+        expect(state.proteinNeedsSaveErrorMessage, isNull);
+      },
+    );
+
+    test('no weight data: does nothing', () async {
+      fakeGetWeights.weightsToReturn = [];
+      await cubit.init(patientId);
+
+      await cubit.saveProteinNeedsCalculation(
+        patientState: PatientState.healthy,
+      );
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingProteinNeeds, isFalse);
+      expect(state.isProteinNeedsSaved, isFalse);
+      expect(state.isProteinNeedsSaveError, isFalse);
+    });
+
+    test(
+      'on success: isProteinNeedsSaved reverts to false after the '
+      'auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveProteinNeedsCalculation(
+          patientState: PatientState.healthy,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isProteinNeedsSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isProteinNeedsSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveWaterNeedsCalculation', () {
+    setUp(() {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime.now(),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+    });
+
+    test(
+      'on success: sets isWaterNeedsSaved true and clears isSavingWaterNeeds',
+      () async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 30,
+        );
+        await cubit.init(patientId);
+
+        await cubit.saveWaterNeedsCalculation();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isWaterNeedsSaved, isTrue);
+        expect(state.isSavingWaterNeeds, isFalse);
+        expect(state.isWaterNeedsSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isWaterNeedsSaveError/waterNeedsSaveErrorMessage and '
+      'clears isSavingWaterNeeds',
+      () async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 30,
+        );
+        await cubit.init(patientId);
+        fakeSaveWaterNeedsCalculation.resultToReturn = Error("db failure");
+
+        await cubit.saveWaterNeedsCalculation();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isWaterNeedsSaveError, isTrue);
+        expect(
+          state.waterNeedsSaveErrorMessage,
+          "Não foi possível salvar o cálculo de necessidade hídrica. Tente novamente.",
+        );
+        expect(state.isSavingWaterNeeds, isFalse);
+      },
+    );
+
+    test(
+      'closedWaterNeedsErrorModal() resets isWaterNeedsSaveError/'
+      'waterNeedsSaveErrorMessage',
+      () async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 30,
+        );
+        await cubit.init(patientId);
+        fakeSaveWaterNeedsCalculation.resultToReturn = Error("db failure");
+        await cubit.saveWaterNeedsCalculation();
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isWaterNeedsSaveError,
+          isTrue,
+        );
+
+        cubit.closedWaterNeedsErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isWaterNeedsSaveError, isFalse);
+        expect(state.waterNeedsSaveErrorMessage, isNull);
+      },
+    );
+
+    test('no weight data: does nothing', () async {
+      fakeGetWeights.weightsToReturn = [];
+      fakeLoad.formToReturn = EditPatientFormEntity(
+        firstName: "Ana",
+        lastName: "Silva",
+        patientLocalId: patientId,
+        age: 30,
+      );
+      await cubit.init(patientId);
+
+      await cubit.saveWaterNeedsCalculation();
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingWaterNeeds, isFalse);
+      expect(state.isWaterNeedsSaved, isFalse);
+      expect(state.isWaterNeedsSaveError, isFalse);
+    });
+
+    test('no age: does nothing', () async {
+      fakeLoad.formToReturn = EditPatientFormEntity(
+        firstName: "Ana",
+        lastName: "Silva",
+        patientLocalId: patientId,
+      );
+      await cubit.init(patientId);
+
+      await cubit.saveWaterNeedsCalculation();
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingWaterNeeds, isFalse);
+      expect(state.isWaterNeedsSaved, isFalse);
+      expect(state.isWaterNeedsSaveError, isFalse);
+    });
+
+    test(
+      'on success: isWaterNeedsSaved reverts to false after the auto-close '
+      'delay',
+      () async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 30,
+        );
+        await cubit.init(patientId);
+
+        await cubit.saveWaterNeedsCalculation();
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isWaterNeedsSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isWaterNeedsSaved, isFalse);
       },
     );
   });

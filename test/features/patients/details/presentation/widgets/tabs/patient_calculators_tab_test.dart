@@ -8,6 +8,13 @@ import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_ca
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_formula.enum.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/use_cases/save_energy_expenditure_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/entities/nitrogen_balance_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/protein_needs/domain/entities/protein_needs_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/water_needs/domain/entities/water_needs_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
+import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/stress_level.enum.dart';
@@ -164,6 +171,76 @@ class _FakeSaveEnergyExpenditureCalculationUseCase
   }
 }
 
+class _FakeSaveNitrogenBalanceCalculationUseCase
+    implements SaveNitrogenBalanceCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<NitrogenBalanceCalculationEntity, String>> call({
+    required String patientId,
+    required double ingestedProtein,
+    required double urineNitrogen24h,
+  }) async {
+    callCount++;
+    return Ok(
+      NitrogenBalanceCalculationEntity(
+        id: 'nb-1',
+        patientId: patientId,
+        value: (ingestedProtein / 6.25) / (urineNitrogen24h / 4),
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
+class _FakeSaveProteinNeedsCalculationUseCase
+    implements SaveProteinNeedsCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<ProteinNeedsCalculationEntity, String>> call({
+    required String patientId,
+    required double weightKg,
+    required PatientState patientState,
+  }) async {
+    callCount++;
+    return Ok(
+      ProteinNeedsCalculationEntity(
+        id: 'pn-1',
+        patientId: patientId,
+        minValue: weightKg * 0.8,
+        maxValue: weightKg * 1.0,
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
+class _FakeSaveWaterNeedsCalculationUseCase
+    implements SaveWaterNeedsCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<WaterNeedsCalculationEntity, String>> call({
+    required String patientId,
+    required double weightKg,
+    required int age,
+  }) async {
+    callCount++;
+    return Ok(
+      WaterNeedsCalculationEntity(
+        id: 'wn-1',
+        patientId: patientId,
+        value: age >= 60 ? 25 * weightKg : 30 * weightKg,
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
 /// Pops via the Navigator wired to [navigatorKey], mirroring how a real
 /// GoRouter-backed AppRouter.pop() closes the DsBottomSheet's modal route -
 /// needed so DsBottomSheet.show's returned Future actually resolves in tests.
@@ -205,6 +282,10 @@ void main() {
   late _FakeSaveBmiCalculationUseCase fakeSaveBmiCalculation;
   late _FakeSaveEnergyExpenditureCalculationUseCase
   fakeSaveEnergyExpenditureCalculation;
+  late _FakeSaveNitrogenBalanceCalculationUseCase
+  fakeSaveNitrogenBalanceCalculation;
+  late _FakeSaveProteinNeedsCalculationUseCase fakeSaveProteinNeedsCalculation;
+  late _FakeSaveWaterNeedsCalculationUseCase fakeSaveWaterNeedsCalculation;
   late PatientDetailsCubit cubit;
   final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -215,6 +296,10 @@ void main() {
     fakeSaveBmiCalculation = _FakeSaveBmiCalculationUseCase();
     fakeSaveEnergyExpenditureCalculation =
         _FakeSaveEnergyExpenditureCalculationUseCase();
+    fakeSaveNitrogenBalanceCalculation =
+        _FakeSaveNitrogenBalanceCalculationUseCase();
+    fakeSaveProteinNeedsCalculation = _FakeSaveProteinNeedsCalculationUseCase();
+    fakeSaveWaterNeedsCalculation = _FakeSaveWaterNeedsCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -228,6 +313,9 @@ void main() {
       saveBmiCalculationUseCase: fakeSaveBmiCalculation,
       saveEnergyExpenditureCalculationUseCase:
           fakeSaveEnergyExpenditureCalculation,
+      saveNitrogenBalanceCalculationUseCase: fakeSaveNitrogenBalanceCalculation,
+      saveProteinNeedsCalculationUseCase: fakeSaveProteinNeedsCalculation,
+      saveWaterNeedsCalculationUseCase: fakeSaveWaterNeedsCalculation,
     );
 
     getIt.registerSingleton<AppRouter>(_FakeAppRouter(navigatorKey));
@@ -333,8 +421,9 @@ void main() {
     );
 
     testWidgets(
-      'age < 19, not hospitalized/confined -> empty relevant list, toggle '
-      'reveals both BMI and Energy Expenditure under their group headers',
+      'age < 19, not hospitalized/confined -> relevant list only shows the '
+      'always-relevant calculators (Protein Needs, Water Needs), toggle '
+      'reveals every calculator under their group headers',
       (tester) async {
         fakeLoad.formToReturn = EditPatientFormEntity(
           firstName: "Ana",
@@ -347,28 +436,35 @@ void main() {
         await tester.pumpWidget(wrap());
         await tester.pumpAndSettle();
 
+        // Protein Needs and Water Needs are always relevant (roadmap 3.1 /
+        // PO inference respectively), so the relevant view is not empty even
+        // though BMI/Energy Expenditure/Nitrogen Balance don't qualify here.
         expect(
           find.text('Nenhuma calculadora relevante no momento.'),
-          findsOneWidget,
+          findsNothing,
         );
-        expect(find.byType(DsListTile), findsNothing);
+        expect(find.byType(DsListTile), findsNWidgets(2));
 
         await tester.tap(find.byType(DsButton));
         await tester.pumpAndSettle();
 
         // "IMC" is both the group header (CalculatorType.bmi.label) and the
         // tile title (the definition's name) - genuine collision, not a
-        // test bug. "Gasto Energético" is likewise both the group header
-        // (CalculatorType.energyExpenditure.label) and its tile title.
+        // test bug. Likewise for "Gasto Energético" (Energy Expenditure) and
+        // "Balanço Nitrogenado" (Nitrogen Balance). "Necessidade Proteica"/
+        // "Necessidade Hídrica" tile titles don't collide with their group
+        // headers ("Necessidades Proteicas"/"Necessidades Hídricas" -
+        // singular vs plural, the known Slice 2/3 cosmetic mismatch).
         expect(find.text('IMC'), findsNWidgets(2));
         expect(find.text('Gasto Energético'), findsNWidgets(2));
-        expect(find.byType(DsListTile), findsNWidgets(2));
+        expect(find.text('Balanço Nitrogenado'), findsNWidgets(2));
+        expect(find.byType(DsListTile), findsNWidgets(5));
       },
     );
 
     testWidgets(
-      'age 25+ with weight/height -> BMI shown directly in flat view, tap '
-      'still works',
+      'age 25+ with weight/height -> BMI, Protein Needs and Water Needs '
+      'shown directly in flat view, tap still works',
       (tester) async {
         fakeLoad.formToReturn = EditPatientFormEntity(
           firstName: "Ana",
@@ -393,7 +489,8 @@ void main() {
         await tester.pumpWidget(wrap());
         await tester.pumpAndSettle();
 
-        expect(find.byType(DsListTile), findsOneWidget);
+        // BMI (age >= 19) + Protein Needs/Water Needs (always relevant).
+        expect(find.byType(DsListTile), findsNWidgets(3));
         expect(find.text('IMC'), findsOneWidget);
 
         await tester.tap(find.text('IMC'));
@@ -496,6 +593,252 @@ void main() {
         await tester.pump(const Duration(seconds: 3));
 
         expect(fakeSaveEnergyExpenditureCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'Nitrogen Balance tap-flow: filling both fields, calculating and '
+      'confirming calls cubit.saveNitrogenBalanceCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          hospitalized: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Balanço Nitrogenado'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextFormField).at(0), '90');
+        await tester.enterText(find.byType(TextFormField).at(1), '10');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isNitrogenBalanceSaved auto-reset delay in
+        // PatientDetailsCubit.saveNitrogenBalanceCalculation so no pending
+        // Timer leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveNitrogenBalanceCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'Nitrogen Balance "Calcular" DsButton stays disabled for empty inputs '
+      'and for negative input values',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          hospitalized: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Balanço Nitrogenado'));
+        await tester.pumpAndSettle();
+
+        // Empty inputs (both fields blank): "Calcular" must be disabled.
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isTrue,
+        );
+
+        // Negative input values: "Calcular" must remain disabled.
+        await tester.enterText(find.byType(TextFormField).at(0), '-5');
+        await tester.enterText(find.byType(TextFormField).at(1), '-5');
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isTrue,
+        );
+
+        // Tapping the disabled button produces no effect: no preview shown.
+        await tester.tap(find.text('Calcular'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Confirmar'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Protein Needs pre-gate: no weight data shows the insufficient-data '
+      'message and Fechar closes it without calling '
+      'saveProteinNeedsCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Necessidade Proteica'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Não há dados suficientes para calcular a necessidade proteica. "
+            "Cadastre ao menos um peso para esse paciente.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveProteinNeedsCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Protein Needs tap-flow: selecting a patient state, calculating and '
+      'confirming calls cubit.saveProteinNeedsCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Necessidade Proteica'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(DropdownMenuFormField<PatientState>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(PatientState.healthy.label).last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isProteinNeedsSaved auto-reset delay in
+        // PatientDetailsCubit.saveProteinNeedsCalculation so no pending
+        // Timer leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveProteinNeedsCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'Water Needs pre-gate: no weight/age data shows the insufficient-data '
+      'message and Fechar closes it without calling '
+      'saveWaterNeedsCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+        );
+        fakeGetWeights.weightsToReturn = [];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Necessidade Hídrica'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Não há dados suficientes para calcular a necessidade hídrica. "
+            "Cadastre ao menos um peso e a idade desse paciente.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveWaterNeedsCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Water Needs tap-flow: preview shown, Confirmar calls '
+      'cubit.saveWaterNeedsCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Necessidade Hídrica'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isWaterNeedsSaved auto-reset delay in
+        // PatientDetailsCubit.saveWaterNeedsCalculation so no pending Timer
+        // leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveWaterNeedsCalculation.callCount, 1);
       },
     );
   });

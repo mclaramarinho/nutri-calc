@@ -24,11 +24,15 @@ import 'package:nutri_calc/shared/utils/extensions/ext_age.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_formula.enum.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/use_cases/save_energy_expenditure_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/stress_level.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/temperature_factor.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/gender.dart';
+import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 
 part 'patient_details_cubit.dart';
 
@@ -79,6 +83,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isEnergyExpenditureSaveError = false,
     this.energyExpenditureSaveErrorMessage,
     this.isEnergyExpenditureSaved = false,
+    this.isSavingNitrogenBalance = false,
+    this.isNitrogenBalanceSaveError = false,
+    this.nitrogenBalanceSaveErrorMessage,
+    this.isNitrogenBalanceSaved = false,
+    this.isSavingProteinNeeds = false,
+    this.isProteinNeedsSaveError = false,
+    this.proteinNeedsSaveErrorMessage,
+    this.isProteinNeedsSaved = false,
+    this.isSavingWaterNeeds = false,
+    this.isWaterNeedsSaveError = false,
+    this.waterNeedsSaveErrorMessage,
+    this.isWaterNeedsSaved = false,
   });
 
   final EditPatientFormEntity form;
@@ -111,6 +127,21 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final String? energyExpenditureSaveErrorMessage;
   final bool isEnergyExpenditureSaved;
 
+  final bool isSavingNitrogenBalance;
+  final bool isNitrogenBalanceSaveError;
+  final String? nitrogenBalanceSaveErrorMessage;
+  final bool isNitrogenBalanceSaved;
+
+  final bool isSavingProteinNeeds;
+  final bool isProteinNeedsSaveError;
+  final String? proteinNeedsSaveErrorMessage;
+  final bool isProteinNeedsSaved;
+
+  final bool isSavingWaterNeeds;
+  final bool isWaterNeedsSaveError;
+  final String? waterNeedsSaveErrorMessage;
+  final bool isWaterNeedsSaved;
+
   PatientDetailsStateLoaded copyWith({
     EditPatientFormEntity? form,
     bool? isEditing,
@@ -137,6 +168,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     bool? isEnergyExpenditureSaveError,
     String? energyExpenditureSaveErrorMessage,
     bool? isEnergyExpenditureSaved,
+    bool? isSavingNitrogenBalance,
+    bool? isNitrogenBalanceSaveError,
+    String? nitrogenBalanceSaveErrorMessage,
+    bool? isNitrogenBalanceSaved,
+    bool? isSavingProteinNeeds,
+    bool? isProteinNeedsSaveError,
+    String? proteinNeedsSaveErrorMessage,
+    bool? isProteinNeedsSaved,
+    bool? isSavingWaterNeeds,
+    bool? isWaterNeedsSaveError,
+    String? waterNeedsSaveErrorMessage,
+    bool? isWaterNeedsSaved,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
@@ -169,6 +212,26 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
         this.energyExpenditureSaveErrorMessage,
     isEnergyExpenditureSaved:
         isEnergyExpenditureSaved ?? this.isEnergyExpenditureSaved,
+    isSavingNitrogenBalance:
+        isSavingNitrogenBalance ?? this.isSavingNitrogenBalance,
+    isNitrogenBalanceSaveError:
+        isNitrogenBalanceSaveError ?? this.isNitrogenBalanceSaveError,
+    nitrogenBalanceSaveErrorMessage:
+        nitrogenBalanceSaveErrorMessage ??
+        this.nitrogenBalanceSaveErrorMessage,
+    isNitrogenBalanceSaved:
+        isNitrogenBalanceSaved ?? this.isNitrogenBalanceSaved,
+    isSavingProteinNeeds: isSavingProteinNeeds ?? this.isSavingProteinNeeds,
+    isProteinNeedsSaveError:
+        isProteinNeedsSaveError ?? this.isProteinNeedsSaveError,
+    proteinNeedsSaveErrorMessage:
+        proteinNeedsSaveErrorMessage ?? this.proteinNeedsSaveErrorMessage,
+    isProteinNeedsSaved: isProteinNeedsSaved ?? this.isProteinNeedsSaved,
+    isSavingWaterNeeds: isSavingWaterNeeds ?? this.isSavingWaterNeeds,
+    isWaterNeedsSaveError: isWaterNeedsSaveError ?? this.isWaterNeedsSaveError,
+    waterNeedsSaveErrorMessage:
+        waterNeedsSaveErrorMessage ?? this.waterNeedsSaveErrorMessage,
+    isWaterNeedsSaved: isWaterNeedsSaved ?? this.isWaterNeedsSaved,
   );
 
   PatientDetailsStateLoaded clearForm(PatientDetailsFormOptions formOption) {
@@ -204,6 +267,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       isEnergyExpenditureSaveError: isEnergyExpenditureSaveError,
       energyExpenditureSaveErrorMessage: energyExpenditureSaveErrorMessage,
       isEnergyExpenditureSaved: isEnergyExpenditureSaved,
+      isSavingNitrogenBalance: isSavingNitrogenBalance,
+      isNitrogenBalanceSaveError: isNitrogenBalanceSaveError,
+      nitrogenBalanceSaveErrorMessage: nitrogenBalanceSaveErrorMessage,
+      isNitrogenBalanceSaved: isNitrogenBalanceSaved,
+      isSavingProteinNeeds: isSavingProteinNeeds,
+      isProteinNeedsSaveError: isProteinNeedsSaveError,
+      proteinNeedsSaveErrorMessage: proteinNeedsSaveErrorMessage,
+      isProteinNeedsSaved: isProteinNeedsSaved,
+      isSavingWaterNeeds: isSavingWaterNeeds,
+      isWaterNeedsSaveError: isWaterNeedsSaveError,
+      waterNeedsSaveErrorMessage: waterNeedsSaveErrorMessage,
+      isWaterNeedsSaved: isWaterNeedsSaved,
     );
   }
 
@@ -232,6 +307,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isEnergyExpenditureSaveError,
     energyExpenditureSaveErrorMessage,
     isEnergyExpenditureSaved,
+    isSavingNitrogenBalance,
+    isNitrogenBalanceSaveError,
+    nitrogenBalanceSaveErrorMessage,
+    isNitrogenBalanceSaved,
+    isSavingProteinNeeds,
+    isProteinNeedsSaveError,
+    proteinNeedsSaveErrorMessage,
+    isProteinNeedsSaved,
+    isSavingWaterNeeds,
+    isWaterNeedsSaveError,
+    waterNeedsSaveErrorMessage,
+    isWaterNeedsSaved,
     measurements,
   ];
 }

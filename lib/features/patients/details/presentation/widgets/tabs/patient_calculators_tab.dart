@@ -6,7 +6,12 @@ import 'package:nutri_calc/features/calculators/domain/entities/calculator_relev
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_type_enum.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/energy_expenditure_relevance.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/presentation/widgets/energy_expenditure_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/nitrogen_balance_relevance.dart';
+import 'package:nutri_calc/features/calculators/nitrogen_balance/presentation/widgets/nitrogen_balance_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/presentation/widgets/calculator_list.dart';
+import 'package:nutri_calc/features/calculators/protein_needs/domain/protein_needs_relevance.dart';
+import 'package:nutri_calc/features/calculators/protein_needs/presentation/widgets/protein_needs_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/water_needs/domain/water_needs_relevance.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/di/di.dart';
@@ -163,6 +168,132 @@ class PatientCalculatorsTab extends StatelessWidget {
     }
   }
 
+  Future<void> _openNitrogenBalanceBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    // Both inputs are fully manual - nothing derived from patient data, so
+    // there's no insufficient-data pre-gate.
+    final gathered = await DsBottomSheet.show<GatheredNitrogenBalanceInputs?>(
+      context,
+      title: "Balanço Nitrogenado",
+      body: const NitrogenBalanceSheetBody(),
+      actions: null,
+    );
+
+    if (gathered != null) {
+      await cubit.saveNitrogenBalanceCalculation(
+        ingestedProtein: gathered.ingestedProtein,
+        urineNitrogen24h: gathered.urineNitrogen24h,
+      );
+    }
+  }
+
+  Future<void> _openProteinNeedsBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    if (state.weights.isEmpty) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Necessidade Proteica",
+        body: Text(
+          "Não há dados suficientes para calcular a necessidade proteica. Cadastre ao menos um peso para esse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final weight = state.weights.first;
+
+    final gathered = await DsBottomSheet.show<GatheredProteinNeedsInputs?>(
+      context,
+      title: "Necessidade Proteica",
+      body: ProteinNeedsSheetBody(weightKg: weight.value),
+      actions: null,
+    );
+
+    if (gathered != null) {
+      await cubit.saveProteinNeedsCalculation(
+        patientState: gathered.patientState,
+      );
+    }
+  }
+
+  Future<void> _openWaterNeedsBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    final age = state.form.age;
+
+    if (state.weights.isEmpty || age == null) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Necessidade Hídrica",
+        body: Text(
+          "Não há dados suficientes para calcular a necessidade hídrica. Cadastre ao menos um peso e a idade desse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final weight = state.weights.first;
+
+    final confirmed = await DsBottomSheet.show<bool>(
+      context,
+      title: "Necessidade Hídrica",
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: DsSpacing.sm,
+        children: [
+          Text("Peso: ${weight.value} kg"),
+          Text("Idade: $age"),
+        ],
+      ),
+      actions: [
+        Expanded(
+          child: DsButton(
+            label: "Cancelar",
+            isLoading: false,
+            onTap: () => getIt.get<AppRouter>().pop<bool>(false),
+          ),
+        ),
+        Expanded(
+          child: DsButton(
+            label: "Confirmar",
+            isLoading: false,
+            onTap: () => getIt.get<AppRouter>().pop<bool>(true),
+          ),
+        ),
+      ],
+    );
+
+    if (confirmed == true) {
+      await cubit.saveWaterNeedsCalculation();
+    }
+  }
+
   List<CalculatorDefinition> _buildDefinitions(
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
@@ -181,6 +312,27 @@ class PatientCalculatorsTab extends StatelessWidget {
         name: "Gasto Energético",
         isRelevant: isEnergyExpenditureRelevant,
         onTap: (ctx) => _openEnergyExpenditureBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "nitrogen_balance",
+        type: CalculatorType.nitrogenBalance,
+        name: "Balanço Nitrogenado",
+        isRelevant: isNitrogenBalanceRelevant,
+        onTap: (ctx) => _openNitrogenBalanceBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "protein_needs",
+        type: CalculatorType.proteinNeeds,
+        name: "Necessidade Proteica",
+        isRelevant: isProteinNeedsRelevant,
+        onTap: (ctx) => _openProteinNeedsBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "water_needs",
+        type: CalculatorType.waterNeeds,
+        name: "Necessidade Hídrica",
+        isRelevant: isWaterNeedsRelevant,
+        onTap: (ctx) => _openWaterNeedsBottomSheet(ctx, cubit, state),
       ),
     ];
   }

@@ -68,7 +68,25 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                           !previous.isEnergyExpenditureSaveError)) ||
                   (current.isEnergyExpenditureSaved &&
                       (previous is! PatientDetailsStateLoaded ||
-                          !previous.isEnergyExpenditureSaved))),
+                          !previous.isEnergyExpenditureSaved)) ||
+                  (current.isNitrogenBalanceSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isNitrogenBalanceSaveError)) ||
+                  (current.isNitrogenBalanceSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isNitrogenBalanceSaved)) ||
+                  (current.isProteinNeedsSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isProteinNeedsSaveError)) ||
+                  (current.isProteinNeedsSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isProteinNeedsSaved)) ||
+                  (current.isWaterNeedsSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isWaterNeedsSaveError)) ||
+                  (current.isWaterNeedsSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isWaterNeedsSaved))),
           listener: (context, state) {
             if (state is PatientDetailsStateLoaded && state.isSaveError) {
               DsDialog.show(
@@ -130,6 +148,75 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                 context,
                 title: "Sucesso",
                 message: "Cálculo de gasto energético salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isNitrogenBalanceSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.nitrogenBalanceSaveErrorMessage ??
+                    "Não foi possível salvar o balanço nitrogenado. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedNitrogenBalanceErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isNitrogenBalanceSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de balanço nitrogenado salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isProteinNeedsSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.proteinNeedsSaveErrorMessage ??
+                    "Não foi possível salvar o cálculo de necessidade proteica. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedProteinNeedsErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isProteinNeedsSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de necessidade proteica salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isWaterNeedsSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.waterNeedsSaveErrorMessage ??
+                    "Não foi possível salvar o cálculo de necessidade hídrica. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedWaterNeedsErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isWaterNeedsSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de necessidade hídrica salvo com sucesso.",
                 showCloseButton: false,
                 isDismissible: false,
                 duration: Duration(seconds: 2),

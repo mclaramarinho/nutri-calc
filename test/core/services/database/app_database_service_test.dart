@@ -592,6 +592,202 @@ void main() {
     },
   );
 
+  group(
+    'NITROGEN_BALANCES/PROTEIN_NEEDS/WATER_NEEDS tables migration (real '
+    'production schema, v4 -> v5)',
+    () {
+      test(
+        'fresh install (straight at v5) creates all three new tables with '
+        'all their declared columns',
+        () async {
+          final path = _newTempDbPath('slice4_tables_fresh_v5');
+          final service = AppDatabaseServiceImpl();
+          await service.init(dbPath: path, version: 5);
+
+          final db = await openDatabase(path);
+          try {
+            for (final table in [
+              AppDatabaseTables.nitrogenBalances,
+              AppDatabaseTables.proteinNeeds,
+              AppDatabaseTables.waterNeeds,
+            ]) {
+              final tables = await db.rawQuery(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='${table.name}'",
+              );
+              expect(tables, hasLength(1), reason: '${table.name} must exist');
+
+              final columns = await db.rawQuery(
+                'PRAGMA table_info(${table.name})',
+              );
+              expect(
+                columns.map((c) => c['name']).toSet(),
+                table.fields.map((f) => f.name).toSet(),
+                reason: '${table.name} columns must match its declared fields',
+              );
+            }
+          } finally {
+            await db.close();
+          }
+        },
+      );
+
+      test(
+        'an existing v4 database upgrading to v5 gets NITROGEN_BALANCES, '
+        'PROTEIN_NEEDS and WATER_NEEDS created whole (they did not exist at '
+        'oldVersion 4), and each is usable for real insert/read',
+        () async {
+          final path = _newTempDbPath('slice4_tables_upgrade_v4_to_v5');
+
+          // Seed at v4: the new tables do not exist yet (sinceVersion 5), but
+          // BMI/ENERGY_EXPENDITURES and the base tables do.
+          final v4Service = AppDatabaseServiceImpl();
+          await v4Service.init(dbPath: path, version: 4);
+          final insertResult = await v4Service.insert(
+            AppDatabaseTables.patient,
+            {
+              'id': 'p1',
+              'patientId': 'PID-1',
+              'firstName': 'Ana',
+              'lastName': 'Silva',
+              'birthdate': '2000-01-01',
+              'age': 26,
+              'ageUnit': 'year',
+            },
+          );
+          expect(insertResult.isOk, isTrue);
+
+          // Reopen at v5 - onUpgrade must CREATE TABLE each of the new
+          // tables whole (they didn't exist at oldVersion 4 - exercises
+          // onUpgrade's "table didn't exist at oldVersion" branch, mirroring
+          // ENERGY_EXPENDITURES's v3->v4 migration test).
+          final v5Service = AppDatabaseServiceImpl();
+          await v5Service.init(dbPath: path, version: 5);
+
+          // Opened with `singleInstance: false` so that closing this
+          // inspection-only connection doesn't tear down the shared,
+          // path-cached connection `v5Service` still needs below.
+          final db = await openDatabase(path, singleInstance: false);
+          try {
+            for (final table in [
+              AppDatabaseTables.nitrogenBalances,
+              AppDatabaseTables.proteinNeeds,
+              AppDatabaseTables.waterNeeds,
+            ]) {
+              final tables = await db.rawQuery(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='${table.name}'",
+              );
+              expect(
+                tables,
+                hasLength(1),
+                reason:
+                    '${table.name} table must be created via onUpgrade, '
+                    'not just onCreate',
+              );
+            }
+          } finally {
+            await db.close();
+          }
+
+          final readResult = await v5Service.read(
+            AppDatabaseTables.patient,
+            where: 'id = ?',
+            whereArgs: ['p1'],
+          );
+          expect(readResult.isOk, isTrue);
+          readResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['firstName'], 'Ana', reason: 'pre-existing data intact');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+
+          // Each new table, created via onUpgrade's "table didn't exist at
+          // oldVersion" branch, must actually be usable for real
+          // insert/read - not just present in the schema.
+          final insertNitrogenBalanceResult = await v5Service.insert(
+            AppDatabaseTables.nitrogenBalances,
+            {
+              'id': 'nb1',
+              'patientId': 'p1',
+              'value': 2.5,
+              'createdAt': '2026-09-19',
+              'inputParams': '[]',
+            },
+          );
+          expect(insertNitrogenBalanceResult.isOk, isTrue);
+
+          final readNitrogenBalanceResult = await v5Service.read(
+            AppDatabaseTables.nitrogenBalances,
+            where: 'id = ?',
+            whereArgs: ['nb1'],
+          );
+          expect(readNitrogenBalanceResult.isOk, isTrue);
+          readNitrogenBalanceResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['patientId'], 'p1');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+
+          final insertProteinNeedsResult = await v5Service.insert(
+            AppDatabaseTables.proteinNeeds,
+            {
+              'id': 'pn1',
+              'patientId': 'p1',
+              'minValue': 56.0,
+              'maxValue': 70.0,
+              'createdAt': '2026-09-19',
+              'inputParams': '[]',
+            },
+          );
+          expect(insertProteinNeedsResult.isOk, isTrue);
+
+          final readProteinNeedsResult = await v5Service.read(
+            AppDatabaseTables.proteinNeeds,
+            where: 'id = ?',
+            whereArgs: ['pn1'],
+          );
+          expect(readProteinNeedsResult.isOk, isTrue);
+          readProteinNeedsResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['patientId'], 'p1');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+
+          final insertWaterNeedsResult = await v5Service.insert(
+            AppDatabaseTables.waterNeeds,
+            {
+              'id': 'wn1',
+              'patientId': 'p1',
+              'value': 2100.0,
+              'createdAt': '2026-09-19',
+              'inputParams': '[]',
+            },
+          );
+          expect(insertWaterNeedsResult.isOk, isTrue);
+
+          final readWaterNeedsResult = await v5Service.read(
+            AppDatabaseTables.waterNeeds,
+            where: 'id = ?',
+            whereArgs: ['wn1'],
+          );
+          expect(readWaterNeedsResult.isOk, isTrue);
+          readWaterNeedsResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['patientId'], 'p1');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+        },
+      );
+    },
+  );
+
   group('Migration mechanics (onCreate/onUpgrade algorithm) against a versioned fixture', () {
     // Local fixture mirroring AppDatabaseTables' shape: a "patient"-like
     // table that exists since v1 and gains a column at v2, plus a brand new

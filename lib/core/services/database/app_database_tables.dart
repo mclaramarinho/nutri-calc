@@ -6,7 +6,10 @@ enum AppDatabaseTables {
   heights(name: "HEIGHTS", sinceVersion: 1),
   bodyMeasurements(name: "BODY_MEASUREMENTS", sinceVersion: 1),
   bmi(name: "BMI", sinceVersion: 3),
-  energyExpenditures(name: "ENERGY_EXPENDITURES", sinceVersion: 4);
+  energyExpenditures(name: "ENERGY_EXPENDITURES", sinceVersion: 4),
+  nitrogenBalances(name: "NITROGEN_BALANCES", sinceVersion: 5),
+  proteinNeeds(name: "PROTEIN_NEEDS", sinceVersion: 5),
+  waterNeeds(name: "WATER_NEEDS", sinceVersion: 5);
 
   final String name;
   final int sinceVersion;
@@ -112,6 +115,46 @@ enum AppDatabaseTables {
           TableSqlField(name: "formula", type: .text, constraints: [.notNull]),
           TableSqlField(name: "minValue", type: .real, constraints: [.notNull]),
           TableSqlField(name: "maxValue", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .nitrogenBalances:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "value", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .proteinNeeds:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "minValue", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "maxValue", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .waterNeeds:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "value", type: .real, constraints: [.notNull]),
           TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
           TableSqlField(
             name: "inputParams",

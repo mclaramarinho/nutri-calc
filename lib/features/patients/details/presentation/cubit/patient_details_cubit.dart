@@ -13,6 +13,9 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._getBodyMeasurementUseCase,
     required this._saveBmiCalculationUseCase,
     required this._saveEnergyExpenditureCalculationUseCase,
+    required this._saveNitrogenBalanceCalculationUseCase,
+    required this._saveProteinNeedsCalculationUseCase,
+    required this._saveWaterNeedsCalculationUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
@@ -30,6 +33,10 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   final SaveBmiCalculationUseCase _saveBmiCalculationUseCase;
   final SaveEnergyExpenditureCalculationUseCase
   _saveEnergyExpenditureCalculationUseCase;
+  final SaveNitrogenBalanceCalculationUseCase
+  _saveNitrogenBalanceCalculationUseCase;
+  final SaveProteinNeedsCalculationUseCase _saveProteinNeedsCalculationUseCase;
+  final SaveWaterNeedsCalculationUseCase _saveWaterNeedsCalculationUseCase;
 
   // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
@@ -238,6 +245,149 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
           isEnergyExpenditureSaveError: false,
           energyExpenditureSaveErrorMessage: null,
           isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
+        ),
+      );
+    });
+  }
+
+  void closedNitrogenBalanceErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        PatientDetailsStateLoaded(
+          form: current.form,
+          isEditing: current.isEditing,
+          isSaving: current.isSaving,
+          isSaved: current.isSaved,
+          isSaveError: current.isSaveError,
+          saveErrorMessage: current.saveErrorMessage,
+          bmi: current.bmi,
+          isSavingWeight: current.isSavingWeight,
+          weights: current.weights,
+          newWeight: current.newWeight,
+          isSavingHeight: current.isSavingHeight,
+          heights: current.heights,
+          newHeight: current.newHeight,
+          newBodyMeasurementType: current.newBodyMeasurementType,
+          newBodyMeasurementValue: current.newBodyMeasurementValue,
+          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
+          measurements: current.measurements,
+          isSavingBmi: current.isSavingBmi,
+          isBmiSaveError: current.isBmiSaveError,
+          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
+          isBmiSaved: current.isBmiSaved,
+          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
+          isEnergyExpenditureSaveError: current.isEnergyExpenditureSaveError,
+          energyExpenditureSaveErrorMessage:
+              current.energyExpenditureSaveErrorMessage,
+          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
+          isSavingNitrogenBalance: current.isSavingNitrogenBalance,
+          isNitrogenBalanceSaveError: false,
+          nitrogenBalanceSaveErrorMessage: null,
+          isNitrogenBalanceSaved: current.isNitrogenBalanceSaved,
+          isSavingProteinNeeds: current.isSavingProteinNeeds,
+          isProteinNeedsSaveError: current.isProteinNeedsSaveError,
+          proteinNeedsSaveErrorMessage: current.proteinNeedsSaveErrorMessage,
+          isProteinNeedsSaved: current.isProteinNeedsSaved,
+          isSavingWaterNeeds: current.isSavingWaterNeeds,
+          isWaterNeedsSaveError: current.isWaterNeedsSaveError,
+          waterNeedsSaveErrorMessage: current.waterNeedsSaveErrorMessage,
+          isWaterNeedsSaved: current.isWaterNeedsSaved,
+        ),
+      );
+    });
+  }
+
+  void closedProteinNeedsErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        PatientDetailsStateLoaded(
+          form: current.form,
+          isEditing: current.isEditing,
+          isSaving: current.isSaving,
+          isSaved: current.isSaved,
+          isSaveError: current.isSaveError,
+          saveErrorMessage: current.saveErrorMessage,
+          bmi: current.bmi,
+          isSavingWeight: current.isSavingWeight,
+          weights: current.weights,
+          newWeight: current.newWeight,
+          isSavingHeight: current.isSavingHeight,
+          heights: current.heights,
+          newHeight: current.newHeight,
+          newBodyMeasurementType: current.newBodyMeasurementType,
+          newBodyMeasurementValue: current.newBodyMeasurementValue,
+          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
+          measurements: current.measurements,
+          isSavingBmi: current.isSavingBmi,
+          isBmiSaveError: current.isBmiSaveError,
+          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
+          isBmiSaved: current.isBmiSaved,
+          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
+          isEnergyExpenditureSaveError: current.isEnergyExpenditureSaveError,
+          energyExpenditureSaveErrorMessage:
+              current.energyExpenditureSaveErrorMessage,
+          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
+          isSavingNitrogenBalance: current.isSavingNitrogenBalance,
+          isNitrogenBalanceSaveError: current.isNitrogenBalanceSaveError,
+          nitrogenBalanceSaveErrorMessage:
+              current.nitrogenBalanceSaveErrorMessage,
+          isNitrogenBalanceSaved: current.isNitrogenBalanceSaved,
+          isSavingProteinNeeds: current.isSavingProteinNeeds,
+          isProteinNeedsSaveError: false,
+          proteinNeedsSaveErrorMessage: null,
+          isProteinNeedsSaved: current.isProteinNeedsSaved,
+          isSavingWaterNeeds: current.isSavingWaterNeeds,
+          isWaterNeedsSaveError: current.isWaterNeedsSaveError,
+          waterNeedsSaveErrorMessage: current.waterNeedsSaveErrorMessage,
+          isWaterNeedsSaved: current.isWaterNeedsSaved,
+        ),
+      );
+    });
+  }
+
+  void closedWaterNeedsErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        PatientDetailsStateLoaded(
+          form: current.form,
+          isEditing: current.isEditing,
+          isSaving: current.isSaving,
+          isSaved: current.isSaved,
+          isSaveError: current.isSaveError,
+          saveErrorMessage: current.saveErrorMessage,
+          bmi: current.bmi,
+          isSavingWeight: current.isSavingWeight,
+          weights: current.weights,
+          newWeight: current.newWeight,
+          isSavingHeight: current.isSavingHeight,
+          heights: current.heights,
+          newHeight: current.newHeight,
+          newBodyMeasurementType: current.newBodyMeasurementType,
+          newBodyMeasurementValue: current.newBodyMeasurementValue,
+          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
+          measurements: current.measurements,
+          isSavingBmi: current.isSavingBmi,
+          isBmiSaveError: current.isBmiSaveError,
+          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
+          isBmiSaved: current.isBmiSaved,
+          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
+          isEnergyExpenditureSaveError: current.isEnergyExpenditureSaveError,
+          energyExpenditureSaveErrorMessage:
+              current.energyExpenditureSaveErrorMessage,
+          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
+          isSavingNitrogenBalance: current.isSavingNitrogenBalance,
+          isNitrogenBalanceSaveError: current.isNitrogenBalanceSaveError,
+          nitrogenBalanceSaveErrorMessage:
+              current.nitrogenBalanceSaveErrorMessage,
+          isNitrogenBalanceSaved: current.isNitrogenBalanceSaved,
+          isSavingProteinNeeds: current.isSavingProteinNeeds,
+          isProteinNeedsSaveError: current.isProteinNeedsSaveError,
+          proteinNeedsSaveErrorMessage: current.proteinNeedsSaveErrorMessage,
+          isProteinNeedsSaved: current.isProteinNeedsSaved,
+          isSavingWaterNeeds: current.isSavingWaterNeeds,
+          isWaterNeedsSaveError: false,
+          waterNeedsSaveErrorMessage: null,
+          isWaterNeedsSaved: current.isWaterNeedsSaved,
         ),
       );
     });
@@ -613,6 +763,139 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       await Future.delayed(Duration(seconds: 2));
       _executeOnStateLoaded((latest) {
         emit(latest.copyWith(isEnergyExpenditureSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveNitrogenBalanceCalculation({
+    required double ingestedProtein,
+    required double urineNitrogen24h,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(isSavingNitrogenBalance: true));
+
+      final res = await _saveNitrogenBalanceCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        ingestedProtein: ingestedProtein,
+        urineNitrogen24h: urineNitrogen24h,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingNitrogenBalance: false,
+            isNitrogenBalanceSaveError: true,
+            nitrogenBalanceSaveErrorMessage:
+                "Não foi possível salvar o balanço nitrogenado. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingNitrogenBalance: false,
+          isNitrogenBalanceSaveError: false,
+          isNitrogenBalanceSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isNitrogenBalanceSaved` back to `false`, the page's `listenWhen`
+      // previous-vs-current true-transition check would never fire again
+      // for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isNitrogenBalanceSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveProteinNeedsCalculation({
+    required PatientState patientState,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      if (current.weights.isEmpty) return;
+
+      emit(current.copyWith(isSavingProteinNeeds: true));
+
+      final latestWeight = current.weights.first; // newest, per §0's sort
+
+      final res = await _saveProteinNeedsCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        weightKg: latestWeight.value,
+        patientState: patientState,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingProteinNeeds: false,
+            isProteinNeedsSaveError: true,
+            proteinNeedsSaveErrorMessage:
+                "Não foi possível salvar o cálculo de necessidade proteica. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingProteinNeeds: false,
+          isProteinNeedsSaveError: false,
+          isProteinNeedsSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isProteinNeedsSaved` back to `false`, the page's `listenWhen`
+      // previous-vs-current true-transition check would never fire again
+      // for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isProteinNeedsSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveWaterNeedsCalculation() async {
+    _executeOnStateLoaded((current) async {
+      if (current.weights.isEmpty || current.form.age == null) return;
+
+      emit(current.copyWith(isSavingWaterNeeds: true));
+
+      final latestWeight = current.weights.first; // newest, per §0's sort
+
+      final res = await _saveWaterNeedsCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        weightKg: latestWeight.value,
+        age: current.form.age!,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingWaterNeeds: false,
+            isWaterNeedsSaveError: true,
+            waterNeedsSaveErrorMessage:
+                "Não foi possível salvar o cálculo de necessidade hídrica. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingWaterNeeds: false,
+          isWaterNeedsSaveError: false,
+          isWaterNeedsSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isWaterNeedsSaved` back to `false`, the page's `listenWhen`
+      // previous-vs-current true-transition check would never fire again
+      // for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isWaterNeedsSaved: false));
       });
     });
   }
