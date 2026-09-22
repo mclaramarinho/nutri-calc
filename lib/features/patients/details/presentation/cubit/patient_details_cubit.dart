@@ -16,6 +16,10 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._saveNitrogenBalanceCalculationUseCase,
     required this._saveProteinNeedsCalculationUseCase,
     required this._saveWaterNeedsCalculationUseCase,
+    required this._saveEnteralNutritionDrippingCalculationUseCase,
+    required this._saveEnteralNutritionSpeedCalculationUseCase,
+    required this._saveEnteralNutritionVolumeCalculationUseCase,
+    required this._saveGlucoseInfusionRateCalculationUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
@@ -37,6 +41,14 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   _saveNitrogenBalanceCalculationUseCase;
   final SaveProteinNeedsCalculationUseCase _saveProteinNeedsCalculationUseCase;
   final SaveWaterNeedsCalculationUseCase _saveWaterNeedsCalculationUseCase;
+  final SaveEnteralNutritionDrippingCalculationUseCase
+  _saveEnteralNutritionDrippingCalculationUseCase;
+  final SaveEnteralNutritionSpeedCalculationUseCase
+  _saveEnteralNutritionSpeedCalculationUseCase;
+  final SaveEnteralNutritionVolumeCalculationUseCase
+  _saveEnteralNutritionVolumeCalculationUseCase;
+  final SaveGlucoseInfusionRateCalculationUseCase
+  _saveGlucoseInfusionRateCalculationUseCase;
 
   // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
@@ -153,98 +165,22 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
 
   void closedErrorModal() {
     _executeOnStateLoaded((current) {
-      emit(
-        PatientDetailsStateLoaded(
-          form: current.form,
-          isEditing: current.isEditing,
-          isSaving: current.isSaving,
-          isSaved: current.isSaved,
-          isSaveError: false,
-          saveErrorMessage: null,
-          bmi: current.bmi,
-          isSavingWeight: current.isSavingWeight,
-          weights: current.weights,
-          newWeight: current.newWeight,
-          isSavingHeight: current.isSavingHeight,
-          heights: current.heights,
-          newHeight: current.newHeight,
-          newBodyMeasurementType: current.newBodyMeasurementType,
-          newBodyMeasurementValue: current.newBodyMeasurementValue,
-          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
-          measurements: current.measurements,
-          isSavingBmi: current.isSavingBmi,
-          isBmiSaveError: current.isBmiSaveError,
-          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
-          isBmiSaved: current.isBmiSaved,
-        ),
-      );
+      emit(current.copyWith(isSaveError: false, saveErrorMessage: null));
     });
   }
 
   void closedBmiErrorModal() {
     _executeOnStateLoaded((current) {
-      emit(
-        PatientDetailsStateLoaded(
-          form: current.form,
-          isEditing: current.isEditing,
-          isSaving: current.isSaving,
-          isSaved: current.isSaved,
-          isSaveError: current.isSaveError,
-          saveErrorMessage: current.saveErrorMessage,
-          bmi: current.bmi,
-          isSavingWeight: current.isSavingWeight,
-          weights: current.weights,
-          newWeight: current.newWeight,
-          isSavingHeight: current.isSavingHeight,
-          heights: current.heights,
-          newHeight: current.newHeight,
-          newBodyMeasurementType: current.newBodyMeasurementType,
-          newBodyMeasurementValue: current.newBodyMeasurementValue,
-          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
-          measurements: current.measurements,
-          isSavingBmi: current.isSavingBmi,
-          isBmiSaveError: false,
-          bmiSaveErrorMessage: null,
-          isBmiSaved: current.isBmiSaved,
-          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
-          isEnergyExpenditureSaveError: current.isEnergyExpenditureSaveError,
-          energyExpenditureSaveErrorMessage:
-              current.energyExpenditureSaveErrorMessage,
-          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
-        ),
-      );
+      emit(current.copyWith(isBmiSaveError: false, bmiSaveErrorMessage: null));
     });
   }
 
   void closedEnergyExpenditureErrorModal() {
     _executeOnStateLoaded((current) {
       emit(
-        PatientDetailsStateLoaded(
-          form: current.form,
-          isEditing: current.isEditing,
-          isSaving: current.isSaving,
-          isSaved: current.isSaved,
-          isSaveError: current.isSaveError,
-          saveErrorMessage: current.saveErrorMessage,
-          bmi: current.bmi,
-          isSavingWeight: current.isSavingWeight,
-          weights: current.weights,
-          newWeight: current.newWeight,
-          isSavingHeight: current.isSavingHeight,
-          heights: current.heights,
-          newHeight: current.newHeight,
-          newBodyMeasurementType: current.newBodyMeasurementType,
-          newBodyMeasurementValue: current.newBodyMeasurementValue,
-          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
-          measurements: current.measurements,
-          isSavingBmi: current.isSavingBmi,
-          isBmiSaveError: current.isBmiSaveError,
-          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
-          isBmiSaved: current.isBmiSaved,
-          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
+        current.copyWith(
           isEnergyExpenditureSaveError: false,
           energyExpenditureSaveErrorMessage: null,
-          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
         ),
       );
     });
@@ -253,45 +189,9 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   void closedNitrogenBalanceErrorModal() {
     _executeOnStateLoaded((current) {
       emit(
-        PatientDetailsStateLoaded(
-          form: current.form,
-          isEditing: current.isEditing,
-          isSaving: current.isSaving,
-          isSaved: current.isSaved,
-          isSaveError: current.isSaveError,
-          saveErrorMessage: current.saveErrorMessage,
-          bmi: current.bmi,
-          isSavingWeight: current.isSavingWeight,
-          weights: current.weights,
-          newWeight: current.newWeight,
-          isSavingHeight: current.isSavingHeight,
-          heights: current.heights,
-          newHeight: current.newHeight,
-          newBodyMeasurementType: current.newBodyMeasurementType,
-          newBodyMeasurementValue: current.newBodyMeasurementValue,
-          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
-          measurements: current.measurements,
-          isSavingBmi: current.isSavingBmi,
-          isBmiSaveError: current.isBmiSaveError,
-          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
-          isBmiSaved: current.isBmiSaved,
-          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
-          isEnergyExpenditureSaveError: current.isEnergyExpenditureSaveError,
-          energyExpenditureSaveErrorMessage:
-              current.energyExpenditureSaveErrorMessage,
-          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
-          isSavingNitrogenBalance: current.isSavingNitrogenBalance,
+        current.copyWith(
           isNitrogenBalanceSaveError: false,
           nitrogenBalanceSaveErrorMessage: null,
-          isNitrogenBalanceSaved: current.isNitrogenBalanceSaved,
-          isSavingProteinNeeds: current.isSavingProteinNeeds,
-          isProteinNeedsSaveError: current.isProteinNeedsSaveError,
-          proteinNeedsSaveErrorMessage: current.proteinNeedsSaveErrorMessage,
-          isProteinNeedsSaved: current.isProteinNeedsSaved,
-          isSavingWaterNeeds: current.isSavingWaterNeeds,
-          isWaterNeedsSaveError: current.isWaterNeedsSaveError,
-          waterNeedsSaveErrorMessage: current.waterNeedsSaveErrorMessage,
-          isWaterNeedsSaved: current.isWaterNeedsSaved,
         ),
       );
     });
@@ -300,46 +200,9 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   void closedProteinNeedsErrorModal() {
     _executeOnStateLoaded((current) {
       emit(
-        PatientDetailsStateLoaded(
-          form: current.form,
-          isEditing: current.isEditing,
-          isSaving: current.isSaving,
-          isSaved: current.isSaved,
-          isSaveError: current.isSaveError,
-          saveErrorMessage: current.saveErrorMessage,
-          bmi: current.bmi,
-          isSavingWeight: current.isSavingWeight,
-          weights: current.weights,
-          newWeight: current.newWeight,
-          isSavingHeight: current.isSavingHeight,
-          heights: current.heights,
-          newHeight: current.newHeight,
-          newBodyMeasurementType: current.newBodyMeasurementType,
-          newBodyMeasurementValue: current.newBodyMeasurementValue,
-          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
-          measurements: current.measurements,
-          isSavingBmi: current.isSavingBmi,
-          isBmiSaveError: current.isBmiSaveError,
-          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
-          isBmiSaved: current.isBmiSaved,
-          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
-          isEnergyExpenditureSaveError: current.isEnergyExpenditureSaveError,
-          energyExpenditureSaveErrorMessage:
-              current.energyExpenditureSaveErrorMessage,
-          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
-          isSavingNitrogenBalance: current.isSavingNitrogenBalance,
-          isNitrogenBalanceSaveError: current.isNitrogenBalanceSaveError,
-          nitrogenBalanceSaveErrorMessage:
-              current.nitrogenBalanceSaveErrorMessage,
-          isNitrogenBalanceSaved: current.isNitrogenBalanceSaved,
-          isSavingProteinNeeds: current.isSavingProteinNeeds,
+        current.copyWith(
           isProteinNeedsSaveError: false,
           proteinNeedsSaveErrorMessage: null,
-          isProteinNeedsSaved: current.isProteinNeedsSaved,
-          isSavingWaterNeeds: current.isSavingWaterNeeds,
-          isWaterNeedsSaveError: current.isWaterNeedsSaveError,
-          waterNeedsSaveErrorMessage: current.waterNeedsSaveErrorMessage,
-          isWaterNeedsSaved: current.isWaterNeedsSaved,
         ),
       );
     });
@@ -348,46 +211,53 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   void closedWaterNeedsErrorModal() {
     _executeOnStateLoaded((current) {
       emit(
-        PatientDetailsStateLoaded(
-          form: current.form,
-          isEditing: current.isEditing,
-          isSaving: current.isSaving,
-          isSaved: current.isSaved,
-          isSaveError: current.isSaveError,
-          saveErrorMessage: current.saveErrorMessage,
-          bmi: current.bmi,
-          isSavingWeight: current.isSavingWeight,
-          weights: current.weights,
-          newWeight: current.newWeight,
-          isSavingHeight: current.isSavingHeight,
-          heights: current.heights,
-          newHeight: current.newHeight,
-          newBodyMeasurementType: current.newBodyMeasurementType,
-          newBodyMeasurementValue: current.newBodyMeasurementValue,
-          isSavingNewBodyMeasurement: current.isSavingNewBodyMeasurement,
-          measurements: current.measurements,
-          isSavingBmi: current.isSavingBmi,
-          isBmiSaveError: current.isBmiSaveError,
-          bmiSaveErrorMessage: current.bmiSaveErrorMessage,
-          isBmiSaved: current.isBmiSaved,
-          isSavingEnergyExpenditure: current.isSavingEnergyExpenditure,
-          isEnergyExpenditureSaveError: current.isEnergyExpenditureSaveError,
-          energyExpenditureSaveErrorMessage:
-              current.energyExpenditureSaveErrorMessage,
-          isEnergyExpenditureSaved: current.isEnergyExpenditureSaved,
-          isSavingNitrogenBalance: current.isSavingNitrogenBalance,
-          isNitrogenBalanceSaveError: current.isNitrogenBalanceSaveError,
-          nitrogenBalanceSaveErrorMessage:
-              current.nitrogenBalanceSaveErrorMessage,
-          isNitrogenBalanceSaved: current.isNitrogenBalanceSaved,
-          isSavingProteinNeeds: current.isSavingProteinNeeds,
-          isProteinNeedsSaveError: current.isProteinNeedsSaveError,
-          proteinNeedsSaveErrorMessage: current.proteinNeedsSaveErrorMessage,
-          isProteinNeedsSaved: current.isProteinNeedsSaved,
-          isSavingWaterNeeds: current.isSavingWaterNeeds,
+        current.copyWith(
           isWaterNeedsSaveError: false,
           waterNeedsSaveErrorMessage: null,
-          isWaterNeedsSaved: current.isWaterNeedsSaved,
+        ),
+      );
+    });
+  }
+
+  void closedEnteralNutritionDrippingErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        current.copyWith(
+          isEnteralNutritionDrippingSaveError: false,
+          enteralNutritionDrippingSaveErrorMessage: null,
+        ),
+      );
+    });
+  }
+
+  void closedEnteralNutritionSpeedErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        current.copyWith(
+          isEnteralNutritionSpeedSaveError: false,
+          enteralNutritionSpeedSaveErrorMessage: null,
+        ),
+      );
+    });
+  }
+
+  void closedEnteralNutritionVolumeErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        current.copyWith(
+          isEnteralNutritionVolumeSaveError: false,
+          enteralNutritionVolumeSaveErrorMessage: null,
+        ),
+      );
+    });
+  }
+
+  void closedGlucoseInfusionRateErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        current.copyWith(
+          isGlucoseInfusionRateSaveError: false,
+          glucoseInfusionRateSaveErrorMessage: null,
         ),
       );
     });
@@ -896,6 +766,179 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       await Future.delayed(Duration(seconds: 2));
       _executeOnStateLoaded((latest) {
         emit(latest.copyWith(isWaterNeedsSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveEnteralNutritionDrippingCalculation({
+    required double totalVolume,
+    required double totalHoursForVolume,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(isSavingEnteralNutritionDripping: true));
+
+      final res = await _saveEnteralNutritionDrippingCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        totalVolume: totalVolume,
+        totalHoursForVolume: totalHoursForVolume,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingEnteralNutritionDripping: false,
+            isEnteralNutritionDrippingSaveError: true,
+            enteralNutritionDrippingSaveErrorMessage:
+                "Não foi possível salvar o cálculo de gotejamento. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingEnteralNutritionDripping: false,
+          isEnteralNutritionDrippingSaveError: false,
+          isEnteralNutritionDrippingSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isEnteralNutritionDrippingSaved` back to `false`, the page's
+      // `listenWhen` previous-vs-current true-transition check would never
+      // fire again for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isEnteralNutritionDrippingSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveEnteralNutritionSpeedCalculation({
+    required double totalDailyVolume,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(isSavingEnteralNutritionSpeed: true));
+
+      final res = await _saveEnteralNutritionSpeedCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        totalDailyVolume: totalDailyVolume,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingEnteralNutritionSpeed: false,
+            isEnteralNutritionSpeedSaveError: true,
+            enteralNutritionSpeedSaveErrorMessage:
+                "Não foi possível salvar o cálculo de velocidade de infusão. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingEnteralNutritionSpeed: false,
+          isEnteralNutritionSpeedSaveError: false,
+          isEnteralNutritionSpeedSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isEnteralNutritionSpeedSaved` back to `false`, the page's
+      // `listenWhen` previous-vs-current true-transition check would never
+      // fire again for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isEnteralNutritionSpeedSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveEnteralNutritionVolumeCalculation({
+    required double totalDailyEnergy,
+    required double caloricDensityOfDiet,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(isSavingEnteralNutritionVolume: true));
+
+      final res = await _saveEnteralNutritionVolumeCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        totalDailyEnergy: totalDailyEnergy,
+        caloricDensityOfDiet: caloricDensityOfDiet,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingEnteralNutritionVolume: false,
+            isEnteralNutritionVolumeSaveError: true,
+            enteralNutritionVolumeSaveErrorMessage:
+                "Não foi possível salvar o cálculo de volume total. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingEnteralNutritionVolume: false,
+          isEnteralNutritionVolumeSaveError: false,
+          isEnteralNutritionVolumeSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isEnteralNutritionVolumeSaved` back to `false`, the page's
+      // `listenWhen` previous-vs-current true-transition check would never
+      // fire again for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isEnteralNutritionVolumeSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveGlucoseInfusionRateCalculation({
+    required double totalGlucose,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      if (current.weights.isEmpty) return;
+
+      emit(current.copyWith(isSavingGlucoseInfusionRate: true));
+
+      final latestWeight = current.weights.first; // newest, per §0's sort
+
+      final res = await _saveGlucoseInfusionRateCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        weightKg: latestWeight.value,
+        totalGlucose: totalGlucose,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingGlucoseInfusionRate: false,
+            isGlucoseInfusionRateSaveError: true,
+            glucoseInfusionRateSaveErrorMessage:
+                "Não foi possível salvar o cálculo de TIG. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingGlucoseInfusionRate: false,
+          isGlucoseInfusionRateSaveError: false,
+          isGlucoseInfusionRateSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isGlucoseInfusionRateSaved` back to `false`, the page's
+      // `listenWhen` previous-vs-current true-transition check would never
+      // fire again for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isGlucoseInfusionRateSaved: false));
       });
     });
   }

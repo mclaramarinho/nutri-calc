@@ -86,7 +86,31 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                           !previous.isWaterNeedsSaveError)) ||
                   (current.isWaterNeedsSaved &&
                       (previous is! PatientDetailsStateLoaded ||
-                          !previous.isWaterNeedsSaved))),
+                          !previous.isWaterNeedsSaved)) ||
+                  (current.isEnteralNutritionDrippingSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isEnteralNutritionDrippingSaveError)) ||
+                  (current.isEnteralNutritionDrippingSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isEnteralNutritionDrippingSaved)) ||
+                  (current.isEnteralNutritionSpeedSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isEnteralNutritionSpeedSaveError)) ||
+                  (current.isEnteralNutritionSpeedSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isEnteralNutritionSpeedSaved)) ||
+                  (current.isEnteralNutritionVolumeSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isEnteralNutritionVolumeSaveError)) ||
+                  (current.isEnteralNutritionVolumeSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isEnteralNutritionVolumeSaved)) ||
+                  (current.isGlucoseInfusionRateSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isGlucoseInfusionRateSaveError)) ||
+                  (current.isGlucoseInfusionRateSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isGlucoseInfusionRateSaved))),
           listener: (context, state) {
             if (state is PatientDetailsStateLoaded && state.isSaveError) {
               DsDialog.show(
@@ -217,6 +241,98 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                 context,
                 title: "Sucesso",
                 message: "Cálculo de necessidade hídrica salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isEnteralNutritionDrippingSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.enteralNutritionDrippingSaveErrorMessage ??
+                    "Não foi possível salvar o cálculo de gotejamento. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedEnteralNutritionDrippingErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isEnteralNutritionDrippingSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de gotejamento salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isEnteralNutritionSpeedSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.enteralNutritionSpeedSaveErrorMessage ??
+                    "Não foi possível salvar o cálculo de velocidade de infusão. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedEnteralNutritionSpeedErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isEnteralNutritionSpeedSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de velocidade de infusão salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isEnteralNutritionVolumeSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.enteralNutritionVolumeSaveErrorMessage ??
+                    "Não foi possível salvar o cálculo de volume total. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedEnteralNutritionVolumeErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isEnteralNutritionVolumeSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de volume total salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isGlucoseInfusionRateSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.glucoseInfusionRateSaveErrorMessage ??
+                    "Não foi possível salvar o cálculo de TIG. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedGlucoseInfusionRateErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isGlucoseInfusionRateSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de TIG salvo com sucesso.",
                 showCloseButton: false,
                 isDismissible: false,
                 duration: Duration(seconds: 2),

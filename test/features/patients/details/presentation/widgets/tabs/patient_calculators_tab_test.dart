@@ -8,6 +8,14 @@ import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_ca
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_formula.enum.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/use_cases/save_energy_expenditure_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domain/entities/enteral_nutrition_dripping_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domain/use_cases/save_enteral_nutrition_dripping_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/entities/enteral_nutrition_speed_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/use_cases/save_enteral_nutrition_speed_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/entities/enteral_nutrition_volume_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/entities/glucose_infusion_rate_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/entities/nitrogen_balance_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/entities/protein_needs_calculation_entity.dart';
@@ -241,6 +249,97 @@ class _FakeSaveWaterNeedsCalculationUseCase
   }
 }
 
+class _FakeSaveEnteralNutritionDrippingCalculationUseCase
+    implements SaveEnteralNutritionDrippingCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<EnteralNutritionDrippingCalculationEntity, String>> call({
+    required String patientId,
+    required double totalVolume,
+    required double totalHoursForVolume,
+  }) async {
+    callCount++;
+    return Ok(
+      EnteralNutritionDrippingCalculationEntity(
+        id: 'end-1',
+        patientId: patientId,
+        value: totalVolume / (3 * totalHoursForVolume),
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
+class _FakeSaveEnteralNutritionSpeedCalculationUseCase
+    implements SaveEnteralNutritionSpeedCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<EnteralNutritionSpeedCalculationEntity, String>> call({
+    required String patientId,
+    required double totalDailyVolume,
+  }) async {
+    callCount++;
+    return Ok(
+      EnteralNutritionSpeedCalculationEntity(
+        id: 'ens-1',
+        patientId: patientId,
+        value: totalDailyVolume / 24,
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
+class _FakeSaveEnteralNutritionVolumeCalculationUseCase
+    implements SaveEnteralNutritionVolumeCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<EnteralNutritionVolumeCalculationEntity, String>> call({
+    required String patientId,
+    required double totalDailyEnergy,
+    required double caloricDensityOfDiet,
+  }) async {
+    callCount++;
+    return Ok(
+      EnteralNutritionVolumeCalculationEntity(
+        id: 'env-1',
+        patientId: patientId,
+        value: totalDailyEnergy / caloricDensityOfDiet,
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
+class _FakeSaveGlucoseInfusionRateCalculationUseCase
+    implements SaveGlucoseInfusionRateCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<GlucoseInfusionRateCalculationEntity, String>> call({
+    required String patientId,
+    required double weightKg,
+    required double totalGlucose,
+  }) async {
+    callCount++;
+    return Ok(
+      GlucoseInfusionRateCalculationEntity(
+        id: 'gir-1',
+        patientId: patientId,
+        value: (totalGlucose * 1000) / (1400 * weightKg),
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
 /// Pops via the Navigator wired to [navigatorKey], mirroring how a real
 /// GoRouter-backed AppRouter.pop() closes the DsBottomSheet's modal route -
 /// needed so DsBottomSheet.show's returned Future actually resolves in tests.
@@ -286,6 +385,14 @@ void main() {
   fakeSaveNitrogenBalanceCalculation;
   late _FakeSaveProteinNeedsCalculationUseCase fakeSaveProteinNeedsCalculation;
   late _FakeSaveWaterNeedsCalculationUseCase fakeSaveWaterNeedsCalculation;
+  late _FakeSaveEnteralNutritionDrippingCalculationUseCase
+  fakeSaveEnteralNutritionDrippingCalculation;
+  late _FakeSaveEnteralNutritionSpeedCalculationUseCase
+  fakeSaveEnteralNutritionSpeedCalculation;
+  late _FakeSaveEnteralNutritionVolumeCalculationUseCase
+  fakeSaveEnteralNutritionVolumeCalculation;
+  late _FakeSaveGlucoseInfusionRateCalculationUseCase
+  fakeSaveGlucoseInfusionRateCalculation;
   late PatientDetailsCubit cubit;
   final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -300,6 +407,14 @@ void main() {
         _FakeSaveNitrogenBalanceCalculationUseCase();
     fakeSaveProteinNeedsCalculation = _FakeSaveProteinNeedsCalculationUseCase();
     fakeSaveWaterNeedsCalculation = _FakeSaveWaterNeedsCalculationUseCase();
+    fakeSaveEnteralNutritionDrippingCalculation =
+        _FakeSaveEnteralNutritionDrippingCalculationUseCase();
+    fakeSaveEnteralNutritionSpeedCalculation =
+        _FakeSaveEnteralNutritionSpeedCalculationUseCase();
+    fakeSaveEnteralNutritionVolumeCalculation =
+        _FakeSaveEnteralNutritionVolumeCalculationUseCase();
+    fakeSaveGlucoseInfusionRateCalculation =
+        _FakeSaveGlucoseInfusionRateCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -316,6 +431,14 @@ void main() {
       saveNitrogenBalanceCalculationUseCase: fakeSaveNitrogenBalanceCalculation,
       saveProteinNeedsCalculationUseCase: fakeSaveProteinNeedsCalculation,
       saveWaterNeedsCalculationUseCase: fakeSaveWaterNeedsCalculation,
+      saveEnteralNutritionDrippingCalculationUseCase:
+          fakeSaveEnteralNutritionDrippingCalculation,
+      saveEnteralNutritionSpeedCalculationUseCase:
+          fakeSaveEnteralNutritionSpeedCalculation,
+      saveEnteralNutritionVolumeCalculationUseCase:
+          fakeSaveEnteralNutritionVolumeCalculation,
+      saveGlucoseInfusionRateCalculationUseCase:
+          fakeSaveGlucoseInfusionRateCalculation,
     );
 
     getIt.registerSingleton<AppRouter>(_FakeAppRouter(navigatorKey));
@@ -458,7 +581,11 @@ void main() {
         expect(find.text('IMC'), findsNWidgets(2));
         expect(find.text('Gasto Energético'), findsNWidgets(2));
         expect(find.text('Balanço Nitrogenado'), findsNWidgets(2));
-        expect(find.byType(DsListTile), findsNWidgets(5));
+        // Slice 5 added 4 more calculators (Enteral Nutrition Dripping/
+        // Speed/Volume, Glucose Infusion Rate), none relevant for this
+        // patient (not on enteral/parenteral nutrition) but still shown by
+        // "See All": 5 pre-slice-5 tiles + 4 new ones.
+        expect(find.byType(DsListTile), findsNWidgets(9));
       },
     );
 
@@ -839,6 +966,345 @@ void main() {
         await tester.pump(const Duration(seconds: 3));
 
         expect(fakeSaveWaterNeedsCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'Enteral Nutrition Dripping tap-flow: filling both fields, '
+      'calculating and confirming calls '
+      'cubit.saveEnteralNutritionDrippingCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          enteralNutrition: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Gotejamento'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextFormField).at(0), '1000');
+        await tester.enterText(find.byType(TextFormField).at(1), '8');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isEnteralNutritionDrippingSaved auto-reset delay in
+        // PatientDetailsCubit.saveEnteralNutritionDrippingCalculation so no
+        // pending Timer leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveEnteralNutritionDrippingCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'Enteral Nutrition Dripping "Calcular" DsButton stays disabled for '
+      'zero/negative Tempo Total (h) - strict >0 denominator validation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          enteralNutrition: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Gotejamento'));
+        await tester.pumpAndSettle();
+
+        // Volume Total valid, Tempo Total (h) == 0 - must stay disabled
+        // (the denominator is the "strict >0" field).
+        await tester.enterText(find.byType(TextFormField).at(0), '1000');
+        await tester.enterText(find.byType(TextFormField).at(1), '0');
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isTrue,
+        );
+
+        await tester.tap(find.text('Calcular'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Confirmar'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Enteral Nutrition Speed tap-flow: filling the field, calculating and '
+      'confirming calls cubit.saveEnteralNutritionSpeedCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          enteralNutrition: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Velocidade de Infusão'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextFormField).at(0), '2000');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isEnteralNutritionSpeedSaved auto-reset delay in
+        // PatientDetailsCubit.saveEnteralNutritionSpeedCalculation so no
+        // pending Timer leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveEnteralNutritionSpeedCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'Enteral Nutrition Volume tap-flow: filling both fields, calculating '
+      'and confirming calls cubit.saveEnteralNutritionVolumeCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          enteralNutrition: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Volume Total'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextFormField).at(0), '2000');
+        await tester.enterText(find.byType(TextFormField).at(1), '1.5');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isEnteralNutritionVolumeSaved auto-reset delay in
+        // PatientDetailsCubit.saveEnteralNutritionVolumeCalculation so no
+        // pending Timer leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveEnteralNutritionVolumeCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'Enteral Nutrition Volume "Calcular" DsButton stays disabled for '
+      'zero/negative Densidade Calórica da Dieta - strict >0 denominator '
+      'validation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          enteralNutrition: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Volume Total'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextFormField).at(0), '2000');
+        await tester.enterText(find.byType(TextFormField).at(1), '0');
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isTrue,
+        );
+
+        await tester.tap(find.text('Calcular'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Confirmar'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Glucose Infusion Rate pre-gate: no weight data shows the '
+      'insufficient-data message and Fechar closes it without calling '
+      'saveGlucoseInfusionRateCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          parenteralNutrition: true,
+        );
+        fakeGetWeights.weightsToReturn = [];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('TIG'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Não há dados suficientes para calcular a TIG. Cadastre ao "
+            "menos um peso para esse paciente.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveGlucoseInfusionRateCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Glucose Infusion Rate tap-flow: weight derived from the latest '
+      'WeightEntity, zero Glicose Total is allowed, confirming calls '
+      'cubit.saveGlucoseInfusionRateCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          parenteralNutrition: true,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('TIG'));
+        await tester.pumpAndSettle();
+
+        // Derived weight is shown read-only, not editable.
+        expect(find.text('Peso: 70.0 kg'), findsOneWidget);
+
+        // Zero must be allowed (matches the pure-math use case's own >= 0
+        // guard) - "Calcular" must become enabled, not stay disabled.
+        await tester.enterText(find.byType(TextFormField).at(0), '0');
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isFalse,
+        );
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isGlucoseInfusionRateSaved auto-reset delay in
+        // PatientDetailsCubit.saveGlucoseInfusionRateCalculation so no
+        // pending Timer leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveGlucoseInfusionRateCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'Glucose Infusion Rate "Calcular" DsButton stays disabled for '
+      'negative Glicose Total (only >= 0 is allowed)',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          parenteralNutrition: true,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('TIG'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextFormField).at(0), '-5');
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isTrue,
+        );
+
+        await tester.tap(find.text('Calcular'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Confirmar'), findsNothing);
       },
     );
   });

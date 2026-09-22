@@ -213,3 +213,40 @@ separatorBuilder: (context, index) => SizedBox(
 ```
 
 **Recurring token gap (3rd occurrence):** List Patients' trailing chevron uses `DsColors.black.withValues(alpha: 0.38)` for a subtle (not disabled) affordance icon — the same alpha-on-`DsColors.black` value `DsButton`/`DsCheckbox` already use for their *disabled* states, reused here for a different semantic (de-emphasis, not disability) purely because no dedicated muted/tertiary color token exists. Still flagging for the priority-8 `DsColors.textMuted`/`textDisabled` token audit, not blocking.
+
+---
+
+## Calculators tab — Slice 5 (Enteral Nutrition x3, Glucose Infusion Rate)
+
+Two open UX items PO flagged for this slice, both resolved here so they aren't re-derived per-calculator going forward.
+
+### No visual "exceeds clinical threshold" flag on calculator results (yet)
+
+Glucose Infusion Rate (TIG) has a known clinical safety ceiling (~4–5 mg/kg/min, see the source comment in `calculate_glucose_infusion_rate.usecase.dart`), but its result ships as **plain result text**, identical in treatment to all 5 existing calculators (default `Text` color, i.e. no `DsColors.error` or any color override — just `FontWeight.w700`, same as Nitrogen Balance's/Protein Needs' result lines; note `DsColors` has no dedicated "primary text" token today, only `white`/`blue`/`black`/`gray`/`error`). No new "danger" visual state is introduced in this slice.
+
+Reasoning: every shipped calculator result today renders the same way regardless of clinical interpretation (e.g. BMI already carries classification bands — low/eutrophy/overweight/obesity I-III — and still renders as plain bold text, no color-coding by band). Introducing a red/warning treatment for exactly one calculator, one threshold, would be a new precedent invented for a single call site rather than a deliberate cross-calculator pattern — and BMI is the obvious next candidate that would immediately want the same treatment once it exists, which argues for designing it once, on purpose, covering both. **This belongs in a future dedicated slice (or a short ADR) once there's a second calculator that needs it**, so the pattern (threshold config shape, color/icon spec, whether it's a hard color swap or an inline badge) is designed for reuse rather than retrofitted. Flagging as a candidate here rather than deferring silently.
+
+### Tile name for Glucose Infusion Rate: **"TIG"**, not "Taxa de Infusão de Glicose"
+
+Existing tile `name`s (`patient_calculators_tab.dart:_buildDefinitions`) are consistently short clinical shorthand a dietitian already uses verbatim, not spelled-out clinical terms — "IMC" (not "Índice de Massa Corporal (IMC)" — that longer parenthetical style doesn't actually exist anywhere in the app today, confirmed by inspection), "Gasto Energético", "Balanço Nitrogenado", "Necessidade Proteica", "Necessidade Hídrica". There is no existing "full name (abbreviation)" tile pattern to follow. "TIG" fits this house style directly — it's the term dietitians use in practice — and is also the same rationale already used for the Patient boolean field labels ("nutrição enteral/parenteral" confirmed as "unambiguous clinical shorthand a dietitian already uses verbatim", no expansion needed).
+
+Practically: `CalculatorType.parenteralNutrition.label` is "Nutrição Parenteral" (the group header in the See All grouped view, single-member group for this slice); the tile `name` "TIG" is distinct from that header, avoiding the duplicate-header risk PO flagged. The full term isn't lost — it's spelled out once in the result line itself ("Taxa de Infusão de Glicose (TIG): X mg/kg/min"), so a first-time reader gets the expansion at the point of use, same as the result already does.
+
+### Enteral Nutrition group — 3 tiles under one header
+
+`CalculatorType.enteralNutrition.label` ("Nutrição Enteral") already exists and is reused unchanged as the shared group header for all 3 new tiles. Tile names confirmed as PO proposed: "Gotejamento", "Velocidade de Infusão", "Volume Total" — all distinct, short, verb/noun-shorthand consistent with the rest of the tile-name set, no changes needed.
+
+### Copy sanity pass (final, for `senior-analyst`/`mobile-dev`)
+
+Field/result labels confirmed as PO wrote them — they match existing conventions (parenthetical unit in the label, e.g. `"Peso Total (mL)"`; result line as `"<Nome>: <value> <unit>"`, bold, no extra punctuation):
+
+- Dripping: `"Volume Total (mL)"`, `"Tempo Total (h)"` → `"Gotejamento: X gotas/min"`
+- Speed: `"Volume Diário Total (mL)"` → `"Velocidade de Infusão: X mL/h"`
+- Volume: `"Energia Diária Total (kcal)"`, `"Densidade Calórica da Dieta (kcal/mL)"` → `"Volume Total: X mL/dia"`
+- Glucose Infusion Rate: `"Peso: X kg"` (derived, matches BMI/Protein Needs' exact `"Peso: ${value} kg"` phrasing — not `"Peso (kg)"`, since derived/read-only fields are rendered as plain `Text`, not `DsTextfield` labels, per the Protein Needs precedent), `"Glicose Total (g)"` → `"Taxa de Infusão de Glicose (TIG): X mg/kg/min"`
+
+Decimal precision: no existing calculator applies a blanket rule — Nitrogen Balance and BMI use `toStringAsFixed(2)`, Protein Needs uses `toStringAsFixed(1)` for its min–max range. For this slice, follow the same case-by-case judgment based on the unit's natural precision, not a new blanket rule:
+- Dripping (gotas/min), Speed (mL/h), Volume (mL/dia): `toStringAsFixed(1)` — these are practical dosing/rate numbers a dietitian will round when communicating to nursing staff; one decimal is enough precision without implying false accuracy.
+- Glucose Infusion Rate (mg/kg/min): `toStringAsFixed(2)` — mirrors BMI/Nitrogen Balance's 2-decimal convention for a small-magnitude clinical ratio where the second decimal is meaningful relative to the 4–5 threshold.
+
+No wording changes needed beyond precision above — the field/result copy PO drafted already reads naturally in Portuguese and matches tone (title-case field labels, unit in parentheses, result line as `"<Label>: <value> <unit>"`).

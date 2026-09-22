@@ -24,6 +24,10 @@ import 'package:nutri_calc/shared/utils/extensions/ext_age.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_formula.enum.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/use_cases/save_energy_expenditure_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domain/use_cases/save_enteral_nutrition_dripping_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/use_cases/save_enteral_nutrition_speed_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
@@ -35,6 +39,12 @@ import 'package:nutri_calc/shared/utils/enums/gender.dart';
 import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 
 part 'patient_details_cubit.dart';
+
+// Sentinel used by [PatientDetailsStateLoaded.copyWith] to distinguish
+// "argument omitted" (keep current value) from "argument explicitly passed
+// as null" (force the field back to null) for nullable fields, since a
+// plain `param ?? this.field` pattern can never set a field back to null.
+const Object _unset = Object();
 
 enum PatientDetailsFormOptions { weights, heights, bodyMeasurements }
 
@@ -95,6 +105,22 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isWaterNeedsSaveError = false,
     this.waterNeedsSaveErrorMessage,
     this.isWaterNeedsSaved = false,
+    this.isSavingEnteralNutritionDripping = false,
+    this.isEnteralNutritionDrippingSaveError = false,
+    this.enteralNutritionDrippingSaveErrorMessage,
+    this.isEnteralNutritionDrippingSaved = false,
+    this.isSavingEnteralNutritionSpeed = false,
+    this.isEnteralNutritionSpeedSaveError = false,
+    this.enteralNutritionSpeedSaveErrorMessage,
+    this.isEnteralNutritionSpeedSaved = false,
+    this.isSavingEnteralNutritionVolume = false,
+    this.isEnteralNutritionVolumeSaveError = false,
+    this.enteralNutritionVolumeSaveErrorMessage,
+    this.isEnteralNutritionVolumeSaved = false,
+    this.isSavingGlucoseInfusionRate = false,
+    this.isGlucoseInfusionRateSaveError = false,
+    this.glucoseInfusionRateSaveErrorMessage,
+    this.isGlucoseInfusionRateSaved = false,
   });
 
   final EditPatientFormEntity form;
@@ -142,13 +168,33 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final String? waterNeedsSaveErrorMessage;
   final bool isWaterNeedsSaved;
 
+  final bool isSavingEnteralNutritionDripping;
+  final bool isEnteralNutritionDrippingSaveError;
+  final String? enteralNutritionDrippingSaveErrorMessage;
+  final bool isEnteralNutritionDrippingSaved;
+
+  final bool isSavingEnteralNutritionSpeed;
+  final bool isEnteralNutritionSpeedSaveError;
+  final String? enteralNutritionSpeedSaveErrorMessage;
+  final bool isEnteralNutritionSpeedSaved;
+
+  final bool isSavingEnteralNutritionVolume;
+  final bool isEnteralNutritionVolumeSaveError;
+  final String? enteralNutritionVolumeSaveErrorMessage;
+  final bool isEnteralNutritionVolumeSaved;
+
+  final bool isSavingGlucoseInfusionRate;
+  final bool isGlucoseInfusionRateSaveError;
+  final String? glucoseInfusionRateSaveErrorMessage;
+  final bool isGlucoseInfusionRateSaved;
+
   PatientDetailsStateLoaded copyWith({
     EditPatientFormEntity? form,
     bool? isEditing,
     bool? isSaved,
     bool? isSaving,
     bool? isSaveError,
-    String? saveErrorMessage,
+    Object? saveErrorMessage = _unset,
     Bmi? bmi,
     double? newWeight,
     bool? isSavingWeight,
@@ -162,31 +208,49 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     List<BodyMeasurementEntity>? measurements,
     bool? isSavingBmi,
     bool? isBmiSaveError,
-    String? bmiSaveErrorMessage,
+    Object? bmiSaveErrorMessage = _unset,
     bool? isBmiSaved,
     bool? isSavingEnergyExpenditure,
     bool? isEnergyExpenditureSaveError,
-    String? energyExpenditureSaveErrorMessage,
+    Object? energyExpenditureSaveErrorMessage = _unset,
     bool? isEnergyExpenditureSaved,
     bool? isSavingNitrogenBalance,
     bool? isNitrogenBalanceSaveError,
-    String? nitrogenBalanceSaveErrorMessage,
+    Object? nitrogenBalanceSaveErrorMessage = _unset,
     bool? isNitrogenBalanceSaved,
     bool? isSavingProteinNeeds,
     bool? isProteinNeedsSaveError,
-    String? proteinNeedsSaveErrorMessage,
+    Object? proteinNeedsSaveErrorMessage = _unset,
     bool? isProteinNeedsSaved,
     bool? isSavingWaterNeeds,
     bool? isWaterNeedsSaveError,
-    String? waterNeedsSaveErrorMessage,
+    Object? waterNeedsSaveErrorMessage = _unset,
     bool? isWaterNeedsSaved,
+    bool? isSavingEnteralNutritionDripping,
+    bool? isEnteralNutritionDrippingSaveError,
+    Object? enteralNutritionDrippingSaveErrorMessage = _unset,
+    bool? isEnteralNutritionDrippingSaved,
+    bool? isSavingEnteralNutritionSpeed,
+    bool? isEnteralNutritionSpeedSaveError,
+    Object? enteralNutritionSpeedSaveErrorMessage = _unset,
+    bool? isEnteralNutritionSpeedSaved,
+    bool? isSavingEnteralNutritionVolume,
+    bool? isEnteralNutritionVolumeSaveError,
+    Object? enteralNutritionVolumeSaveErrorMessage = _unset,
+    bool? isEnteralNutritionVolumeSaved,
+    bool? isSavingGlucoseInfusionRate,
+    bool? isGlucoseInfusionRateSaveError,
+    Object? glucoseInfusionRateSaveErrorMessage = _unset,
+    bool? isGlucoseInfusionRateSaved,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
     isSaved: isSaved ?? this.isSaved,
     isSaving: isSaving ?? this.isSaving,
     isSaveError: isSaveError ?? this.isSaveError,
-    saveErrorMessage: saveErrorMessage ?? this.saveErrorMessage,
+    saveErrorMessage: identical(saveErrorMessage, _unset)
+        ? this.saveErrorMessage
+        : saveErrorMessage as String?,
     bmi: bmi ?? this.bmi,
     newWeight: newWeight ?? this.newWeight,
     isSavingWeight: isSavingWeight ?? this.isSavingWeight,
@@ -201,15 +265,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     measurements: measurements ?? this.measurements,
     isSavingBmi: isSavingBmi ?? this.isSavingBmi,
     isBmiSaveError: isBmiSaveError ?? this.isBmiSaveError,
-    bmiSaveErrorMessage: bmiSaveErrorMessage ?? this.bmiSaveErrorMessage,
+    bmiSaveErrorMessage: identical(bmiSaveErrorMessage, _unset)
+        ? this.bmiSaveErrorMessage
+        : bmiSaveErrorMessage as String?,
     isBmiSaved: isBmiSaved ?? this.isBmiSaved,
     isSavingEnergyExpenditure:
         isSavingEnergyExpenditure ?? this.isSavingEnergyExpenditure,
     isEnergyExpenditureSaveError:
         isEnergyExpenditureSaveError ?? this.isEnergyExpenditureSaveError,
     energyExpenditureSaveErrorMessage:
-        energyExpenditureSaveErrorMessage ??
-        this.energyExpenditureSaveErrorMessage,
+        identical(energyExpenditureSaveErrorMessage, _unset)
+        ? this.energyExpenditureSaveErrorMessage
+        : energyExpenditureSaveErrorMessage as String?,
     isEnergyExpenditureSaved:
         isEnergyExpenditureSaved ?? this.isEnergyExpenditureSaved,
     isSavingNitrogenBalance:
@@ -217,21 +284,70 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isNitrogenBalanceSaveError:
         isNitrogenBalanceSaveError ?? this.isNitrogenBalanceSaveError,
     nitrogenBalanceSaveErrorMessage:
-        nitrogenBalanceSaveErrorMessage ??
-        this.nitrogenBalanceSaveErrorMessage,
+        identical(nitrogenBalanceSaveErrorMessage, _unset)
+        ? this.nitrogenBalanceSaveErrorMessage
+        : nitrogenBalanceSaveErrorMessage as String?,
     isNitrogenBalanceSaved:
         isNitrogenBalanceSaved ?? this.isNitrogenBalanceSaved,
     isSavingProteinNeeds: isSavingProteinNeeds ?? this.isSavingProteinNeeds,
     isProteinNeedsSaveError:
         isProteinNeedsSaveError ?? this.isProteinNeedsSaveError,
-    proteinNeedsSaveErrorMessage:
-        proteinNeedsSaveErrorMessage ?? this.proteinNeedsSaveErrorMessage,
+    proteinNeedsSaveErrorMessage: identical(proteinNeedsSaveErrorMessage, _unset)
+        ? this.proteinNeedsSaveErrorMessage
+        : proteinNeedsSaveErrorMessage as String?,
     isProteinNeedsSaved: isProteinNeedsSaved ?? this.isProteinNeedsSaved,
     isSavingWaterNeeds: isSavingWaterNeeds ?? this.isSavingWaterNeeds,
     isWaterNeedsSaveError: isWaterNeedsSaveError ?? this.isWaterNeedsSaveError,
-    waterNeedsSaveErrorMessage:
-        waterNeedsSaveErrorMessage ?? this.waterNeedsSaveErrorMessage,
+    waterNeedsSaveErrorMessage: identical(waterNeedsSaveErrorMessage, _unset)
+        ? this.waterNeedsSaveErrorMessage
+        : waterNeedsSaveErrorMessage as String?,
     isWaterNeedsSaved: isWaterNeedsSaved ?? this.isWaterNeedsSaved,
+    isSavingEnteralNutritionDripping:
+        isSavingEnteralNutritionDripping ??
+        this.isSavingEnteralNutritionDripping,
+    isEnteralNutritionDrippingSaveError:
+        isEnteralNutritionDrippingSaveError ??
+        this.isEnteralNutritionDrippingSaveError,
+    enteralNutritionDrippingSaveErrorMessage:
+        identical(enteralNutritionDrippingSaveErrorMessage, _unset)
+        ? this.enteralNutritionDrippingSaveErrorMessage
+        : enteralNutritionDrippingSaveErrorMessage as String?,
+    isEnteralNutritionDrippingSaved:
+        isEnteralNutritionDrippingSaved ??
+        this.isEnteralNutritionDrippingSaved,
+    isSavingEnteralNutritionSpeed:
+        isSavingEnteralNutritionSpeed ?? this.isSavingEnteralNutritionSpeed,
+    isEnteralNutritionSpeedSaveError:
+        isEnteralNutritionSpeedSaveError ??
+        this.isEnteralNutritionSpeedSaveError,
+    enteralNutritionSpeedSaveErrorMessage:
+        identical(enteralNutritionSpeedSaveErrorMessage, _unset)
+        ? this.enteralNutritionSpeedSaveErrorMessage
+        : enteralNutritionSpeedSaveErrorMessage as String?,
+    isEnteralNutritionSpeedSaved:
+        isEnteralNutritionSpeedSaved ?? this.isEnteralNutritionSpeedSaved,
+    isSavingEnteralNutritionVolume:
+        isSavingEnteralNutritionVolume ?? this.isSavingEnteralNutritionVolume,
+    isEnteralNutritionVolumeSaveError:
+        isEnteralNutritionVolumeSaveError ??
+        this.isEnteralNutritionVolumeSaveError,
+    enteralNutritionVolumeSaveErrorMessage:
+        identical(enteralNutritionVolumeSaveErrorMessage, _unset)
+        ? this.enteralNutritionVolumeSaveErrorMessage
+        : enteralNutritionVolumeSaveErrorMessage as String?,
+    isEnteralNutritionVolumeSaved:
+        isEnteralNutritionVolumeSaved ?? this.isEnteralNutritionVolumeSaved,
+    isSavingGlucoseInfusionRate:
+        isSavingGlucoseInfusionRate ?? this.isSavingGlucoseInfusionRate,
+    isGlucoseInfusionRateSaveError:
+        isGlucoseInfusionRateSaveError ??
+        this.isGlucoseInfusionRateSaveError,
+    glucoseInfusionRateSaveErrorMessage:
+        identical(glucoseInfusionRateSaveErrorMessage, _unset)
+        ? this.glucoseInfusionRateSaveErrorMessage
+        : glucoseInfusionRateSaveErrorMessage as String?,
+    isGlucoseInfusionRateSaved:
+        isGlucoseInfusionRateSaved ?? this.isGlucoseInfusionRateSaved,
   );
 
   PatientDetailsStateLoaded clearForm(PatientDetailsFormOptions formOption) {
@@ -279,6 +395,26 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       isWaterNeedsSaveError: isWaterNeedsSaveError,
       waterNeedsSaveErrorMessage: waterNeedsSaveErrorMessage,
       isWaterNeedsSaved: isWaterNeedsSaved,
+      isSavingEnteralNutritionDripping: isSavingEnteralNutritionDripping,
+      isEnteralNutritionDrippingSaveError:
+          isEnteralNutritionDrippingSaveError,
+      enteralNutritionDrippingSaveErrorMessage:
+          enteralNutritionDrippingSaveErrorMessage,
+      isEnteralNutritionDrippingSaved: isEnteralNutritionDrippingSaved,
+      isSavingEnteralNutritionSpeed: isSavingEnteralNutritionSpeed,
+      isEnteralNutritionSpeedSaveError: isEnteralNutritionSpeedSaveError,
+      enteralNutritionSpeedSaveErrorMessage:
+          enteralNutritionSpeedSaveErrorMessage,
+      isEnteralNutritionSpeedSaved: isEnteralNutritionSpeedSaved,
+      isSavingEnteralNutritionVolume: isSavingEnteralNutritionVolume,
+      isEnteralNutritionVolumeSaveError: isEnteralNutritionVolumeSaveError,
+      enteralNutritionVolumeSaveErrorMessage:
+          enteralNutritionVolumeSaveErrorMessage,
+      isEnteralNutritionVolumeSaved: isEnteralNutritionVolumeSaved,
+      isSavingGlucoseInfusionRate: isSavingGlucoseInfusionRate,
+      isGlucoseInfusionRateSaveError: isGlucoseInfusionRateSaveError,
+      glucoseInfusionRateSaveErrorMessage: glucoseInfusionRateSaveErrorMessage,
+      isGlucoseInfusionRateSaved: isGlucoseInfusionRateSaved,
     );
   }
 
@@ -319,6 +455,22 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isWaterNeedsSaveError,
     waterNeedsSaveErrorMessage,
     isWaterNeedsSaved,
+    isSavingEnteralNutritionDripping,
+    isEnteralNutritionDrippingSaveError,
+    enteralNutritionDrippingSaveErrorMessage,
+    isEnteralNutritionDrippingSaved,
+    isSavingEnteralNutritionSpeed,
+    isEnteralNutritionSpeedSaveError,
+    enteralNutritionSpeedSaveErrorMessage,
+    isEnteralNutritionSpeedSaved,
+    isSavingEnteralNutritionVolume,
+    isEnteralNutritionVolumeSaveError,
+    enteralNutritionVolumeSaveErrorMessage,
+    isEnteralNutritionVolumeSaved,
+    isSavingGlucoseInfusionRate,
+    isGlucoseInfusionRateSaveError,
+    glucoseInfusionRateSaveErrorMessage,
+    isGlucoseInfusionRateSaved,
     measurements,
   ];
 }

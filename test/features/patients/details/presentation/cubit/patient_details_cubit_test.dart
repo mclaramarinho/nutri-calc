@@ -12,6 +12,14 @@ import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_ca
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_formula.enum.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/use_cases/save_energy_expenditure_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domain/entities/enteral_nutrition_dripping_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domain/use_cases/save_enteral_nutrition_dripping_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/entities/enteral_nutrition_speed_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/use_cases/save_enteral_nutrition_speed_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/entities/enteral_nutrition_volume_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/entities/glucose_infusion_rate_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/entities/nitrogen_balance_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/entities/protein_needs_calculation_entity.dart';
@@ -249,6 +257,97 @@ class _FakeSaveWaterNeedsCalculationUseCase
   }
 }
 
+class _FakeSaveEnteralNutritionDrippingCalculationUseCase
+    implements SaveEnteralNutritionDrippingCalculationUseCase {
+  Result<EnteralNutritionDrippingCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<EnteralNutritionDrippingCalculationEntity, String>> call({
+    required String patientId,
+    required double totalVolume,
+    required double totalHoursForVolume,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          EnteralNutritionDrippingCalculationEntity(
+            id: 'end-1',
+            patientId: patientId,
+            value: totalVolume / (3 * totalHoursForVolume),
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
+class _FakeSaveEnteralNutritionSpeedCalculationUseCase
+    implements SaveEnteralNutritionSpeedCalculationUseCase {
+  Result<EnteralNutritionSpeedCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<EnteralNutritionSpeedCalculationEntity, String>> call({
+    required String patientId,
+    required double totalDailyVolume,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          EnteralNutritionSpeedCalculationEntity(
+            id: 'ens-1',
+            patientId: patientId,
+            value: totalDailyVolume / 24,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
+class _FakeSaveEnteralNutritionVolumeCalculationUseCase
+    implements SaveEnteralNutritionVolumeCalculationUseCase {
+  Result<EnteralNutritionVolumeCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<EnteralNutritionVolumeCalculationEntity, String>> call({
+    required String patientId,
+    required double totalDailyEnergy,
+    required double caloricDensityOfDiet,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          EnteralNutritionVolumeCalculationEntity(
+            id: 'env-1',
+            patientId: patientId,
+            value: totalDailyEnergy / caloricDensityOfDiet,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
+class _FakeSaveGlucoseInfusionRateCalculationUseCase
+    implements SaveGlucoseInfusionRateCalculationUseCase {
+  Result<GlucoseInfusionRateCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<GlucoseInfusionRateCalculationEntity, String>> call({
+    required String patientId,
+    required double weightKg,
+    required double totalGlucose,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          GlucoseInfusionRateCalculationEntity(
+            id: 'gir-1',
+            patientId: patientId,
+            value: (totalGlucose * 1000) / (1400 * weightKg),
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
 class _FakeCreateBodyMeasurementUseCase implements CreateBodyMeasurementUseCase {
   Result<BodyMeasurementEntity, String>? resultToReturn;
   BodyMeasurementEntity? lastCall;
@@ -280,6 +379,14 @@ void main() {
   fakeSaveNitrogenBalanceCalculation;
   late _FakeSaveProteinNeedsCalculationUseCase fakeSaveProteinNeedsCalculation;
   late _FakeSaveWaterNeedsCalculationUseCase fakeSaveWaterNeedsCalculation;
+  late _FakeSaveEnteralNutritionDrippingCalculationUseCase
+  fakeSaveEnteralNutritionDrippingCalculation;
+  late _FakeSaveEnteralNutritionSpeedCalculationUseCase
+  fakeSaveEnteralNutritionSpeedCalculation;
+  late _FakeSaveEnteralNutritionVolumeCalculationUseCase
+  fakeSaveEnteralNutritionVolumeCalculation;
+  late _FakeSaveGlucoseInfusionRateCalculationUseCase
+  fakeSaveGlucoseInfusionRateCalculation;
   late PatientDetailsCubit cubit;
 
   setUp(() {
@@ -298,6 +405,14 @@ void main() {
         _FakeSaveNitrogenBalanceCalculationUseCase();
     fakeSaveProteinNeedsCalculation = _FakeSaveProteinNeedsCalculationUseCase();
     fakeSaveWaterNeedsCalculation = _FakeSaveWaterNeedsCalculationUseCase();
+    fakeSaveEnteralNutritionDrippingCalculation =
+        _FakeSaveEnteralNutritionDrippingCalculationUseCase();
+    fakeSaveEnteralNutritionSpeedCalculation =
+        _FakeSaveEnteralNutritionSpeedCalculationUseCase();
+    fakeSaveEnteralNutritionVolumeCalculation =
+        _FakeSaveEnteralNutritionVolumeCalculationUseCase();
+    fakeSaveGlucoseInfusionRateCalculation =
+        _FakeSaveGlucoseInfusionRateCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -314,6 +429,14 @@ void main() {
       saveNitrogenBalanceCalculationUseCase: fakeSaveNitrogenBalanceCalculation,
       saveProteinNeedsCalculationUseCase: fakeSaveProteinNeedsCalculation,
       saveWaterNeedsCalculationUseCase: fakeSaveWaterNeedsCalculation,
+      saveEnteralNutritionDrippingCalculationUseCase:
+          fakeSaveEnteralNutritionDrippingCalculation,
+      saveEnteralNutritionSpeedCalculationUseCase:
+          fakeSaveEnteralNutritionSpeedCalculation,
+      saveEnteralNutritionVolumeCalculationUseCase:
+          fakeSaveEnteralNutritionVolumeCalculation,
+      saveGlucoseInfusionRateCalculationUseCase:
+          fakeSaveGlucoseInfusionRateCalculation,
     );
   });
 
@@ -778,6 +901,35 @@ void main() {
       },
     );
 
+    test(
+      // Regression test for the bug where closedBmiErrorModal() used a full
+      // PatientDetailsStateLoaded(...) reconstruction that omitted the
+      // newer calculator save flags, silently resetting them to their
+      // constructor defaults (see roadmap tech-lead review, 2026-09-22).
+      'closedBmiErrorModal() preserves unrelated in-flight calculator save '
+      'state (e.g. isEnteralNutritionDrippingSaved)',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionDrippingCalculation(
+          totalVolume: 1000,
+          totalHoursForVolume: 8,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionDrippingSaved,
+          isTrue,
+        );
+
+        fakeSaveBmiCalculation.resultToReturn = Error("db failure");
+        await cubit.saveBmiCalculation();
+        cubit.closedBmiErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionDrippingSaved, isTrue);
+      },
+    );
+
     test('no weight/height data: does nothing', () async {
       fakeGetWeights.weightsToReturn = [];
       await cubit.init(patientId);
@@ -892,6 +1044,36 @@ void main() {
       },
     );
 
+    test(
+      // Regression test: see closedBmiErrorModal() equivalent above.
+      'closedEnergyExpenditureErrorModal() preserves unrelated in-flight '
+      'calculator save state (e.g. isEnteralNutritionDrippingSaved)',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionDrippingCalculation(
+          totalVolume: 1000,
+          totalHoursForVolume: 8,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionDrippingSaved,
+          isTrue,
+        );
+
+        fakeSaveEnergyExpenditureCalculation.resultToReturn = Error(
+          "db failure",
+        );
+        await cubit.saveEnergyExpenditureCalculation(
+          formula: EnergyExpenditureFormulaEnum.pocket,
+        );
+        cubit.closedEnergyExpenditureErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionDrippingSaved, isTrue);
+      },
+    );
+
     test('no weight data: does nothing', () async {
       fakeGetWeights.weightsToReturn = [];
       await cubit.init(patientId);
@@ -1003,6 +1185,37 @@ void main() {
     );
 
     test(
+      // Regression test: see closedBmiErrorModal() equivalent above.
+      'closedNitrogenBalanceErrorModal() preserves unrelated in-flight '
+      'calculator save state (e.g. isEnteralNutritionDrippingSaved)',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionDrippingCalculation(
+          totalVolume: 1000,
+          totalHoursForVolume: 8,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionDrippingSaved,
+          isTrue,
+        );
+
+        fakeSaveNitrogenBalanceCalculation.resultToReturn = Error(
+          "db failure",
+        );
+        await cubit.saveNitrogenBalanceCalculation(
+          ingestedProtein: 90,
+          urineNitrogen24h: 10,
+        );
+        cubit.closedNitrogenBalanceErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionDrippingSaved, isTrue);
+      },
+    );
+
+    test(
       'on success: isNitrogenBalanceSaved reverts to false after the '
       'auto-close delay',
       () async {
@@ -1096,6 +1309,34 @@ void main() {
         final state = cubit.state as PatientDetailsStateLoaded;
         expect(state.isProteinNeedsSaveError, isFalse);
         expect(state.proteinNeedsSaveErrorMessage, isNull);
+      },
+    );
+
+    test(
+      // Regression test: see closedBmiErrorModal() equivalent above.
+      'closedProteinNeedsErrorModal() preserves unrelated in-flight '
+      'calculator save state (e.g. isEnteralNutritionDrippingSaved)',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionDrippingCalculation(
+          totalVolume: 1000,
+          totalHoursForVolume: 8,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionDrippingSaved,
+          isTrue,
+        );
+
+        fakeSaveProteinNeedsCalculation.resultToReturn = Error("db failure");
+        await cubit.saveProteinNeedsCalculation(
+          patientState: PatientState.healthy,
+        );
+        cubit.closedProteinNeedsErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionDrippingSaved, isTrue);
       },
     );
 
@@ -1276,6 +1517,396 @@ void main() {
 
         final state = cubit.state as PatientDetailsStateLoaded;
         expect(state.isWaterNeedsSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveEnteralNutritionDrippingCalculation', () {
+    test(
+      'on success: sets isEnteralNutritionDrippingSaved true and clears '
+      'isSavingEnteralNutritionDripping',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionDrippingCalculation(
+          totalVolume: 1000,
+          totalHoursForVolume: 8,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionDrippingSaved, isTrue);
+        expect(state.isSavingEnteralNutritionDripping, isFalse);
+        expect(state.isEnteralNutritionDrippingSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isEnteralNutritionDrippingSaveError/'
+      'enteralNutritionDrippingSaveErrorMessage and clears '
+      'isSavingEnteralNutritionDripping',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveEnteralNutritionDrippingCalculation.resultToReturn = Error(
+          "db failure",
+        );
+
+        await cubit.saveEnteralNutritionDrippingCalculation(
+          totalVolume: 1000,
+          totalHoursForVolume: 8,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionDrippingSaveError, isTrue);
+        expect(
+          state.enteralNutritionDrippingSaveErrorMessage,
+          "Não foi possível salvar o cálculo de gotejamento. Tente novamente.",
+        );
+        expect(state.isSavingEnteralNutritionDripping, isFalse);
+      },
+    );
+
+    test(
+      'closedEnteralNutritionDrippingErrorModal() resets '
+      'isEnteralNutritionDrippingSaveError/'
+      'enteralNutritionDrippingSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveEnteralNutritionDrippingCalculation.resultToReturn = Error(
+          "db failure",
+        );
+        await cubit.saveEnteralNutritionDrippingCalculation(
+          totalVolume: 1000,
+          totalHoursForVolume: 8,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionDrippingSaveError,
+          isTrue,
+        );
+
+        cubit.closedEnteralNutritionDrippingErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionDrippingSaveError, isFalse);
+        expect(state.enteralNutritionDrippingSaveErrorMessage, isNull);
+      },
+    );
+
+    test(
+      'on success: isEnteralNutritionDrippingSaved reverts to false after '
+      'the auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionDrippingCalculation(
+          totalVolume: 1000,
+          totalHoursForVolume: 8,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionDrippingSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionDrippingSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveEnteralNutritionSpeedCalculation', () {
+    test(
+      'on success: sets isEnteralNutritionSpeedSaved true and clears '
+      'isSavingEnteralNutritionSpeed',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionSpeedCalculation(
+          totalDailyVolume: 2000,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionSpeedSaved, isTrue);
+        expect(state.isSavingEnteralNutritionSpeed, isFalse);
+        expect(state.isEnteralNutritionSpeedSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isEnteralNutritionSpeedSaveError/'
+      'enteralNutritionSpeedSaveErrorMessage and clears '
+      'isSavingEnteralNutritionSpeed',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveEnteralNutritionSpeedCalculation.resultToReturn = Error(
+          "db failure",
+        );
+
+        await cubit.saveEnteralNutritionSpeedCalculation(
+          totalDailyVolume: 2000,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionSpeedSaveError, isTrue);
+        expect(
+          state.enteralNutritionSpeedSaveErrorMessage,
+          "Não foi possível salvar o cálculo de velocidade de infusão. "
+          "Tente novamente.",
+        );
+        expect(state.isSavingEnteralNutritionSpeed, isFalse);
+      },
+    );
+
+    test(
+      'closedEnteralNutritionSpeedErrorModal() resets '
+      'isEnteralNutritionSpeedSaveError/enteralNutritionSpeedSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveEnteralNutritionSpeedCalculation.resultToReturn = Error(
+          "db failure",
+        );
+        await cubit.saveEnteralNutritionSpeedCalculation(
+          totalDailyVolume: 2000,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionSpeedSaveError,
+          isTrue,
+        );
+
+        cubit.closedEnteralNutritionSpeedErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionSpeedSaveError, isFalse);
+        expect(state.enteralNutritionSpeedSaveErrorMessage, isNull);
+      },
+    );
+
+    test(
+      'on success: isEnteralNutritionSpeedSaved reverts to false after the '
+      'auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionSpeedCalculation(
+          totalDailyVolume: 2000,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionSpeedSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionSpeedSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveEnteralNutritionVolumeCalculation', () {
+    test(
+      'on success: sets isEnteralNutritionVolumeSaved true and clears '
+      'isSavingEnteralNutritionVolume',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionVolumeCalculation(
+          totalDailyEnergy: 2000,
+          caloricDensityOfDiet: 1.5,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionVolumeSaved, isTrue);
+        expect(state.isSavingEnteralNutritionVolume, isFalse);
+        expect(state.isEnteralNutritionVolumeSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isEnteralNutritionVolumeSaveError/'
+      'enteralNutritionVolumeSaveErrorMessage and clears '
+      'isSavingEnteralNutritionVolume',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveEnteralNutritionVolumeCalculation.resultToReturn = Error(
+          "db failure",
+        );
+
+        await cubit.saveEnteralNutritionVolumeCalculation(
+          totalDailyEnergy: 2000,
+          caloricDensityOfDiet: 1.5,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionVolumeSaveError, isTrue);
+        expect(
+          state.enteralNutritionVolumeSaveErrorMessage,
+          "Não foi possível salvar o cálculo de volume total. Tente novamente.",
+        );
+        expect(state.isSavingEnteralNutritionVolume, isFalse);
+      },
+    );
+
+    test(
+      'closedEnteralNutritionVolumeErrorModal() resets '
+      'isEnteralNutritionVolumeSaveError/'
+      'enteralNutritionVolumeSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveEnteralNutritionVolumeCalculation.resultToReturn = Error(
+          "db failure",
+        );
+        await cubit.saveEnteralNutritionVolumeCalculation(
+          totalDailyEnergy: 2000,
+          caloricDensityOfDiet: 1.5,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionVolumeSaveError,
+          isTrue,
+        );
+
+        cubit.closedEnteralNutritionVolumeErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionVolumeSaveError, isFalse);
+        expect(state.enteralNutritionVolumeSaveErrorMessage, isNull);
+      },
+    );
+
+    test(
+      'on success: isEnteralNutritionVolumeSaved reverts to false after the '
+      'auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveEnteralNutritionVolumeCalculation(
+          totalDailyEnergy: 2000,
+          caloricDensityOfDiet: 1.5,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isEnteralNutritionVolumeSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isEnteralNutritionVolumeSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveGlucoseInfusionRateCalculation', () {
+    setUp(() {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime.now(),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+    });
+
+    test(
+      'on success: sets isGlucoseInfusionRateSaved true and clears '
+      'isSavingGlucoseInfusionRate',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveGlucoseInfusionRateCalculation(totalGlucose: 50);
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isGlucoseInfusionRateSaved, isTrue);
+        expect(state.isSavingGlucoseInfusionRate, isFalse);
+        expect(state.isGlucoseInfusionRateSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isGlucoseInfusionRateSaveError/'
+      'glucoseInfusionRateSaveErrorMessage and clears '
+      'isSavingGlucoseInfusionRate',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveGlucoseInfusionRateCalculation.resultToReturn = Error(
+          "db failure",
+        );
+
+        await cubit.saveGlucoseInfusionRateCalculation(totalGlucose: 50);
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isGlucoseInfusionRateSaveError, isTrue);
+        expect(
+          state.glucoseInfusionRateSaveErrorMessage,
+          "Não foi possível salvar o cálculo de TIG. Tente novamente.",
+        );
+        expect(state.isSavingGlucoseInfusionRate, isFalse);
+      },
+    );
+
+    test(
+      'closedGlucoseInfusionRateErrorModal() resets '
+      'isGlucoseInfusionRateSaveError/glucoseInfusionRateSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveGlucoseInfusionRateCalculation.resultToReturn = Error(
+          "db failure",
+        );
+        await cubit.saveGlucoseInfusionRateCalculation(totalGlucose: 50);
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isGlucoseInfusionRateSaveError,
+          isTrue,
+        );
+
+        cubit.closedGlucoseInfusionRateErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isGlucoseInfusionRateSaveError, isFalse);
+        expect(state.glucoseInfusionRateSaveErrorMessage, isNull);
+      },
+    );
+
+    test('no weight data: does nothing', () async {
+      fakeGetWeights.weightsToReturn = [];
+      await cubit.init(patientId);
+
+      await cubit.saveGlucoseInfusionRateCalculation(totalGlucose: 50);
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingGlucoseInfusionRate, isFalse);
+      expect(state.isGlucoseInfusionRateSaved, isFalse);
+      expect(state.isGlucoseInfusionRateSaveError, isFalse);
+    });
+
+    test(
+      'on success: isGlucoseInfusionRateSaved reverts to false after the '
+      'auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveGlucoseInfusionRateCalculation(totalGlucose: 50);
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isGlucoseInfusionRateSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isGlucoseInfusionRateSaved, isFalse);
       },
     );
   });

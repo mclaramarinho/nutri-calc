@@ -9,7 +9,11 @@ enum AppDatabaseTables {
   energyExpenditures(name: "ENERGY_EXPENDITURES", sinceVersion: 4),
   nitrogenBalances(name: "NITROGEN_BALANCES", sinceVersion: 5),
   proteinNeeds(name: "PROTEIN_NEEDS", sinceVersion: 5),
-  waterNeeds(name: "WATER_NEEDS", sinceVersion: 5);
+  waterNeeds(name: "WATER_NEEDS", sinceVersion: 5),
+  enteralNutritionDripping(name: "ENTERAL_NUTRITIONS_DRIPPING", sinceVersion: 6),
+  enteralNutritionSpeed(name: "ENTERAL_NUTRITIONS_SPEED", sinceVersion: 6),
+  enteralNutritionVolume(name: "ENTERAL_NUTRITIONS_VOLUME", sinceVersion: 6),
+  glucoseInfusionRates(name: "GLUCOSE_INFUSION_RATES", sinceVersion: 6);
 
   final String name;
   final int sinceVersion;
@@ -151,6 +155,58 @@ enum AppDatabaseTables {
         ];
 
       case .waterNeeds:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "value", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .enteralNutritionDripping:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "value", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .enteralNutritionSpeed:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "value", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .enteralNutritionVolume:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "value", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .glucoseInfusionRates:
         return [
           TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
           TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),

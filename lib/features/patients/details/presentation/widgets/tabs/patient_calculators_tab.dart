@@ -6,6 +6,14 @@ import 'package:nutri_calc/features/calculators/domain/entities/calculator_relev
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_type_enum.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/energy_expenditure_relevance.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/presentation/widgets/energy_expenditure_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domain/enteral_nutrition_dripping_relevance.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/presentation/widgets/enteral_nutrition_dripping_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/enteral_nutrition_speed_relevance.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/presentation/widgets/enteral_nutrition_speed_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/enteral_nutrition_volume_relevance.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/presentation/widgets/enteral_nutrition_volume_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/glucose_infusion_rate_relevance.dart';
+import 'package:nutri_calc/features/calculators/glucose_infusion_rate/presentation/widgets/glucose_infusion_rate_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/nitrogen_balance_relevance.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/presentation/widgets/nitrogen_balance_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/presentation/widgets/calculator_list.dart';
@@ -294,6 +302,116 @@ class PatientCalculatorsTab extends StatelessWidget {
     }
   }
 
+  Future<void> _openEnteralNutritionDrippingBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    // Both inputs are fully manual - nothing derived from patient data, so
+    // there's no insufficient-data pre-gate.
+    final gathered = await DsBottomSheet
+        .show<GatheredEnteralNutritionDrippingInputs?>(
+          context,
+          title: "Gotejamento",
+          body: const EnteralNutritionDrippingSheetBody(),
+          actions: null,
+        );
+
+    if (gathered != null) {
+      await cubit.saveEnteralNutritionDrippingCalculation(
+        totalVolume: gathered.totalVolume,
+        totalHoursForVolume: gathered.totalHoursForVolume,
+      );
+    }
+  }
+
+  Future<void> _openEnteralNutritionSpeedBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    // The single input is fully manual - nothing derived from patient data,
+    // so there's no insufficient-data pre-gate.
+    final gathered = await DsBottomSheet
+        .show<GatheredEnteralNutritionSpeedInputs?>(
+          context,
+          title: "Velocidade de Infusão",
+          body: const EnteralNutritionSpeedSheetBody(),
+          actions: null,
+        );
+
+    if (gathered != null) {
+      await cubit.saveEnteralNutritionSpeedCalculation(
+        totalDailyVolume: gathered.totalDailyVolume,
+      );
+    }
+  }
+
+  Future<void> _openEnteralNutritionVolumeBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    // Both inputs are fully manual - nothing derived from patient data, so
+    // there's no insufficient-data pre-gate.
+    final gathered = await DsBottomSheet
+        .show<GatheredEnteralNutritionVolumeInputs?>(
+          context,
+          title: "Volume Total",
+          body: const EnteralNutritionVolumeSheetBody(),
+          actions: null,
+        );
+
+    if (gathered != null) {
+      await cubit.saveEnteralNutritionVolumeCalculation(
+        totalDailyEnergy: gathered.totalDailyEnergy,
+        caloricDensityOfDiet: gathered.caloricDensityOfDiet,
+      );
+    }
+  }
+
+  Future<void> _openGlucoseInfusionRateBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    if (state.weights.isEmpty) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "TIG",
+        body: Text(
+          "Não há dados suficientes para calcular a TIG. Cadastre ao menos um peso para esse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final weight = state.weights.first;
+
+    final gathered = await DsBottomSheet
+        .show<GatheredGlucoseInfusionRateInputs?>(
+          context,
+          title: "TIG",
+          body: GlucoseInfusionRateSheetBody(weightKg: weight.value),
+          actions: null,
+        );
+
+    if (gathered != null) {
+      await cubit.saveGlucoseInfusionRateCalculation(
+        totalGlucose: gathered.totalGlucose,
+      );
+    }
+  }
+
   List<CalculatorDefinition> _buildDefinitions(
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
@@ -333,6 +451,37 @@ class PatientCalculatorsTab extends StatelessWidget {
         name: "Necessidade Hídrica",
         isRelevant: isWaterNeedsRelevant,
         onTap: (ctx) => _openWaterNeedsBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "enteral_nutrition_dripping",
+        type: CalculatorType.enteralNutrition,
+        name: "Gotejamento",
+        isRelevant: isEnteralNutritionDrippingRelevant,
+        onTap: (ctx) =>
+            _openEnteralNutritionDrippingBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "enteral_nutrition_speed",
+        type: CalculatorType.enteralNutrition,
+        name: "Velocidade de Infusão",
+        isRelevant: isEnteralNutritionSpeedRelevant,
+        onTap: (ctx) =>
+            _openEnteralNutritionSpeedBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "enteral_nutrition_volume",
+        type: CalculatorType.enteralNutrition,
+        name: "Volume Total",
+        isRelevant: isEnteralNutritionVolumeRelevant,
+        onTap: (ctx) =>
+            _openEnteralNutritionVolumeBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "glucose_infusion_rate",
+        type: CalculatorType.parenteralNutrition,
+        name: "TIG",
+        isRelevant: isGlucoseInfusionRateRelevant,
+        onTap: (ctx) => _openGlucoseInfusionRateBottomSheet(ctx, cubit, state),
       ),
     ];
   }
