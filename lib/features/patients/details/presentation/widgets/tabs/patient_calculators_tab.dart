@@ -20,13 +20,19 @@ import 'package:nutri_calc/features/calculators/presentation/widgets/calculator_
 import 'package:nutri_calc/features/calculators/protein_needs/domain/protein_needs_relevance.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/presentation/widgets/protein_needs_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/water_needs_relevance.dart';
+import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/weight_loss_classification_relevance.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/di/di.dart';
+import 'package:nutri_calc/core/utils/extensions/ext_datetime.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_bottom_sheet/ds_bottom_sheet.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi_classification.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss.entity.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss_classification.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/use_cases/weight/loss/classify_weigh_loss.usecase.dart';
 
 // Slice 2 scope (roadmap 2.1.4, ADR 0006): a relevance-filtered/See All
 // calculator list, backed by a plain, non-injected CalculatorDefinition
@@ -49,6 +55,19 @@ class PatientCalculatorsTab extends StatelessWidget {
         return "Obesidade Grau II";
       case .obesityGrade3:
         return "Obesidade Grau III";
+    }
+  }
+
+  String _weightLossClassificationLabel(
+    WeightLossClassification classification,
+  ) {
+    switch (classification) {
+      case .ok:
+        return "Adequada";
+      case .significant:
+        return "Significativa";
+      case .severe:
+        return "Grave";
     }
   }
 
@@ -302,6 +321,86 @@ class PatientCalculatorsTab extends StatelessWidget {
     }
   }
 
+  Future<void> _openWeightLossClassificationBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    if (state.weights.length < 2) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Classificação de Perda de Peso",
+        body: Text(
+          "Não há dados suficientes para calcular a Classificação de Perda de Peso. Cadastre ao menos dois pesos para esse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final currentWeight = state.weights[0]; // newest, per §0's sort
+    final lastWeight = state.weights[1];
+
+    final result = ClassifyWeighLoss().call(
+      currentWeight: currentWeight.value,
+      lastWeight: lastWeight.value,
+      lastWeightDate: lastWeight.createdAt,
+      currentWeightDate: currentWeight.createdAt,
+    );
+
+    final confirmed = await DsBottomSheet.show<bool>(
+      context,
+      title: "Classificação de Perda de Peso",
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: DsSpacing.sm,
+        children: [
+          Text(
+            "Peso atual: ${currentWeight.value} kg (${currentWeight.createdAt.formattedDate()})",
+          ),
+          Text(
+            "Peso anterior: ${lastWeight.value} kg (${lastWeight.createdAt.formattedDate()})",
+          ),
+          if (result.isOk) ...[
+            SizedBox(height: DsSpacing.sm),
+            Text(
+              "Perda de Peso: ${_weightLossClassificationLabel((result as Ok<WeightLoss, String>).value.classification)}",
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        Expanded(
+          child: DsButton(
+            label: "Cancelar",
+            isLoading: false,
+            onTap: () => getIt.get<AppRouter>().pop<bool>(false),
+          ),
+        ),
+        Expanded(
+          child: DsButton(
+            label: "Confirmar",
+            isLoading: false,
+            onTap: () => getIt.get<AppRouter>().pop<bool>(true),
+          ),
+        ),
+      ],
+    );
+
+    if (confirmed == true) {
+      await cubit.saveWeightLossClassificationCalculation();
+    }
+  }
+
   Future<void> _openEnteralNutritionDrippingBottomSheet(
     BuildContext context,
     PatientDetailsCubit cubit,
@@ -482,6 +581,14 @@ class PatientCalculatorsTab extends StatelessWidget {
         name: "TIG",
         isRelevant: isGlucoseInfusionRateRelevant,
         onTap: (ctx) => _openGlucoseInfusionRateBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "weight_loss_classification",
+        type: CalculatorType.weightLossClassification,
+        name: "Classificação de Perda de Peso",
+        isRelevant: isWeightLossClassificationRelevant,
+        onTap: (ctx) =>
+            _openWeightLossClassificationBottomSheet(ctx, cubit, state),
       ),
     ];
   }

@@ -20,6 +20,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._saveEnteralNutritionSpeedCalculationUseCase,
     required this._saveEnteralNutritionVolumeCalculationUseCase,
     required this._saveGlucoseInfusionRateCalculationUseCase,
+    required this._saveWeightLossClassificationCalculationUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
@@ -49,6 +50,8 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   _saveEnteralNutritionVolumeCalculationUseCase;
   final SaveGlucoseInfusionRateCalculationUseCase
   _saveGlucoseInfusionRateCalculationUseCase;
+  final SaveWeightLossClassificationCalculationUseCase
+  _saveWeightLossClassificationCalculationUseCase;
 
   // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
@@ -258,6 +261,17 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
         current.copyWith(
           isGlucoseInfusionRateSaveError: false,
           glucoseInfusionRateSaveErrorMessage: null,
+        ),
+      );
+    });
+  }
+
+  void closedWeightLossClassificationErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        current.copyWith(
+          isWeightLossClassificationSaveError: false,
+          weightLossClassificationSaveErrorMessage: null,
         ),
       );
     });
@@ -939,6 +953,53 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       await Future.delayed(Duration(seconds: 2));
       _executeOnStateLoaded((latest) {
         emit(latest.copyWith(isGlucoseInfusionRateSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveWeightLossClassificationCalculation() async {
+    _executeOnStateLoaded((current) async {
+      if (current.weights.length < 2) return;
+
+      emit(current.copyWith(isSavingWeightLossClassification: true));
+
+      final currentWeight = current.weights[0]; // newest, per §0's sort
+      final lastWeight = current.weights[1];
+
+      final res = await _saveWeightLossClassificationCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        currentWeight: currentWeight.value,
+        currentWeightDate: currentWeight.createdAt,
+        lastWeight: lastWeight.value,
+        lastWeightDate: lastWeight.createdAt,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingWeightLossClassification: false,
+            isWeightLossClassificationSaveError: true,
+            weightLossClassificationSaveErrorMessage:
+                "Não foi possível salvar a classificação de perda de peso. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingWeightLossClassification: false,
+          isWeightLossClassificationSaveError: false,
+          isWeightLossClassificationSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isWeightLossClassificationSaved` back to `false`, the page's
+      // `listenWhen` previous-vs-current true-transition check would never
+      // fire again for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isWeightLossClassificationSaved: false));
       });
     });
   }

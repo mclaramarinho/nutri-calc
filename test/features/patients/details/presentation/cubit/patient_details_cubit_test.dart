@@ -26,6 +26,9 @@ import 'package:nutri_calc/features/calculators/protein_needs/domain/entities/pr
 import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/entities/water_needs_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/entities/weight_loss_classification_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/use_cases/save_weight_loss_classification_calculation_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss_classification.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
@@ -348,6 +351,33 @@ class _FakeSaveGlucoseInfusionRateCalculationUseCase
   }
 }
 
+class _FakeSaveWeightLossClassificationCalculationUseCase
+    implements SaveWeightLossClassificationCalculationUseCase {
+  Result<WeightLossClassificationCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<WeightLossClassificationCalculationEntity, String>> call({
+    required String patientId,
+    required double currentWeight,
+    required DateTime currentWeightDate,
+    required double lastWeight,
+    required DateTime lastWeightDate,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          WeightLossClassificationCalculationEntity(
+            id: 'wlc-1',
+            patientId: patientId,
+            percentage: ((lastWeight - currentWeight) * 100) / lastWeight,
+            timeReference: 7,
+            classification: WeightLossClassification.ok,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
 class _FakeCreateBodyMeasurementUseCase implements CreateBodyMeasurementUseCase {
   Result<BodyMeasurementEntity, String>? resultToReturn;
   BodyMeasurementEntity? lastCall;
@@ -387,6 +417,8 @@ void main() {
   fakeSaveEnteralNutritionVolumeCalculation;
   late _FakeSaveGlucoseInfusionRateCalculationUseCase
   fakeSaveGlucoseInfusionRateCalculation;
+  late _FakeSaveWeightLossClassificationCalculationUseCase
+  fakeSaveWeightLossClassificationCalculation;
   late PatientDetailsCubit cubit;
 
   setUp(() {
@@ -413,6 +445,8 @@ void main() {
         _FakeSaveEnteralNutritionVolumeCalculationUseCase();
     fakeSaveGlucoseInfusionRateCalculation =
         _FakeSaveGlucoseInfusionRateCalculationUseCase();
+    fakeSaveWeightLossClassificationCalculation =
+        _FakeSaveWeightLossClassificationCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -437,6 +471,8 @@ void main() {
           fakeSaveEnteralNutritionVolumeCalculation,
       saveGlucoseInfusionRateCalculationUseCase:
           fakeSaveGlucoseInfusionRateCalculation,
+      saveWeightLossClassificationCalculationUseCase:
+          fakeSaveWeightLossClassificationCalculation,
     );
   });
 
@@ -1907,6 +1943,129 @@ void main() {
 
         final state = cubit.state as PatientDetailsStateLoaded;
         expect(state.isGlucoseInfusionRateSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveWeightLossClassificationCalculation', () {
+    setUp(() {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime(2026, 9, 20),
+          value: 65,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+        WeightEntity(
+          createdAt: DateTime(2026, 9, 1),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+    });
+
+    test(
+      'on success: sets isWeightLossClassificationSaved true and clears '
+      'isSavingWeightLossClassification',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveWeightLossClassificationCalculation();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isWeightLossClassificationSaved, isTrue);
+        expect(state.isSavingWeightLossClassification, isFalse);
+        expect(state.isWeightLossClassificationSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isWeightLossClassificationSaveError/'
+      'weightLossClassificationSaveErrorMessage and clears '
+      'isSavingWeightLossClassification',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveWeightLossClassificationCalculation.resultToReturn = Error(
+          "db failure",
+        );
+
+        await cubit.saveWeightLossClassificationCalculation();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isWeightLossClassificationSaveError, isTrue);
+        expect(
+          state.weightLossClassificationSaveErrorMessage,
+          "Não foi possível salvar a classificação de perda de peso. Tente novamente.",
+        );
+        expect(state.isSavingWeightLossClassification, isFalse);
+      },
+    );
+
+    test(
+      'closedWeightLossClassificationErrorModal() resets '
+      'isWeightLossClassificationSaveError/'
+      'weightLossClassificationSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveWeightLossClassificationCalculation.resultToReturn = Error(
+          "db failure",
+        );
+        await cubit.saveWeightLossClassificationCalculation();
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isWeightLossClassificationSaveError,
+          isTrue,
+        );
+
+        cubit.closedWeightLossClassificationErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isWeightLossClassificationSaveError, isFalse);
+        expect(state.weightLossClassificationSaveErrorMessage, isNull);
+      },
+    );
+
+    test('fewer than 2 weights: does nothing', () async {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime.now(),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+      await cubit.init(patientId);
+
+      await cubit.saveWeightLossClassificationCalculation();
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingWeightLossClassification, isFalse);
+      expect(state.isWeightLossClassificationSaved, isFalse);
+      expect(state.isWeightLossClassificationSaveError, isFalse);
+    });
+
+    test(
+      'on success: isWeightLossClassificationSaved reverts to false after '
+      'the auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveWeightLossClassificationCalculation();
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .isWeightLossClassificationSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isWeightLossClassificationSaved, isFalse);
       },
     );
   });

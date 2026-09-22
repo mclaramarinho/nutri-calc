@@ -22,6 +22,9 @@ import 'package:nutri_calc/features/calculators/protein_needs/domain/entities/pr
 import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/entities/water_needs_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/entities/weight_loss_classification_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/use_cases/save_weight_loss_classification_calculation_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss_classification.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
@@ -340,6 +343,33 @@ class _FakeSaveGlucoseInfusionRateCalculationUseCase
   }
 }
 
+class _FakeSaveWeightLossClassificationCalculationUseCase
+    implements SaveWeightLossClassificationCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<WeightLossClassificationCalculationEntity, String>> call({
+    required String patientId,
+    required double currentWeight,
+    required DateTime currentWeightDate,
+    required double lastWeight,
+    required DateTime lastWeightDate,
+  }) async {
+    callCount++;
+    return Ok(
+      WeightLossClassificationCalculationEntity(
+        id: 'wlc-1',
+        patientId: patientId,
+        percentage: ((lastWeight - currentWeight) * 100) / lastWeight,
+        timeReference: 7,
+        classification: WeightLossClassification.ok,
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
 /// Pops via the Navigator wired to [navigatorKey], mirroring how a real
 /// GoRouter-backed AppRouter.pop() closes the DsBottomSheet's modal route -
 /// needed so DsBottomSheet.show's returned Future actually resolves in tests.
@@ -393,6 +423,8 @@ void main() {
   fakeSaveEnteralNutritionVolumeCalculation;
   late _FakeSaveGlucoseInfusionRateCalculationUseCase
   fakeSaveGlucoseInfusionRateCalculation;
+  late _FakeSaveWeightLossClassificationCalculationUseCase
+  fakeSaveWeightLossClassificationCalculation;
   late PatientDetailsCubit cubit;
   final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -415,6 +447,8 @@ void main() {
         _FakeSaveEnteralNutritionVolumeCalculationUseCase();
     fakeSaveGlucoseInfusionRateCalculation =
         _FakeSaveGlucoseInfusionRateCalculationUseCase();
+    fakeSaveWeightLossClassificationCalculation =
+        _FakeSaveWeightLossClassificationCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -439,6 +473,8 @@ void main() {
           fakeSaveEnteralNutritionVolumeCalculation,
       saveGlucoseInfusionRateCalculationUseCase:
           fakeSaveGlucoseInfusionRateCalculation,
+      saveWeightLossClassificationCalculationUseCase:
+          fakeSaveWeightLossClassificationCalculation,
     );
 
     getIt.registerSingleton<AppRouter>(_FakeAppRouter(navigatorKey));
@@ -583,9 +619,11 @@ void main() {
         expect(find.text('Balanço Nitrogenado'), findsNWidgets(2));
         // Slice 5 added 4 more calculators (Enteral Nutrition Dripping/
         // Speed/Volume, Glucose Infusion Rate), none relevant for this
-        // patient (not on enteral/parenteral nutrition) but still shown by
-        // "See All": 5 pre-slice-5 tiles + 4 new ones.
-        expect(find.byType(DsListTile), findsNWidgets(9));
+        // patient (not on enteral/parenteral nutrition); Slice 6 added
+        // Weight Loss Classification (not relevant - no weights registered).
+        // All still shown by "See All": 5 pre-slice-5 tiles + 4 slice-5 +
+        // 1 slice-6.
+        expect(find.byType(DsListTile), findsNWidgets(10));
       },
     );
 
@@ -1305,6 +1343,104 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Confirmar'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Weight Loss Classification pre-gate: fewer than 2 weights shows the '
+      'insufficient-data message and Fechar closes it without calling '
+      'saveWeightLossClassificationCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        // Not relevant on its own (only 1 weight registered) - reach it via
+        // "Ver todas as calculadoras".
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Classificação de Perda de Peso').last);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Não há dados suficientes para calcular a Classificação de "
+            "Perda de Peso. Cadastre ao menos dois pesos para esse "
+            "paciente.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveWeightLossClassificationCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Weight Loss Classification tap-flow: preview shown with both '
+      'weights/dates, Confirmar calls '
+      'cubit.saveWeightLossClassificationCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime(2026, 9, 20),
+            value: 65,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+          WeightEntity(
+            createdAt: DateTime(2026, 9, 1),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Classificação de Perda de Peso').first);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isWeightLossClassificationSaved auto-reset delay in
+        // PatientDetailsCubit.saveWeightLossClassificationCalculation so no
+        // pending Timer leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveWeightLossClassificationCalculation.callCount, 1);
       },
     );
   });

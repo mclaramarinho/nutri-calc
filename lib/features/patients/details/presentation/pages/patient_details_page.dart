@@ -110,7 +110,13 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                           !previous.isGlucoseInfusionRateSaveError)) ||
                   (current.isGlucoseInfusionRateSaved &&
                       (previous is! PatientDetailsStateLoaded ||
-                          !previous.isGlucoseInfusionRateSaved))),
+                          !previous.isGlucoseInfusionRateSaved)) ||
+                  (current.isWeightLossClassificationSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isWeightLossClassificationSaveError)) ||
+                  (current.isWeightLossClassificationSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isWeightLossClassificationSaved))),
           listener: (context, state) {
             if (state is PatientDetailsStateLoaded && state.isSaveError) {
               DsDialog.show(
@@ -333,6 +339,30 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                 context,
                 title: "Sucesso",
                 message: "Cálculo de TIG salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isWeightLossClassificationSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.weightLossClassificationSaveErrorMessage ??
+                    "Não foi possível salvar a classificação de perda de peso. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedWeightLossClassificationErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isWeightLossClassificationSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message:
+                    "Cálculo de Classificação de Perda de Peso salvo com sucesso.",
                 showCloseButton: false,
                 isDismissible: false,
                 duration: Duration(seconds: 2),

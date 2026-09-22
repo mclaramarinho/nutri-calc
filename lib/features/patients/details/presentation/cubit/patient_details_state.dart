@@ -31,6 +31,7 @@ import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/use_cases/save_weight_loss_classification_calculation_use_case.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/stress_level.enum.dart';
@@ -121,6 +122,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isGlucoseInfusionRateSaveError = false,
     this.glucoseInfusionRateSaveErrorMessage,
     this.isGlucoseInfusionRateSaved = false,
+    this.isSavingWeightLossClassification = false,
+    this.isWeightLossClassificationSaveError = false,
+    this.weightLossClassificationSaveErrorMessage,
+    this.isWeightLossClassificationSaved = false,
   });
 
   final EditPatientFormEntity form;
@@ -188,6 +193,11 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final String? glucoseInfusionRateSaveErrorMessage;
   final bool isGlucoseInfusionRateSaved;
 
+  final bool isSavingWeightLossClassification;
+  final bool isWeightLossClassificationSaveError;
+  final String? weightLossClassificationSaveErrorMessage;
+  final bool isWeightLossClassificationSaved;
+
   PatientDetailsStateLoaded copyWith({
     EditPatientFormEntity? form,
     bool? isEditing,
@@ -242,6 +252,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     bool? isGlucoseInfusionRateSaveError,
     Object? glucoseInfusionRateSaveErrorMessage = _unset,
     bool? isGlucoseInfusionRateSaved,
+    bool? isSavingWeightLossClassification,
+    bool? isWeightLossClassificationSaveError,
+    Object? weightLossClassificationSaveErrorMessage = _unset,
+    bool? isWeightLossClassificationSaved,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
@@ -348,6 +362,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
         : glucoseInfusionRateSaveErrorMessage as String?,
     isGlucoseInfusionRateSaved:
         isGlucoseInfusionRateSaved ?? this.isGlucoseInfusionRateSaved,
+    isSavingWeightLossClassification:
+        isSavingWeightLossClassification ??
+        this.isSavingWeightLossClassification,
+    isWeightLossClassificationSaveError:
+        isWeightLossClassificationSaveError ??
+        this.isWeightLossClassificationSaveError,
+    weightLossClassificationSaveErrorMessage:
+        identical(weightLossClassificationSaveErrorMessage, _unset)
+        ? this.weightLossClassificationSaveErrorMessage
+        : weightLossClassificationSaveErrorMessage as String?,
+    isWeightLossClassificationSaved:
+        isWeightLossClassificationSaved ?? this.isWeightLossClassificationSaved,
   );
 
   PatientDetailsStateLoaded clearForm(PatientDetailsFormOptions formOption) {
@@ -415,6 +441,11 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       isGlucoseInfusionRateSaveError: isGlucoseInfusionRateSaveError,
       glucoseInfusionRateSaveErrorMessage: glucoseInfusionRateSaveErrorMessage,
       isGlucoseInfusionRateSaved: isGlucoseInfusionRateSaved,
+      isSavingWeightLossClassification: isSavingWeightLossClassification,
+      isWeightLossClassificationSaveError: isWeightLossClassificationSaveError,
+      weightLossClassificationSaveErrorMessage:
+          weightLossClassificationSaveErrorMessage,
+      isWeightLossClassificationSaved: isWeightLossClassificationSaved,
     );
   }
 
@@ -471,6 +502,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isGlucoseInfusionRateSaveError,
     glucoseInfusionRateSaveErrorMessage,
     isGlucoseInfusionRateSaved,
+    isSavingWeightLossClassification,
+    isWeightLossClassificationSaveError,
+    weightLossClassificationSaveErrorMessage,
+    isWeightLossClassificationSaved,
     measurements,
   ];
 }

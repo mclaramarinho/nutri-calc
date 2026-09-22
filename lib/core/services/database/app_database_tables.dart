@@ -13,7 +13,11 @@ enum AppDatabaseTables {
   enteralNutritionDripping(name: "ENTERAL_NUTRITIONS_DRIPPING", sinceVersion: 6),
   enteralNutritionSpeed(name: "ENTERAL_NUTRITIONS_SPEED", sinceVersion: 6),
   enteralNutritionVolume(name: "ENTERAL_NUTRITIONS_VOLUME", sinceVersion: 6),
-  glucoseInfusionRates(name: "GLUCOSE_INFUSION_RATES", sinceVersion: 6);
+  glucoseInfusionRates(name: "GLUCOSE_INFUSION_RATES", sinceVersion: 6),
+  weightLossClassifications(
+    name: "WEIGHT_LOSS_CLASSIFICATIONS",
+    sinceVersion: 7,
+  );
 
   final String name;
   final int sinceVersion;
@@ -211,6 +215,29 @@ enum AppDatabaseTables {
           TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
           TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
           TableSqlField(name: "value", type: .real, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .weightLossClassifications:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "percentage", type: .real, constraints: [.notNull]),
+          TableSqlField(
+            name: "timeReference",
+            type: .integer,
+            constraints: [.notNull],
+          ),
+          TableSqlField(
+            name: "classification",
+            type: .text,
+            constraints: [.notNull],
+          ),
           TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
           TableSqlField(
             name: "inputParams",
