@@ -14,6 +14,8 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/presentation/widgets/enteral_nutrition_volume_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/glucose_infusion_rate_relevance.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/presentation/widgets/glucose_infusion_rate_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/ideal_weight/domain/ideal_weight_relevance.dart';
+import 'package:nutri_calc/features/calculators/ideal_weight/presentation/widgets/ideal_weight_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/must/domain/must_relevance.dart';
 import 'package:nutri_calc/features/calculators/must/presentation/widgets/must_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/nitrogen_balance_relevance.dart';
@@ -27,6 +29,7 @@ import 'package:nutri_calc/features/calculators/strong_kids/domain/strong_kids_r
 import 'package:nutri_calc/features/calculators/strong_kids/presentation/widgets/strong_kids_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/water_needs_relevance.dart';
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/weight_loss_classification_relevance.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/use_cases/resolve_weight_for_calculations.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/di/di.dart';
@@ -517,6 +520,81 @@ class PatientCalculatorsTab extends StatelessWidget {
     }
   }
 
+  Future<void> _openIdealWeightBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    // Only height gates per design's own copy - gender is never a
+    // pre-gate condition, it's a fillable control (same precedent as
+    // Energy Expenditure). `weight`, though invisible in the UI, IS
+    // required by `CalculateIdealWeight`'s signature (its `weight < 0`
+    // validation guard), so this calculator is also insufficient-data-gated
+    // when there is no weight at all - a deliberate addition beyond
+    // design's original copy, which only anticipated the height gate.
+    if (state.heights.isEmpty) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Peso Ideal",
+        body: Text(
+          "Não há dados suficientes para calcular o Peso Ideal. Cadastre ao menos uma altura para esse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    if (state.weights.isEmpty) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Peso Ideal",
+        body: Text(
+          "Não há dados suficientes para calcular o Peso Ideal. Cadastre ao menos um peso para esse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final height = state.heights.first; // newest, per §0's sort
+    // Preview-only resolution (mirrors the cubit's own independent
+    // resolution on save) - not one of ADR 0007's deferred sites since this
+    // is a brand-new call site introduced this slice.
+    final weight =
+        const ResolveWeightForCalculations()(state.weights) ??
+        state.weights.first;
+
+    final gathered = await DsBottomSheet.show<GatheredIdealWeightInputs?>(
+      context,
+      title: "Peso Ideal",
+      body: IdealWeightSheetBody(heightCm: height.value, weightKg: weight.value),
+      actions: null,
+    );
+
+    if (gathered != null) {
+      await cubit.saveIdealWeightCalculation(
+        gender: gathered.gender,
+        considerForCalculations: gathered.considerForCalculations,
+      );
+    }
+  }
+
   Future<void> _openMustBottomSheet(
     BuildContext context,
     PatientDetailsCubit cubit,
@@ -696,6 +774,13 @@ class PatientCalculatorsTab extends StatelessWidget {
         name: "STRONG-Kids",
         isRelevant: isStrongKidsRelevant,
         onTap: (ctx) => _openStrongKidsBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "ideal_weight",
+        type: CalculatorType.weight,
+        name: "Peso Ideal",
+        isRelevant: isIdealWeightRelevant,
+        onTap: (ctx) => _openIdealWeightBottomSheet(ctx, cubit, state),
       ),
     ];
   }

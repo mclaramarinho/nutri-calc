@@ -28,7 +28,9 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domai
 import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/use_cases/save_enteral_nutrition_speed_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/ideal_weight/domain/use_cases/save_ideal_weight_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/must/domain/use_cases/save_must_calculation_use_case.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/use_cases/resolve_weight_for_calculations.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nrs_2002/domain/use_cases/save_nrs_2002_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
@@ -142,6 +144,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isStrongKidsSaveError = false,
     this.strongKidsSaveErrorMessage,
     this.isStrongKidsSaved = false,
+    this.isSavingIdealWeight = false,
+    this.isIdealWeightSaveError = false,
+    this.idealWeightSaveErrorMessage,
+    this.isIdealWeightSaved = false,
   });
 
   final EditPatientFormEntity form;
@@ -229,6 +235,11 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final String? strongKidsSaveErrorMessage;
   final bool isStrongKidsSaved;
 
+  final bool isSavingIdealWeight;
+  final bool isIdealWeightSaveError;
+  final String? idealWeightSaveErrorMessage;
+  final bool isIdealWeightSaved;
+
   PatientDetailsStateLoaded copyWith({
     EditPatientFormEntity? form,
     bool? isEditing,
@@ -299,6 +310,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     bool? isStrongKidsSaveError,
     Object? strongKidsSaveErrorMessage = _unset,
     bool? isStrongKidsSaved,
+    bool? isSavingIdealWeight,
+    bool? isIdealWeightSaveError,
+    Object? idealWeightSaveErrorMessage = _unset,
+    bool? isIdealWeightSaved,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
@@ -435,6 +450,13 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
         ? this.strongKidsSaveErrorMessage
         : strongKidsSaveErrorMessage as String?,
     isStrongKidsSaved: isStrongKidsSaved ?? this.isStrongKidsSaved,
+    isSavingIdealWeight: isSavingIdealWeight ?? this.isSavingIdealWeight,
+    isIdealWeightSaveError:
+        isIdealWeightSaveError ?? this.isIdealWeightSaveError,
+    idealWeightSaveErrorMessage: identical(idealWeightSaveErrorMessage, _unset)
+        ? this.idealWeightSaveErrorMessage
+        : idealWeightSaveErrorMessage as String?,
+    isIdealWeightSaved: isIdealWeightSaved ?? this.isIdealWeightSaved,
   );
 
   PatientDetailsStateLoaded clearForm(PatientDetailsFormOptions formOption) {
@@ -519,6 +541,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       isStrongKidsSaveError: isStrongKidsSaveError,
       strongKidsSaveErrorMessage: strongKidsSaveErrorMessage,
       isStrongKidsSaved: isStrongKidsSaved,
+      isSavingIdealWeight: isSavingIdealWeight,
+      isIdealWeightSaveError: isIdealWeightSaveError,
+      idealWeightSaveErrorMessage: idealWeightSaveErrorMessage,
+      isIdealWeightSaved: isIdealWeightSaved,
     );
   }
 
@@ -591,6 +617,10 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isStrongKidsSaveError,
     strongKidsSaveErrorMessage,
     isStrongKidsSaved,
+    isSavingIdealWeight,
+    isIdealWeightSaveError,
+    idealWeightSaveErrorMessage,
+    isIdealWeightSaved,
     measurements,
   ];
 }

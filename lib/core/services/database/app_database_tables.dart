@@ -87,6 +87,18 @@ enum AppDatabaseTables {
             sinceVersion: 3,
             defaultValue: "measuredByScale",
           ),
+          // Slice 8 (ADR 0007): weight-producing calculators (Ideal Weight
+          // and later the other blocked Weight sub-types) persist into this
+          // table directly rather than owning their own table, so WEIGHTS
+          // needs the same `inputParams` traceability column every other
+          // calculator table already has.
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+            sinceVersion: 9,
+            defaultValue: "[]",
+          ),
         ];
       case .heights:
         return _baseMeasurementTableFields;

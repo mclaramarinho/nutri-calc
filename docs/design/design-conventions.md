@@ -250,3 +250,52 @@ Decimal precision: no existing calculator applies a blanket rule — Nitrogen Ba
 - Glucose Infusion Rate (mg/kg/min): `toStringAsFixed(2)` — mirrors BMI/Nitrogen Balance's 2-decimal convention for a small-magnitude clinical ratio where the second decimal is meaningful relative to the 4–5 threshold.
 
 No wording changes needed beyond precision above — the field/result copy PO drafted already reads naturally in Portuguese and matches tone (title-case field labels, unit in parentheses, result line as `"<Label>: <value> <unit>"`).
+
+---
+
+## Calculators tab — Slice 8 (Ideal Weight — first of 5 Weight sub-types)
+
+First calculator that persists to `WEIGHTS` itself (not a side table) and the first to need the "consider for calculations" checkbox the roadmap calls for generically (2.1.4, "When calculating weight, there should be a checkbox..."). `WeightEntity.considerForCalculations` (bool) and `WeightEntity.weightType` (`WeightTypeEnum`, already has an `.ideal` case with label `"Ideal"`) already exist in code — this slice is the first caller to actually populate them from a calculator flow, not a schema gap.
+
+### Inputs, confirmed against `CalculateIdealWeight` (`lib/shared/services/calculator/domain/use_cases/weight/ideal/calculate_ideal_weight.usecase.dart`)
+
+- `height` (required) — derived read-only from the patient's latest `HeightEntity`, same as every other height-consuming calculator (BMI, Energy Expenditure).
+- `gender` (required) — **not derivable**: `PatientEntity` has no gender field anywhere in the codebase (confirmed by grep; Energy Expenditure already hit this same gap and resolved it with a manual `DsSelect<Gender>` field, label `"Sexo"`, options `"Masculino"`/`"Feminino"`). Ideal Weight follows the identical precedent — manual `DsSelect<Gender>` inside the sheet body, not a pre-gate condition (a missing gender is never "insufficient patient data," it's just an un-filled control, exactly like Energy Expenditure treats it).
+- `weight` (required by the use case signature) and `amputation` (optional) — **out of scope this slice.** `weight` only feeds the optional amputation adjustment; no amputation UI/selection exists anywhere yet and the roadmap doesn't call for it in this slice. Pass `amputation: null` and any placeholder `weight` the use case needs to not error (confirm exact no-amputation call shape with `mobile-dev`) — flagging as a real gap for whichever future slice (likely Adjusted-Obesity, which is amputation-adjacent) actually needs amputation input, rather than half-building an unused selector here.
+
+### Structure: single-step `DsBottomSheet`, structurally closer to Glucose Infusion Rate than to Weight Loss Classification
+
+Not a fully passive recap (Weight Loss Classification's pattern doesn't fit — there's a manual field to fill in first), and not a two-step formula-picker (Energy Expenditure's pattern doesn't fit — there's only one formula, no branch to pick). Mirrors `GlucoseInfusionRateSheetBody`'s shape exactly:
+1. Read-only derived line: `"Altura: {height} cm"`.
+2. Manual `DsSelect<Gender>` ("Sexo").
+3. A `"Calcular"` `DsButton`, `disabled` (ADR 0003) until gender is selected — same inline-validation-gates-disabled-button pattern as Glucose Infusion Rate.
+4. On calculate: result line + the new checkbox appear (see below).
+5. `Cancelar`/`Confirmar` action row appears only once a result exists (matches Glucose Infusion Rate's "actions render conditionally on `_resultValue != null`" — no dead Confirmar button before there's anything to confirm).
+6. `Confirmar` pops `AppRouter.pop<bool>(true)`-equivalent gathered-inputs record (per ADR 0002's typed-record pattern, e.g. `GatheredIdealWeightInputs = ({Gender gender, bool considerForCalculations})`), same as every other calculator; `Cancelar` pops `null`.
+
+### Insufficient-data pre-gate
+
+Only height gates (gender never does, per above — it's a fillable control, not a missing-data state). Copy, matching the exact house template (`"Não há dados suficientes para calcular o <Nome>. Cadastre ao menos <requisito> para esse paciente."`):
+
+> "Não há dados suficientes para calcular o Peso Ideal. Cadastre ao menos uma altura para esse paciente."
+
+Title: `"Peso Ideal"` (same string used as the tile name — see below).
+
+### Copy
+
+- Tile name (under the existing `CalculatorType.weight` group, label `"Peso"`): **"Peso Ideal"** — matches house style (short clinical term, no parenthetical abbreviation; there's no shorter shorthand dietitians use for this one, unlike "TIG").
+- Result line: `"Peso Ideal: {value.toStringAsFixed(1)} kg"` — one decimal, matching body-weight display convention (a kg value dietitians would communicate at one-decimal precision, same reasoning as Slice 5's rate/dosing numbers, not BMI/Nitrogen Balance's 2-decimal ratio convention since this is a plain mass, not a small-magnitude clinical index).
+- Checkbox label: **"Considerar este peso para cálculos futuros"**
+- Checkbox helper text (new, warranted here unlike most `DsCheckbox` uses): **"Substitui o peso atual como referência até que um novo peso seja marcado dessa forma."** — the override-chain semantics (2.1.4: "the preceding weight that was itself marked consider-for-calculations = true" is used, not simply the immediately-prior row) are non-obvious enough from the label alone that a dietitian could misread "considerar" as purely additive/informational; one line disambiguates without restating the full business rule.
+
+### Checkbox component: reuse `DsCheckbox` as-is, no new widget
+
+`DsCheckbox` (`lib/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart`) already exists (built for the Patient boolean fields) and its API (`label`, `value`, `onChanged`, `disabled`, `helperText`) covers this case exactly — a single boolean with an optional clarifying line. No DS gap, no new component.
+
+### Default state: **checked**
+
+The calculator's own relevance rule means it typically only surfaces because the current weight source is already compromised (BMI indicating obesity/underweight per the existing relevance-filtering pattern) — i.e. a dietitian reaching for Ideal Weight is usually doing so *because* they want a better reference than the scale weight, not to log an incidental number. Defaulting checked matches the common case and keeps the flow low-friction (confirm-without-touching for the typical path); the roadmap's own explicit exception ("if they don't want to use the adjusted weight... they should be able to") is naturally served by leaving the box interactive and unchecking it, not by the default itself.
+
+### Persistence
+
+`Confirmar` calls a new `cubit.saveIdealWeightCalculation(gender: ..., considerForCalculations: ...)`, which computes the value, then persists a `WEIGHTS` row via the existing weight-creation path with `weightType: WeightTypeEnum.ideal` and `considerForCalculations` set from the checkbox — plus `inputParams` referencing `height` and `gender` (per the roadmap's "every data saved should reference the parameters used" rule, same `{key, label, value}` shape every other calculator table already uses). Action-pattern (`Cancelar`/`Confirmar` via `AppRouter.pop<bool>`, ADR 0002) is unchanged from every prior calculator — no new interaction pattern introduced here beyond the checkbox itself.

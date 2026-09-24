@@ -1,3 +1,4 @@
+import 'package:nutri_calc/features/calculators/domain/entities/input_param_entity.dart';
 import 'package:nutri_calc/features/measurements/domain/entities/measurement_entity.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 
@@ -12,6 +13,11 @@ class WeightEntity implements MeasurementEntity {
   final String patientId;
   final bool considerForCalculations;
   final WeightTypeEnum weightType;
+  // Slice 8 (ADR 0007): traceability of the parameters that produced this
+  // weight, for weight-producing calculators (e.g. Ideal Weight). Defaults
+  // to empty so every existing call site (manual-scale weights) keeps
+  // compiling unchanged.
+  final List<InputParamEntity> inputParams;
 
   const WeightEntity({
     required this.createdAt,
@@ -19,6 +25,7 @@ class WeightEntity implements MeasurementEntity {
     required this.patientId,
     required this.considerForCalculations,
     required this.weightType,
+    this.inputParams = const [],
     this.id,
   });
 
@@ -29,6 +36,7 @@ class WeightEntity implements MeasurementEntity {
     String? patientId,
     bool? considerForCalculations,
     WeightTypeEnum? weightType,
+    List<InputParamEntity>? inputParams,
   }) => WeightEntity(
     createdAt: createdAt ?? this.createdAt,
     value: value ?? this.value,
@@ -37,5 +45,6 @@ class WeightEntity implements MeasurementEntity {
     considerForCalculations:
         considerForCalculations ?? this.considerForCalculations,
     weightType: weightType ?? this.weightType,
+    inputParams: inputParams ?? this.inputParams,
   );
 }

@@ -24,6 +24,7 @@ class CreateWeightUseCaseImpl implements CreateWeightUseCase {
         patientId: weight.patientId,
         considerForCalculations: weight.considerForCalculations,
         weightType: weight.weightType,
+        inputParams: weight.inputParams,
       );
       // `res.isOk` guards the cast below; using `.value` off the raw
       // `Result` (or casting to a generics-erased `Ok`) previously threw

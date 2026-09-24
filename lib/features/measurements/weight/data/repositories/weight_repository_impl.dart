@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/core/services/database/app_database_service.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/input_param_entity.dart';
 import 'package:nutri_calc/features/measurements/weight/data/models/weight_model.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/repositories/weight_repository.dart';
@@ -37,6 +38,7 @@ class WeightRepositoryImpl implements WeightRepository {
     required String patientId,
     required bool considerForCalculations,
     required WeightTypeEnum weightType,
+    List<InputParamEntity> inputParams = const [],
   }) async {
     try {
       // Build the model locally (with a generated id) BEFORE inserting.
@@ -53,6 +55,7 @@ class WeightRepositoryImpl implements WeightRepository {
         id: Uuid().v4(),
         considerForCalculations: considerForCalculations,
         weightType: weightType,
+        inputParams: inputParams,
       );
 
       final res = await _databaseService.insert(.weights, model.toJson());

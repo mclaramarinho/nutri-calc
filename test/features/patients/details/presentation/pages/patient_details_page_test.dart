@@ -10,6 +10,7 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domai
 import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/use_cases/save_enteral_nutrition_speed_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/ideal_weight/domain/use_cases/save_ideal_weight_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/must/domain/entities/must_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/must/domain/use_cases/save_must_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
@@ -39,6 +40,8 @@ import 'package:nutri_calc/routing/app_routes.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/must/must_classification_result.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/nrs_2002/nrs_2002_step_2_classification.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/strong_kids/strong_kids_score_classification.enum.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
+import 'package:nutri_calc/shared/utils/enums/gender.dart';
 
 /// Full-page test exercising `PatientDetailsPage`'s real `BlocConsumer`
 /// (`listenWhen`/`listener`), not just the cubit or an isolated tab widget.
@@ -85,9 +88,11 @@ class _FakeCreateWeightUseCase implements CreateWeightUseCase {
 }
 
 class _FakeGetWeightsUseCase implements GetWeightsUseCase {
+  List<WeightEntity> weightsToReturn = const [];
+
   @override
   Future<Result<List<WeightEntity>, String>> call(String patientId) async =>
-      Ok(const []);
+      Ok(weightsToReturn);
 }
 
 class _FakeCreateHeightUseCase implements CreateHeightUseCase {
@@ -98,9 +103,11 @@ class _FakeCreateHeightUseCase implements CreateHeightUseCase {
 }
 
 class _FakeGetHeightsUseCase implements GetHeightsUseCase {
+  List<HeightEntity> heightsToReturn = const [];
+
   @override
   Future<Result<List<HeightEntity>, String>> call(String patientId) async =>
-      Ok(const []);
+      Ok(heightsToReturn);
 }
 
 class _FakeCreateBodyMeasurementUseCase
@@ -255,6 +262,31 @@ class _FakeSaveStrongKidsCalculationUseCase
       );
 }
 
+class _FakeSaveIdealWeightCalculationUseCase
+    implements SaveIdealWeightCalculationUseCase {
+  Result<WeightEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double heightCm,
+    required Gender gender,
+    required double weightKg,
+    required bool considerForCalculations,
+  }) async =>
+      resultToReturn ??
+      Ok(
+        WeightEntity(
+          id: 'iw-1',
+          createdAt: DateTime.now(),
+          value: 65.0,
+          patientId: patientId,
+          considerForCalculations: considerForCalculations,
+          weightType: WeightTypeEnum.ideal,
+        ),
+      );
+}
+
 class _FakeAppRouter implements AppRouter {
   _FakeAppRouter(this._params);
 
@@ -288,12 +320,18 @@ void main() {
   late _FakeSaveMustCalculationUseCase fakeSaveMustCalculation;
   late _FakeSaveNrs2002CalculationUseCase fakeSaveNrs2002Calculation;
   late _FakeSaveStrongKidsCalculationUseCase fakeSaveStrongKidsCalculation;
+  late _FakeSaveIdealWeightCalculationUseCase fakeSaveIdealWeightCalculation;
+  late _FakeGetWeightsUseCase fakeGetWeights;
+  late _FakeGetHeightsUseCase fakeGetHeights;
   late PatientDetailsCubit cubit;
 
   setUp(() {
     fakeSaveMustCalculation = _FakeSaveMustCalculationUseCase();
     fakeSaveNrs2002Calculation = _FakeSaveNrs2002CalculationUseCase();
     fakeSaveStrongKidsCalculation = _FakeSaveStrongKidsCalculationUseCase();
+    fakeSaveIdealWeightCalculation = _FakeSaveIdealWeightCalculationUseCase();
+    fakeGetWeights = _FakeGetWeightsUseCase();
+    fakeGetHeights = _FakeGetHeightsUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: _FakeLoadPatientDetailsUseCase()
@@ -306,9 +344,9 @@ void main() {
         ),
       updatePatientUseCase: _FakeUpdatePatientUseCase(),
       createWeightUseCase: _FakeCreateWeightUseCase(),
-      getWeightsUseCase: _FakeGetWeightsUseCase(),
+      getWeightsUseCase: fakeGetWeights,
       createHeightUseCase: _FakeCreateHeightUseCase(),
-      getHeightsUseCase: _FakeGetHeightsUseCase(),
+      getHeightsUseCase: fakeGetHeights,
       createBodyMeasurementUseCase: _FakeCreateBodyMeasurementUseCase(),
       getBodyMeasurementUseCase: _FakeGetBodyMeasurementUseCase(),
       saveBmiCalculationUseCase: _FakeSaveBmiCalculationUseCase(),
@@ -333,6 +371,7 @@ void main() {
       saveMustCalculationUseCase: fakeSaveMustCalculation,
       saveNrs2002CalculationUseCase: fakeSaveNrs2002Calculation,
       saveStrongKidsCalculationUseCase: fakeSaveStrongKidsCalculation,
+      saveIdealWeightCalculationUseCase: fakeSaveIdealWeightCalculation,
     );
 
     getIt.registerFactory<PatientDetailsCubit>(() => cubit);
@@ -480,6 +519,75 @@ void main() {
 
       expect(
         find.text('Triagem STRONG-Kids salva com sucesso.'),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 3));
+    });
+
+    testWidgets('Ideal Weight error transition shows the error DsDialog', (
+      tester,
+    ) async {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime.now(),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+      fakeGetHeights.heightsToReturn = [
+        HeightEntity(createdAt: DateTime.now(), value: 170, patientId: patientId),
+      ];
+      await cubit.init(patientId);
+
+      await tester.pumpWidget(wrap());
+      await tester.pumpAndSettle();
+
+      fakeSaveIdealWeightCalculation.resultToReturn = Error("db failure");
+      await cubit.saveIdealWeightCalculation(
+        gender: Gender.female,
+        considerForCalculations: true,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Erro ao salvar'), findsOneWidget);
+      expect(
+        find.text(
+          'Não foi possível salvar o cálculo de Peso Ideal. Tente novamente.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Ideal Weight success transition shows the success DsDialog', (
+      tester,
+    ) async {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime.now(),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+      fakeGetHeights.heightsToReturn = [
+        HeightEntity(createdAt: DateTime.now(), value: 170, patientId: patientId),
+      ];
+      await cubit.init(patientId);
+
+      await tester.pumpWidget(wrap());
+      await tester.pumpAndSettle();
+
+      await cubit.saveIdealWeightCalculation(
+        gender: Gender.female,
+        considerForCalculations: true,
+      );
+      await tester.pump();
+
+      expect(
+        find.text('Cálculo de Peso Ideal salvo com sucesso.'),
         findsOneWidget,
       );
       await tester.pump(const Duration(seconds: 3));

@@ -28,6 +28,7 @@ class GetWeightsUseCaseImpl implements GetWeightsUseCase {
                 id: wt.id,
                 considerForCalculations: wt.considerForCalculations,
                 weightType: wt.weightType,
+                inputParams: wt.inputParams,
               ),
             )
             .toList();

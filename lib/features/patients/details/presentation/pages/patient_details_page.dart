@@ -134,7 +134,13 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                           !previous.isStrongKidsSaveError)) ||
                   (current.isStrongKidsSaved &&
                       (previous is! PatientDetailsStateLoaded ||
-                          !previous.isStrongKidsSaved))),
+                          !previous.isStrongKidsSaved)) ||
+                  (current.isIdealWeightSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isIdealWeightSaveError)) ||
+                  (current.isIdealWeightSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isIdealWeightSaved))),
           listener: (context, state) {
             if (state is PatientDetailsStateLoaded && state.isSaveError) {
               DsDialog.show(
@@ -447,6 +453,29 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                 context,
                 title: "Sucesso",
                 message: "Triagem STRONG-Kids salva com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isIdealWeightSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.idealWeightSaveErrorMessage ??
+                    "Não foi possível salvar o cálculo de Peso Ideal. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedIdealWeightErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isIdealWeightSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Cálculo de Peso Ideal salvo com sucesso.",
                 showCloseButton: false,
                 isDismissible: false,
                 duration: Duration(seconds: 2),

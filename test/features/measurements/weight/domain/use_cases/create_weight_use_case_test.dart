@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/input_param_entity.dart';
 import 'package:nutri_calc/features/measurements/weight/data/models/weight_model.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_entity.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
@@ -15,6 +16,7 @@ class _FakeWeightRepository implements WeightRepository {
     required String patientId,
     required bool considerForCalculations,
     required WeightTypeEnum weightType,
+    List<InputParamEntity> inputParams = const [],
   }) async {
     return resultToReturn!;
   }

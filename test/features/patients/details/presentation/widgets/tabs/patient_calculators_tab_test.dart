@@ -16,6 +16,7 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/entities/glucose_infusion_rate_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/ideal_weight/domain/use_cases/save_ideal_weight_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/must/domain/entities/must_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/must/domain/use_cases/save_must_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/entities/nitrogen_balance_calculation_entity.dart';
@@ -54,6 +55,7 @@ import 'package:nutri_calc/features/patients/details/domain/entities/edit_patien
 import 'package:nutri_calc/features/patients/details/domain/use_cases/load_patient_details_use_case.dart';
 import 'package:nutri_calc/features/patients/details/domain/use_cases/update_patient_use_case.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
+import 'package:nutri_calc/features/calculators/ideal_weight/presentation/widgets/ideal_weight_sheet_body.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_calculators_tab.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/routing/app_routes.dart';
@@ -462,6 +464,32 @@ class _FakeSaveStrongKidsCalculationUseCase
   }
 }
 
+class _FakeSaveIdealWeightCalculationUseCase
+    implements SaveIdealWeightCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double heightCm,
+    required Gender gender,
+    required double weightKg,
+    required bool considerForCalculations,
+  }) async {
+    callCount++;
+    return Ok(
+      WeightEntity(
+        id: 'iw-1',
+        createdAt: DateTime.now(),
+        value: 65.0,
+        patientId: patientId,
+        considerForCalculations: considerForCalculations,
+        weightType: WeightTypeEnum.ideal,
+      ),
+    );
+  }
+}
+
 /// Pops via the Navigator wired to [navigatorKey], mirroring how a real
 /// GoRouter-backed AppRouter.pop() closes the DsBottomSheet's modal route -
 /// needed so DsBottomSheet.show's returned Future actually resolves in tests.
@@ -520,6 +548,7 @@ void main() {
   late _FakeSaveMustCalculationUseCase fakeSaveMustCalculation;
   late _FakeSaveNrs2002CalculationUseCase fakeSaveNrs2002Calculation;
   late _FakeSaveStrongKidsCalculationUseCase fakeSaveStrongKidsCalculation;
+  late _FakeSaveIdealWeightCalculationUseCase fakeSaveIdealWeightCalculation;
   late PatientDetailsCubit cubit;
   final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -547,6 +576,7 @@ void main() {
     fakeSaveMustCalculation = _FakeSaveMustCalculationUseCase();
     fakeSaveNrs2002Calculation = _FakeSaveNrs2002CalculationUseCase();
     fakeSaveStrongKidsCalculation = _FakeSaveStrongKidsCalculationUseCase();
+    fakeSaveIdealWeightCalculation = _FakeSaveIdealWeightCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -576,6 +606,7 @@ void main() {
       saveMustCalculationUseCase: fakeSaveMustCalculation,
       saveNrs2002CalculationUseCase: fakeSaveNrs2002Calculation,
       saveStrongKidsCalculationUseCase: fakeSaveStrongKidsCalculation,
+      saveIdealWeightCalculationUseCase: fakeSaveIdealWeightCalculation,
     );
 
     getIt.registerSingleton<AppRouter>(_FakeAppRouter(navigatorKey));
@@ -722,10 +753,11 @@ void main() {
         // Speed/Volume, Glucose Infusion Rate), none relevant for this
         // patient (not on enteral/parenteral nutrition); Slice 6 added
         // Weight Loss Classification (not relevant - no weights registered);
-        // Slice 7 added MUST/NRS-2002/STRONG-Kids (3 more). All still shown
+        // Slice 7 added MUST/NRS-2002/STRONG-Kids (3 more); Slice 8 added
+        // Ideal Weight (not relevant - no BMI computed). All still shown
         // by "See All": 5 pre-slice-5 tiles + 4 slice-5 + 1 slice-6 + 3
-        // slice-7.
-        expect(find.byType(DsListTile), findsNWidgets(13));
+        // slice-7 + 1 slice-8.
+        expect(find.byType(DsListTile), findsNWidgets(14));
       },
     );
 
@@ -1767,6 +1799,249 @@ void main() {
               .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
               .disabled,
           isFalse,
+        );
+      },
+    );
+
+    testWidgets(
+      'Ideal Weight pre-gate: no height shows the insufficient-data message '
+      'and Fechar closes it without calling saveIdealWeightCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        fakeGetHeights.heightsToReturn = [];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        // Not relevant on its own (no BMI computed) - reach it via "Ver
+        // todas as calculadoras".
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(find.text('Peso Ideal').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Peso Ideal').last);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Não há dados suficientes para calcular o Peso Ideal. Cadastre "
+            "ao menos uma altura para esse paciente.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveIdealWeightCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Ideal Weight pre-gate: no weight shows the insufficient-data message '
+      'and Fechar closes it without calling saveIdealWeightCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [];
+        fakeGetHeights.heightsToReturn = [
+          HeightEntity(
+            createdAt: DateTime.now(),
+            value: 170,
+            patientId: patientId,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(find.text('Peso Ideal').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Peso Ideal').last);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Não há dados suficientes para calcular o Peso Ideal. Cadastre "
+            "ao menos um peso para esse paciente.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveIdealWeightCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Ideal Weight tap-flow: height derived read-only, gender selection '
+      'gates Calcular, checkbox defaults checked, confirming calls '
+      'cubit.saveIdealWeightCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        fakeGetHeights.heightsToReturn = [
+          HeightEntity(
+            createdAt: DateTime.now(),
+            value: 170,
+            patientId: patientId,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(find.text('Peso Ideal').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Peso Ideal').last);
+        await tester.pumpAndSettle();
+
+        // Derived height is shown read-only, not editable.
+        expect(find.text('Altura: 170.0 cm'), findsOneWidget);
+
+        // No gender selected yet - Calcular must stay disabled.
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isTrue,
+        );
+
+        await tester.tap(find.byType(DropdownMenuFormField<Gender>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Feminino').last);
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isFalse,
+        );
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        // idealWeight = 21 * (1.70)^2 = 60.69 kg
+        expect(find.text('Peso Ideal: 60.7 kg'), findsOneWidget);
+
+        // Checkbox defaults checked, per design's rationale.
+        expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isIdealWeightSaved auto-reset delay in
+        // PatientDetailsCubit.saveIdealWeightCalculation so no pending
+        // Timer leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveIdealWeightCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'Ideal Weight preview: with a newer weight excluded from '
+      'calculations and an older one included, the sheet is opened with '
+      'the older (considerForCalculations: true) weight resolved via '
+      'ResolveWeightForCalculations, not the newest',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 80,
+            patientId: patientId,
+            considerForCalculations: false,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+          WeightEntity(
+            createdAt: DateTime.now().subtract(Duration(days: 10)),
+            value: 65,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        fakeGetHeights.heightsToReturn = [
+          HeightEntity(
+            createdAt: DateTime.now(),
+            value: 170,
+            patientId: patientId,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(find.text('Peso Ideal').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Peso Ideal').last);
+        await tester.pumpAndSettle();
+
+        expect(
+          tester.widget<IdealWeightSheetBody>(
+            find.byType(IdealWeightSheetBody),
+          ).weightKg,
+          65,
         );
       },
     );

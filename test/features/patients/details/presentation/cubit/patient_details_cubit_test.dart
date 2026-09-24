@@ -20,6 +20,7 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/entities/glucose_infusion_rate_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/ideal_weight/domain/use_cases/save_ideal_weight_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/must/domain/entities/must_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/must/domain/use_cases/save_must_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/entities/nitrogen_balance_calculation_entity.dart';
@@ -470,6 +471,34 @@ class _FakeSaveStrongKidsCalculationUseCase
   }
 }
 
+class _FakeSaveIdealWeightCalculationUseCase
+    implements SaveIdealWeightCalculationUseCase {
+  Result<WeightEntity, String>? resultToReturn;
+  double? lastWeightKg;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double heightCm,
+    required Gender gender,
+    required double weightKg,
+    required bool considerForCalculations,
+  }) async {
+    lastWeightKg = weightKg;
+    return resultToReturn ??
+        Ok(
+          WeightEntity(
+            id: 'iw-1',
+            createdAt: DateTime.now(),
+            value: 65.0,
+            patientId: patientId,
+            considerForCalculations: considerForCalculations,
+            weightType: WeightTypeEnum.ideal,
+          ),
+        );
+  }
+}
+
 class _FakeCreateBodyMeasurementUseCase implements CreateBodyMeasurementUseCase {
   Result<BodyMeasurementEntity, String>? resultToReturn;
   BodyMeasurementEntity? lastCall;
@@ -514,6 +543,7 @@ void main() {
   late _FakeSaveMustCalculationUseCase fakeSaveMustCalculation;
   late _FakeSaveNrs2002CalculationUseCase fakeSaveNrs2002Calculation;
   late _FakeSaveStrongKidsCalculationUseCase fakeSaveStrongKidsCalculation;
+  late _FakeSaveIdealWeightCalculationUseCase fakeSaveIdealWeightCalculation;
   late PatientDetailsCubit cubit;
 
   setUp(() {
@@ -545,6 +575,7 @@ void main() {
     fakeSaveMustCalculation = _FakeSaveMustCalculationUseCase();
     fakeSaveNrs2002Calculation = _FakeSaveNrs2002CalculationUseCase();
     fakeSaveStrongKidsCalculation = _FakeSaveStrongKidsCalculationUseCase();
+    fakeSaveIdealWeightCalculation = _FakeSaveIdealWeightCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -574,6 +605,7 @@ void main() {
       saveMustCalculationUseCase: fakeSaveMustCalculation,
       saveNrs2002CalculationUseCase: fakeSaveNrs2002Calculation,
       saveStrongKidsCalculationUseCase: fakeSaveStrongKidsCalculation,
+      saveIdealWeightCalculationUseCase: fakeSaveIdealWeightCalculation,
     );
   });
 
@@ -2505,6 +2537,186 @@ void main() {
 
         final state = cubit.state as PatientDetailsStateLoaded;
         expect(state.isStrongKidsSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveIdealWeightCalculation', () {
+    setUp(() {
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          createdAt: DateTime.now(),
+          value: 70,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+      fakeGetHeights.heightsToReturn = [
+        HeightEntity(
+          createdAt: DateTime.now(),
+          value: 170,
+          patientId: patientId,
+        ),
+      ];
+    });
+
+    test(
+      'on success: sets isIdealWeightSaved true, clears isSavingIdealWeight, '
+      'refetches weights and recomputes BMI',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveIdealWeightCalculation(
+          gender: Gender.female,
+          considerForCalculations: true,
+        );
+        // saveIdealWeightCalculation's outer Future resolves before the
+        // inner async callback's second await (the weights refetch)
+        // settles - see _executeOnStateLoaded, which invokes the async
+        // callback without awaiting it (same as saveWeight). Pump the
+        // microtask queue so the refetch/emit completes.
+        await Future.delayed(Duration.zero);
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isIdealWeightSaved, isTrue);
+        expect(state.isSavingIdealWeight, isFalse);
+        expect(state.isIdealWeightSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isIdealWeightSaveError/idealWeightSaveErrorMessage '
+      'and clears isSavingIdealWeight',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveIdealWeightCalculation.resultToReturn = Error("db failure");
+
+        await cubit.saveIdealWeightCalculation(
+          gender: Gender.female,
+          considerForCalculations: true,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isIdealWeightSaveError, isTrue);
+        expect(
+          state.idealWeightSaveErrorMessage,
+          "Não foi possível salvar o cálculo de Peso Ideal. Tente novamente.",
+        );
+        expect(state.isSavingIdealWeight, isFalse);
+      },
+    );
+
+    test(
+      'closedIdealWeightErrorModal() resets isIdealWeightSaveError/'
+      'idealWeightSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveIdealWeightCalculation.resultToReturn = Error("db failure");
+        await cubit.saveIdealWeightCalculation(
+          gender: Gender.female,
+          considerForCalculations: true,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isIdealWeightSaveError,
+          isTrue,
+        );
+
+        cubit.closedIdealWeightErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isIdealWeightSaveError, isFalse);
+        expect(state.idealWeightSaveErrorMessage, isNull);
+      },
+    );
+
+    test('no height data: does nothing', () async {
+      fakeGetHeights.heightsToReturn = [];
+      await cubit.init(patientId);
+
+      await cubit.saveIdealWeightCalculation(
+        gender: Gender.female,
+        considerForCalculations: true,
+      );
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingIdealWeight, isFalse);
+      expect(state.isIdealWeightSaved, isFalse);
+      expect(state.isIdealWeightSaveError, isFalse);
+    });
+
+    test('no weight data: does nothing', () async {
+      fakeGetWeights.weightsToReturn = [];
+      await cubit.init(patientId);
+
+      await cubit.saveIdealWeightCalculation(
+        gender: Gender.female,
+        considerForCalculations: true,
+      );
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingIdealWeight, isFalse);
+      expect(state.isIdealWeightSaved, isFalse);
+      expect(state.isIdealWeightSaveError, isFalse);
+    });
+
+    test(
+      'resolves weight via ResolveWeightForCalculations: with a newer '
+      'weight excluded from calculations and an older one included, the '
+      'older (considerForCalculations: true) weight is passed to '
+      'SaveIdealWeightCalculationUseCase, not the newest',
+      () async {
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 80,
+            patientId: patientId,
+            considerForCalculations: false,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+          WeightEntity(
+            createdAt: DateTime.now().subtract(Duration(days: 10)),
+            value: 65,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await cubit.saveIdealWeightCalculation(
+          gender: Gender.female,
+          considerForCalculations: true,
+        );
+
+        expect(fakeSaveIdealWeightCalculation.lastWeightKg, 65);
+      },
+    );
+
+    test(
+      'on success: isIdealWeightSaved reverts to false after the '
+      'auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveIdealWeightCalculation(
+          gender: Gender.female,
+          considerForCalculations: true,
+        );
+        // Pump the microtask queue so the weights-refetch/emit (the second
+        // await in the success path) completes before asserting - see
+        // saveWeight's identical precedent.
+        await Future.delayed(Duration.zero);
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isIdealWeightSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isIdealWeightSaved, isFalse);
       },
     );
   });

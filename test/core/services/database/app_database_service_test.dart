@@ -991,6 +991,101 @@ void main() {
     },
   );
 
+  group(
+    'WEIGHTS inputParams column migration (real production schema, v8 -> v9)',
+    () {
+      test(
+        'fresh install (straight at v9) creates WEIGHTS with the '
+        'inputParams column',
+        () async {
+          final path = _newTempDbPath('weights_input_params_fresh_v9');
+          final service = AppDatabaseServiceImpl();
+          await service.init(dbPath: path, version: 9);
+
+          final db = await openDatabase(path);
+          try {
+            final weightColumns = await db.rawQuery(
+              'PRAGMA table_info(${AppDatabaseTables.weights.name})',
+            );
+            final byName = {
+              for (final c in weightColumns) c['name'] as String: c,
+            };
+
+            expect(byName.containsKey('inputParams'), isTrue);
+            expect(byName['inputParams']!['type'], 'TEXT');
+            expect(byName['inputParams']!['notnull'], 1);
+            expect(byName['inputParams']!['dflt_value'], "'[]'");
+          } finally {
+            await db.close();
+          }
+        },
+      );
+
+      test(
+        'an existing v8 WEIGHTS row upgrading to v9 gets inputParams '
+        "backfilled to '[]', without crashing WeightModel.fromJson",
+        () async {
+          final path = _newTempDbPath('weights_input_params_upgrade_v8_to_v9');
+
+          // Seed at v8: WEIGHTS table exists without the inputParams column.
+          final v8Service = AppDatabaseServiceImpl();
+          await v8Service.init(dbPath: path, version: 8);
+          final insertResult = await v8Service.insert(
+            AppDatabaseTables.weights,
+            {
+              'id': 'w1',
+              'value': 70.5,
+              'createdAt': '2026-09-06',
+              'patientId': 'p1',
+              'considerForCalculations': 1,
+              'weightType': 'measuredByScale',
+            },
+          );
+          expect(insertResult.isOk, isTrue);
+
+          // Reopen at v9 - onUpgrade must ALTER TABLE ADD COLUMN for the new
+          // WEIGHTS field.
+          final v9Service = AppDatabaseServiceImpl();
+          await v9Service.init(dbPath: path, version: 9);
+
+          final db = await openDatabase(path, singleInstance: false);
+          try {
+            final weightColumns = await db.rawQuery(
+              'PRAGMA table_info(${AppDatabaseTables.weights.name})',
+            );
+            final weightColumnNames = weightColumns
+                .map((c) => c['name'])
+                .toSet();
+            expect(weightColumnNames, contains('inputParams'));
+          } finally {
+            await db.close();
+          }
+
+          final readResult = await v9Service.read(
+            AppDatabaseTables.weights,
+            where: 'id = ?',
+            whereArgs: ['w1'],
+          );
+          expect(readResult.isOk, isTrue);
+          readResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              final row = rows.first;
+              expect(row['value'], 70.5, reason: 'pre-existing data intact');
+              // Pre-existing row should default to '[]' for the new column,
+              // not null/crash.
+              expect(row['inputParams'], '[]');
+
+              final model = WeightModel.fromJson(row);
+              expect(model.inputParams, isEmpty);
+            },
+            error: (_) => fail('expected Ok'),
+          );
+        },
+      );
+    },
+  );
+
   group('Migration mechanics (onCreate/onUpgrade algorithm) against a versioned fixture', () {
     // Local fixture mirroring AppDatabaseTables' shape: a "patient"-like
     // table that exists since v1 and gains a column at v2, plus a brand new

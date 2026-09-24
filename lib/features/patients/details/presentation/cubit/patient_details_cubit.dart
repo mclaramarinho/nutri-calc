@@ -24,6 +24,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._saveMustCalculationUseCase,
     required this._saveNrs2002CalculationUseCase,
     required this._saveStrongKidsCalculationUseCase,
+    required this._saveIdealWeightCalculationUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
@@ -58,6 +59,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   final SaveMustCalculationUseCase _saveMustCalculationUseCase;
   final SaveNrs2002CalculationUseCase _saveNrs2002CalculationUseCase;
   final SaveStrongKidsCalculationUseCase _saveStrongKidsCalculationUseCase;
+  final SaveIdealWeightCalculationUseCase _saveIdealWeightCalculationUseCase;
 
   // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
@@ -303,6 +305,17 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
         current.copyWith(
           isStrongKidsSaveError: false,
           strongKidsSaveErrorMessage: null,
+        ),
+      );
+    });
+  }
+
+  void closedIdealWeightErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        current.copyWith(
+          isIdealWeightSaveError: false,
+          idealWeightSaveErrorMessage: null,
         ),
       );
     });
@@ -1178,6 +1191,69 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       await Future.delayed(Duration(seconds: 2));
       _executeOnStateLoaded((latest) {
         emit(latest.copyWith(isStrongKidsSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveIdealWeightCalculation({
+    required Gender gender,
+    required bool considerForCalculations,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      if (current.heights.isEmpty || current.weights.isEmpty) return;
+
+      emit(current.copyWith(isSavingIdealWeight: true));
+
+      final latestHeight = current.heights.first; // newest, per §0's sort
+      // This is a new call site (not one of ADR 0007's ~14 deferred
+      // "latest weight" sites), so it's free to resolve the override chain
+      // directly rather than always grabbing the newest weight.
+      final resolvedWeight =
+          const ResolveWeightForCalculations()(current.weights) ??
+          current.weights.first;
+
+      final res = await _saveIdealWeightCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        heightCm: latestHeight.value,
+        gender: gender,
+        weightKg: resolvedWeight.value,
+        considerForCalculations: considerForCalculations,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingIdealWeight: false,
+            isIdealWeightSaveError: true,
+            idealWeightSaveErrorMessage:
+                "Não foi possível salvar o cálculo de Peso Ideal. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      // This write went into WEIGHTS (ADR 0007), so `state.weights`/
+      // `state.bmi` would otherwise go stale - refetch and recompute,
+      // exactly like `saveWeight`'s success branch.
+      final weightsRes = await _getWeightsUseCase(current.form.patientLocalId);
+      final weights = weightsRes.getOrElse(() => current.weights);
+
+      emit(
+        current.copyWith(
+          isSavingIdealWeight: false,
+          isIdealWeightSaveError: false,
+          isIdealWeightSaved: true,
+          weights: weights,
+          bmi: _computeBmi(weights, current.heights, current.form.age),
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isIdealWeightSaved` back to `false`, the page's `listenWhen`
+      // previous-vs-current true-transition check would never fire again
+      // for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isIdealWeightSaved: false));
       });
     });
   }
