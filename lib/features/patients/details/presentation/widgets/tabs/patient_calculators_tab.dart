@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/bmi_calculator_relevance.dart';
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_definition.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/calculator_ids.dart';
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_relevance_context.dart';
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_type_enum.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/energy_expenditure_relevance.dart';
@@ -681,42 +682,42 @@ class PatientCalculatorsTab extends StatelessWidget {
   ) {
     return [
       CalculatorDefinition(
-        id: "bmi",
+        id: CalculatorIds.bmi,
         type: CalculatorType.bmi,
         name: "IMC",
         isRelevant: isBmiRelevant,
         onTap: (ctx) => _openBmiBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "energy_expenditure",
+        id: CalculatorIds.energyExpenditure,
         type: CalculatorType.energyExpenditure,
         name: "Gasto Energético",
         isRelevant: isEnergyExpenditureRelevant,
         onTap: (ctx) => _openEnergyExpenditureBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "nitrogen_balance",
+        id: CalculatorIds.nitrogenBalance,
         type: CalculatorType.nitrogenBalance,
         name: "Balanço Nitrogenado",
         isRelevant: isNitrogenBalanceRelevant,
         onTap: (ctx) => _openNitrogenBalanceBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "protein_needs",
+        id: CalculatorIds.proteinNeeds,
         type: CalculatorType.proteinNeeds,
         name: "Necessidade Proteica",
         isRelevant: isProteinNeedsRelevant,
         onTap: (ctx) => _openProteinNeedsBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "water_needs",
+        id: CalculatorIds.waterNeeds,
         type: CalculatorType.waterNeeds,
         name: "Necessidade Hídrica",
         isRelevant: isWaterNeedsRelevant,
         onTap: (ctx) => _openWaterNeedsBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "enteral_nutrition_dripping",
+        id: CalculatorIds.enteralNutritionDripping,
         type: CalculatorType.enteralNutrition,
         name: "Gotejamento",
         isRelevant: isEnteralNutritionDrippingRelevant,
@@ -724,7 +725,7 @@ class PatientCalculatorsTab extends StatelessWidget {
             _openEnteralNutritionDrippingBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "enteral_nutrition_speed",
+        id: CalculatorIds.enteralNutritionSpeed,
         type: CalculatorType.enteralNutrition,
         name: "Velocidade de Infusão",
         isRelevant: isEnteralNutritionSpeedRelevant,
@@ -732,7 +733,7 @@ class PatientCalculatorsTab extends StatelessWidget {
             _openEnteralNutritionSpeedBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "enteral_nutrition_volume",
+        id: CalculatorIds.enteralNutritionVolume,
         type: CalculatorType.enteralNutrition,
         name: "Volume Total",
         isRelevant: isEnteralNutritionVolumeRelevant,
@@ -740,14 +741,14 @@ class PatientCalculatorsTab extends StatelessWidget {
             _openEnteralNutritionVolumeBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "glucose_infusion_rate",
+        id: CalculatorIds.glucoseInfusionRate,
         type: CalculatorType.parenteralNutrition,
         name: "TIG",
         isRelevant: isGlucoseInfusionRateRelevant,
         onTap: (ctx) => _openGlucoseInfusionRateBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "weight_loss_classification",
+        id: CalculatorIds.weightLossClassification,
         type: CalculatorType.weightLossClassification,
         name: "Classificação de Perda de Peso",
         isRelevant: isWeightLossClassificationRelevant,
@@ -755,28 +756,28 @@ class PatientCalculatorsTab extends StatelessWidget {
             _openWeightLossClassificationBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "must",
+        id: CalculatorIds.must,
         type: CalculatorType.screening,
         name: "MUST",
         isRelevant: isMustRelevant,
         onTap: (ctx) => _openMustBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "nrs_2002",
+        id: CalculatorIds.nrs2002,
         type: CalculatorType.screening,
         name: "NRS-2002",
         isRelevant: isNrs2002Relevant,
         onTap: (ctx) => _openNrs2002BottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "strong_kids",
+        id: CalculatorIds.strongKids,
         type: CalculatorType.screening,
         name: "STRONG-Kids",
         isRelevant: isStrongKidsRelevant,
         onTap: (ctx) => _openStrongKidsBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
-        id: "ideal_weight",
+        id: CalculatorIds.idealWeight,
         type: CalculatorType.weight,
         name: "Peso Ideal",
         isRelevant: isIdealWeightRelevant,

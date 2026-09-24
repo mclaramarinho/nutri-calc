@@ -180,143 +180,10 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
-  void closedBmiErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(current.copyWith(isBmiSaveError: false, bmiSaveErrorMessage: null));
-    });
-  }
-
-  void closedEnergyExpenditureErrorModal() {
+  void closedCalculatorErrorModal(String id) {
     _executeOnStateLoaded((current) {
       emit(
-        current.copyWith(
-          isEnergyExpenditureSaveError: false,
-          energyExpenditureSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedNitrogenBalanceErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isNitrogenBalanceSaveError: false,
-          nitrogenBalanceSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedProteinNeedsErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isProteinNeedsSaveError: false,
-          proteinNeedsSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedWaterNeedsErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isWaterNeedsSaveError: false,
-          waterNeedsSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedEnteralNutritionDrippingErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isEnteralNutritionDrippingSaveError: false,
-          enteralNutritionDrippingSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedEnteralNutritionSpeedErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isEnteralNutritionSpeedSaveError: false,
-          enteralNutritionSpeedSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedEnteralNutritionVolumeErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isEnteralNutritionVolumeSaveError: false,
-          enteralNutritionVolumeSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedGlucoseInfusionRateErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isGlucoseInfusionRateSaveError: false,
-          glucoseInfusionRateSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedWeightLossClassificationErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isWeightLossClassificationSaveError: false,
-          weightLossClassificationSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedMustErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(current.copyWith(isMustSaveError: false, mustSaveErrorMessage: null));
-    });
-  }
-
-  void closedNrs2002ErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(isNrs2002SaveError: false, nrs2002SaveErrorMessage: null),
-      );
-    });
-  }
-
-  void closedStrongKidsErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isStrongKidsSaveError: false,
-          strongKidsSaveErrorMessage: null,
-        ),
-      );
-    });
-  }
-
-  void closedIdealWeightErrorModal() {
-    _executeOnStateLoaded((current) {
-      emit(
-        current.copyWith(
-          isIdealWeightSaveError: false,
-          idealWeightSaveErrorMessage: null,
-        ),
+        current.copyWithCalculatorStatus(id, const CalculatorSaveStatusIdle()),
       );
     });
   }
@@ -592,45 +459,21 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     _executeOnStateLoaded((current) async {
       if (current.weights.isEmpty || current.heights.isEmpty) return;
 
-      emit(current.copyWith(isSavingBmi: true));
-
       final latestWeight = current.weights.first; // newest, per §0's sort
       final latestHeight = current.heights.first;
 
-      final res = await _saveBmiCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        weightKg: latestWeight.value,
-        heightM: latestHeight.value / 100, // cm -> m
-        age: current.form.age ?? 0,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingBmi: false,
-            isBmiSaveError: true,
-            bmiSaveErrorMessage:
-                "Não foi possível salvar o cálculo de IMC. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingBmi: false,
-          isBmiSaveError: false,
-          isBmiSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.bmi,
+        action: () => _saveBmiCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          weightKg: latestWeight.value,
+          heightM: latestHeight.value / 100, // cm -> m
+          age: current.form.age ?? 0,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de IMC. Tente novamente.",
+        successMessage: "Cálculo de IMC salvo com sucesso.",
       );
-      // Mirrors `_handleSaveResult`'s reset-after-delay: without resetting
-      // `isBmiSaved` back to `false`, the page's `listenWhen`
-      // previous-vs-current true-transition check would never fire again
-      // for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isBmiSaved: false));
-      });
     });
   }
 
@@ -645,53 +488,29 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     _executeOnStateLoaded((current) async {
       if (current.weights.isEmpty) return;
 
-      emit(current.copyWith(isSavingEnergyExpenditure: true));
-
       final latestWeight = current.weights.first; // newest, per §0's sort
       final latestHeight = current.heights.isNotEmpty
           ? current.heights.first
           : null;
 
-      final res = await _saveEnergyExpenditureCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        formula: formula,
-        weightKg: latestWeight.value,
-        heightCm: latestHeight?.value,
-        age: current.form.age,
-        gender: gender,
-        activityFactor: activityFactor,
-        injuryFactor: injuryFactor,
-        temperatureFactor: temperatureFactor,
-        stressLevel: stressLevel,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingEnergyExpenditure: false,
-            isEnergyExpenditureSaveError: true,
-            energyExpenditureSaveErrorMessage:
-                "Não foi possível salvar o cálculo de gasto energético. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingEnergyExpenditure: false,
-          isEnergyExpenditureSaveError: false,
-          isEnergyExpenditureSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.energyExpenditure,
+        action: () => _saveEnergyExpenditureCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          formula: formula,
+          weightKg: latestWeight.value,
+          heightCm: latestHeight?.value,
+          age: current.form.age,
+          gender: gender,
+          activityFactor: activityFactor,
+          injuryFactor: injuryFactor,
+          temperatureFactor: temperatureFactor,
+          stressLevel: stressLevel,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de gasto energético. Tente novamente.",
+        successMessage: "Cálculo de gasto energético salvo com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isEnergyExpenditureSaved` back to `false`, the page's `listenWhen`
-      // previous-vs-current true-transition check would never fire again
-      // for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isEnergyExpenditureSaved: false));
-      });
     });
   }
 
@@ -700,41 +519,17 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required double urineNitrogen24h,
   }) async {
     _executeOnStateLoaded((current) async {
-      emit(current.copyWith(isSavingNitrogenBalance: true));
-
-      final res = await _saveNitrogenBalanceCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        ingestedProtein: ingestedProtein,
-        urineNitrogen24h: urineNitrogen24h,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingNitrogenBalance: false,
-            isNitrogenBalanceSaveError: true,
-            nitrogenBalanceSaveErrorMessage:
-                "Não foi possível salvar o balanço nitrogenado. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingNitrogenBalance: false,
-          isNitrogenBalanceSaveError: false,
-          isNitrogenBalanceSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.nitrogenBalance,
+        action: () => _saveNitrogenBalanceCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          ingestedProtein: ingestedProtein,
+          urineNitrogen24h: urineNitrogen24h,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o balanço nitrogenado. Tente novamente.",
+        successMessage: "Cálculo de balanço nitrogenado salvo com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isNitrogenBalanceSaved` back to `false`, the page's `listenWhen`
-      // previous-vs-current true-transition check would never fire again
-      // for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isNitrogenBalanceSaved: false));
-      });
     });
   }
 
@@ -744,43 +539,19 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     _executeOnStateLoaded((current) async {
       if (current.weights.isEmpty) return;
 
-      emit(current.copyWith(isSavingProteinNeeds: true));
-
       final latestWeight = current.weights.first; // newest, per §0's sort
 
-      final res = await _saveProteinNeedsCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        weightKg: latestWeight.value,
-        patientState: patientState,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingProteinNeeds: false,
-            isProteinNeedsSaveError: true,
-            proteinNeedsSaveErrorMessage:
-                "Não foi possível salvar o cálculo de necessidade proteica. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingProteinNeeds: false,
-          isProteinNeedsSaveError: false,
-          isProteinNeedsSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.proteinNeeds,
+        action: () => _saveProteinNeedsCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          weightKg: latestWeight.value,
+          patientState: patientState,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de necessidade proteica. Tente novamente.",
+        successMessage: "Cálculo de necessidade proteica salvo com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isProteinNeedsSaved` back to `false`, the page's `listenWhen`
-      // previous-vs-current true-transition check would never fire again
-      // for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isProteinNeedsSaved: false));
-      });
     });
   }
 
@@ -788,43 +559,19 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     _executeOnStateLoaded((current) async {
       if (current.weights.isEmpty || current.form.age == null) return;
 
-      emit(current.copyWith(isSavingWaterNeeds: true));
-
       final latestWeight = current.weights.first; // newest, per §0's sort
 
-      final res = await _saveWaterNeedsCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        weightKg: latestWeight.value,
-        age: current.form.age!,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingWaterNeeds: false,
-            isWaterNeedsSaveError: true,
-            waterNeedsSaveErrorMessage:
-                "Não foi possível salvar o cálculo de necessidade hídrica. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingWaterNeeds: false,
-          isWaterNeedsSaveError: false,
-          isWaterNeedsSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.waterNeeds,
+        action: () => _saveWaterNeedsCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          weightKg: latestWeight.value,
+          age: current.form.age!,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de necessidade hídrica. Tente novamente.",
+        successMessage: "Cálculo de necessidade hídrica salvo com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isWaterNeedsSaved` back to `false`, the page's `listenWhen`
-      // previous-vs-current true-transition check would never fire again
-      // for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isWaterNeedsSaved: false));
-      });
     });
   }
 
@@ -833,41 +580,17 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required double totalHoursForVolume,
   }) async {
     _executeOnStateLoaded((current) async {
-      emit(current.copyWith(isSavingEnteralNutritionDripping: true));
-
-      final res = await _saveEnteralNutritionDrippingCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        totalVolume: totalVolume,
-        totalHoursForVolume: totalHoursForVolume,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingEnteralNutritionDripping: false,
-            isEnteralNutritionDrippingSaveError: true,
-            enteralNutritionDrippingSaveErrorMessage:
-                "Não foi possível salvar o cálculo de gotejamento. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingEnteralNutritionDripping: false,
-          isEnteralNutritionDrippingSaveError: false,
-          isEnteralNutritionDrippingSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.enteralNutritionDripping,
+        action: () => _saveEnteralNutritionDrippingCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          totalVolume: totalVolume,
+          totalHoursForVolume: totalHoursForVolume,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de gotejamento. Tente novamente.",
+        successMessage: "Cálculo de gotejamento salvo com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isEnteralNutritionDrippingSaved` back to `false`, the page's
-      // `listenWhen` previous-vs-current true-transition check would never
-      // fire again for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isEnteralNutritionDrippingSaved: false));
-      });
     });
   }
 
@@ -875,40 +598,16 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required double totalDailyVolume,
   }) async {
     _executeOnStateLoaded((current) async {
-      emit(current.copyWith(isSavingEnteralNutritionSpeed: true));
-
-      final res = await _saveEnteralNutritionSpeedCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        totalDailyVolume: totalDailyVolume,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingEnteralNutritionSpeed: false,
-            isEnteralNutritionSpeedSaveError: true,
-            enteralNutritionSpeedSaveErrorMessage:
-                "Não foi possível salvar o cálculo de velocidade de infusão. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingEnteralNutritionSpeed: false,
-          isEnteralNutritionSpeedSaveError: false,
-          isEnteralNutritionSpeedSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.enteralNutritionSpeed,
+        action: () => _saveEnteralNutritionSpeedCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          totalDailyVolume: totalDailyVolume,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de velocidade de infusão. Tente novamente.",
+        successMessage: "Cálculo de velocidade de infusão salvo com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isEnteralNutritionSpeedSaved` back to `false`, the page's
-      // `listenWhen` previous-vs-current true-transition check would never
-      // fire again for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isEnteralNutritionSpeedSaved: false));
-      });
     });
   }
 
@@ -917,41 +616,17 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required double caloricDensityOfDiet,
   }) async {
     _executeOnStateLoaded((current) async {
-      emit(current.copyWith(isSavingEnteralNutritionVolume: true));
-
-      final res = await _saveEnteralNutritionVolumeCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        totalDailyEnergy: totalDailyEnergy,
-        caloricDensityOfDiet: caloricDensityOfDiet,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingEnteralNutritionVolume: false,
-            isEnteralNutritionVolumeSaveError: true,
-            enteralNutritionVolumeSaveErrorMessage:
-                "Não foi possível salvar o cálculo de volume total. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingEnteralNutritionVolume: false,
-          isEnteralNutritionVolumeSaveError: false,
-          isEnteralNutritionVolumeSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.enteralNutritionVolume,
+        action: () => _saveEnteralNutritionVolumeCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          totalDailyEnergy: totalDailyEnergy,
+          caloricDensityOfDiet: caloricDensityOfDiet,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de volume total. Tente novamente.",
+        successMessage: "Cálculo de volume total salvo com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isEnteralNutritionVolumeSaved` back to `false`, the page's
-      // `listenWhen` previous-vs-current true-transition check would never
-      // fire again for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isEnteralNutritionVolumeSaved: false));
-      });
     });
   }
 
@@ -961,43 +636,19 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     _executeOnStateLoaded((current) async {
       if (current.weights.isEmpty) return;
 
-      emit(current.copyWith(isSavingGlucoseInfusionRate: true));
-
       final latestWeight = current.weights.first; // newest, per §0's sort
 
-      final res = await _saveGlucoseInfusionRateCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        weightKg: latestWeight.value,
-        totalGlucose: totalGlucose,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingGlucoseInfusionRate: false,
-            isGlucoseInfusionRateSaveError: true,
-            glucoseInfusionRateSaveErrorMessage:
-                "Não foi possível salvar o cálculo de TIG. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingGlucoseInfusionRate: false,
-          isGlucoseInfusionRateSaveError: false,
-          isGlucoseInfusionRateSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.glucoseInfusionRate,
+        action: () => _saveGlucoseInfusionRateCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          weightKg: latestWeight.value,
+          totalGlucose: totalGlucose,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de TIG. Tente novamente.",
+        successMessage: "Cálculo de TIG salvo com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isGlucoseInfusionRateSaved` back to `false`, the page's
-      // `listenWhen` previous-vs-current true-transition check would never
-      // fire again for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isGlucoseInfusionRateSaved: false));
-      });
     });
   }
 
@@ -1005,46 +656,23 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     _executeOnStateLoaded((current) async {
       if (current.weights.length < 2) return;
 
-      emit(current.copyWith(isSavingWeightLossClassification: true));
-
       final currentWeight = current.weights[0]; // newest, per §0's sort
       final lastWeight = current.weights[1];
 
-      final res = await _saveWeightLossClassificationCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        currentWeight: currentWeight.value,
-        currentWeightDate: currentWeight.createdAt,
-        lastWeight: lastWeight.value,
-        lastWeightDate: lastWeight.createdAt,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingWeightLossClassification: false,
-            isWeightLossClassificationSaveError: true,
-            weightLossClassificationSaveErrorMessage:
-                "Não foi possível salvar a classificação de perda de peso. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingWeightLossClassification: false,
-          isWeightLossClassificationSaveError: false,
-          isWeightLossClassificationSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.weightLossClassification,
+        action: () => _saveWeightLossClassificationCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          currentWeight: currentWeight.value,
+          currentWeightDate: currentWeight.createdAt,
+          lastWeight: lastWeight.value,
+          lastWeightDate: lastWeight.createdAt,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar a classificação de perda de peso. Tente novamente.",
+        successMessage:
+            "Cálculo de Classificação de Perda de Peso salvo com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isWeightLossClassificationSaved` back to `false`, the page's
-      // `listenWhen` previous-vs-current true-transition check would never
-      // fire again for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isWeightLossClassificationSaved: false));
-      });
     });
   }
 
@@ -1056,41 +684,21 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required bool willReduceFoodIntakeForMoreThan5Days,
   }) async {
     _executeOnStateLoaded((current) async {
-      emit(current.copyWith(isSavingMust: true));
-
-      final res = await _saveMustCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        bmi: bmi,
-        avgWeightLossIn3To6Months: avgWeightLossIn3To6Months,
-        severeIllnessPresent: severeIllnessPresent,
-        reducedFoodIntakeForMoreThan5Days: reducedFoodIntakeForMoreThan5Days,
-        willReduceFoodIntakeForMoreThan5Days:
-            willReduceFoodIntakeForMoreThan5Days,
+      await _saveCalculation(
+        id: CalculatorIds.must,
+        action: () => _saveMustCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          bmi: bmi,
+          avgWeightLossIn3To6Months: avgWeightLossIn3To6Months,
+          severeIllnessPresent: severeIllnessPresent,
+          reducedFoodIntakeForMoreThan5Days: reducedFoodIntakeForMoreThan5Days,
+          willReduceFoodIntakeForMoreThan5Days:
+              willReduceFoodIntakeForMoreThan5Days,
+        ),
+        errorFallbackMessage:
+            "Não foi possível salvar a triagem MUST. Tente novamente.",
+        successMessage: "Triagem MUST salva com sucesso.",
       );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingMust: false,
-            isMustSaveError: true,
-            mustSaveErrorMessage:
-                "Não foi possível salvar a triagem MUST. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(isSavingMust: false, isMustSaveError: false, isMustSaved: true),
-      );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isMustSaved` back to `false`, the page's `listenWhen`
-      // previous-vs-current true-transition check would never fire again
-      // for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isMustSaved: false));
-      });
     });
   }
 
@@ -1105,46 +713,22 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     _executeOnStateLoaded((current) async {
       if (current.form.age == null) return;
 
-      emit(current.copyWith(isSavingNrs2002: true));
-
-      final res = await _saveNrs2002CalculationUseCase(
-        patientId: current.form.patientLocalId,
-        age: current.form.age!,
-        isSeverelyIll: isSeverelyIll,
-        weightLossLast3Months: weightLossLast3Months,
-        reducedFoodIntakeLastWeek: reducedFoodIntakeLastWeek,
-        lowBmi: lowBmi,
-        nutritionalStatusClassification: nutritionalStatusClassification,
-        illnessSeverityClassification: illnessSeverityClassification,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingNrs2002: false,
-            isNrs2002SaveError: true,
-            nrs2002SaveErrorMessage:
-                "Não foi possível salvar a triagem NRS-2002. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingNrs2002: false,
-          isNrs2002SaveError: false,
-          isNrs2002Saved: true,
+      await _saveCalculation(
+        id: CalculatorIds.nrs2002,
+        action: () => _saveNrs2002CalculationUseCase(
+          patientId: current.form.patientLocalId,
+          age: current.form.age!,
+          isSeverelyIll: isSeverelyIll,
+          weightLossLast3Months: weightLossLast3Months,
+          reducedFoodIntakeLastWeek: reducedFoodIntakeLastWeek,
+          lowBmi: lowBmi,
+          nutritionalStatusClassification: nutritionalStatusClassification,
+          illnessSeverityClassification: illnessSeverityClassification,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar a triagem NRS-2002. Tente novamente.",
+        successMessage: "Triagem NRS-2002 salva com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isNrs2002Saved` back to `false`, the page's `listenWhen`
-      // previous-vs-current true-transition check would never fire again
-      // for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isNrs2002Saved: false));
-      });
     });
   }
 
@@ -1155,43 +739,19 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required bool weightLossOrGrowthDeficit,
   }) async {
     _executeOnStateLoaded((current) async {
-      emit(current.copyWith(isSavingStrongKids: true));
-
-      final res = await _saveStrongKidsCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        clinicalAppearanceOfMalnutrition: clinicalAppearanceOfMalnutrition,
-        highRiskDiseasePresent: highRiskDiseasePresent,
-        reducedIntakeOrLosses: reducedIntakeOrLosses,
-        weightLossOrGrowthDeficit: weightLossOrGrowthDeficit,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingStrongKids: false,
-            isStrongKidsSaveError: true,
-            strongKidsSaveErrorMessage:
-                "Não foi possível salvar a triagem STRONG-Kids. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      emit(
-        current.copyWith(
-          isSavingStrongKids: false,
-          isStrongKidsSaveError: false,
-          isStrongKidsSaved: true,
+      await _saveCalculation(
+        id: CalculatorIds.strongKids,
+        action: () => _saveStrongKidsCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          clinicalAppearanceOfMalnutrition: clinicalAppearanceOfMalnutrition,
+          highRiskDiseasePresent: highRiskDiseasePresent,
+          reducedIntakeOrLosses: reducedIntakeOrLosses,
+          weightLossOrGrowthDeficit: weightLossOrGrowthDeficit,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar a triagem STRONG-Kids. Tente novamente.",
+        successMessage: "Triagem STRONG-Kids salva com sucesso.",
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isStrongKidsSaved` back to `false`, the page's `listenWhen`
-      // previous-vs-current true-transition check would never fire again
-      // for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isStrongKidsSaved: false));
-      });
     });
   }
 
@@ -1202,8 +762,6 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     _executeOnStateLoaded((current) async {
       if (current.heights.isEmpty || current.weights.isEmpty) return;
 
-      emit(current.copyWith(isSavingIdealWeight: true));
-
       final latestHeight = current.heights.first; // newest, per §0's sort
       // This is a new call site (not one of ADR 0007's ~14 deferred
       // "latest weight" sites), so it's free to resolve the override chain
@@ -1212,49 +770,40 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
           const ResolveWeightForCalculations()(current.weights) ??
           current.weights.first;
 
-      final res = await _saveIdealWeightCalculationUseCase(
-        patientId: current.form.patientLocalId,
-        heightCm: latestHeight.value,
-        gender: gender,
-        weightKg: resolvedWeight.value,
-        considerForCalculations: considerForCalculations,
-      );
-
-      if (res.isError) {
-        emit(
-          current.copyWith(
-            isSavingIdealWeight: false,
-            isIdealWeightSaveError: true,
-            idealWeightSaveErrorMessage:
-                "Não foi possível salvar o cálculo de Peso Ideal. Tente novamente.",
-          ),
-        );
-        return;
-      }
-
-      // This write went into WEIGHTS (ADR 0007), so `state.weights`/
-      // `state.bmi` would otherwise go stale - refetch and recompute,
-      // exactly like `saveWeight`'s success branch.
-      final weightsRes = await _getWeightsUseCase(current.form.patientLocalId);
-      final weights = weightsRes.getOrElse(() => current.weights);
-
-      emit(
-        current.copyWith(
-          isSavingIdealWeight: false,
-          isIdealWeightSaveError: false,
-          isIdealWeightSaved: true,
-          weights: weights,
-          bmi: _computeBmi(weights, current.heights, current.form.age),
+      await _saveCalculation(
+        id: CalculatorIds.idealWeight,
+        action: () => _saveIdealWeightCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          heightCm: latestHeight.value,
+          gender: gender,
+          weightKg: resolvedWeight.value,
+          considerForCalculations: considerForCalculations,
         ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de Peso Ideal. Tente novamente.",
+        successMessage: "Cálculo de Peso Ideal salvo com sucesso.",
+        onSuccess: (_) async {
+          // This write went into WEIGHTS (ADR 0007), so `state.weights`/
+          // `state.bmi` would otherwise go stale - refetch and recompute,
+          // exactly like `saveWeight`'s success branch. Re-read `state`
+          // (rather than relying on a possibly-stale captured `current`)
+          // to avoid clobbering a status set concurrently by something else.
+          final latest = state as PatientDetailsStateLoaded;
+          final weightsRes = await _getWeightsUseCase(
+            latest.form.patientLocalId,
+          );
+          final weights = weightsRes.getOrElse(() => latest.weights);
+
+          _executeOnStateLoaded((latest2) {
+            emit(
+              latest2.copyWith(
+                weights: weights,
+                bmi: _computeBmi(weights, latest2.heights, latest2.form.age),
+              ),
+            );
+          });
+        },
       );
-      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
-      // `isIdealWeightSaved` back to `false`, the page's `listenWhen`
-      // previous-vs-current true-transition check would never fire again
-      // for a subsequent successful calculation.
-      await Future.delayed(Duration(seconds: 2));
-      _executeOnStateLoaded((latest) {
-        emit(latest.copyWith(isIdealWeightSaved: false));
-      });
     });
   }
 
@@ -1294,6 +843,59 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     if (state is PatientDetailsStateLoaded) {
       callback(state as PatientDetailsStateLoaded);
     }
+  }
+
+  // Shared emit-dance for the 14 calculator "save" flows: emit Saving ->
+  // call the use case -> emit Error-or-Saved -> auto-reset back to Idle
+  // after 2s. See ADR 0008.
+  Future<void> _saveCalculation({
+    required String id,
+    required Future<Result<void, String>> Function() action,
+    required String errorFallbackMessage,
+    required String successMessage,
+    Future<void> Function(PatientDetailsStateLoaded current)? onSuccess,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      emit(
+        current.copyWithCalculatorStatus(id, const CalculatorSaveStatusSaving()),
+      );
+
+      final res = await action();
+
+      if (res.isError) {
+        _executeOnStateLoaded((latest) {
+          emit(
+            latest.copyWithCalculatorStatus(
+              id,
+              CalculatorSaveStatusError(errorFallbackMessage),
+            ),
+          );
+        });
+        return;
+      }
+
+      if (onSuccess != null) {
+        await onSuccess(state as PatientDetailsStateLoaded);
+      }
+
+      _executeOnStateLoaded((latest) {
+        emit(
+          latest.copyWithCalculatorStatus(
+            id,
+            CalculatorSaveStatusSaved(successMessage),
+          ),
+        );
+      });
+
+      // Mirrors `_handleSaveResult`'s reset-after-delay: without resetting
+      // back to idle, the page's `listenWhen` previous-vs-current
+      // true-transition check would never fire again for a subsequent
+      // successful calculation.
+      await Future.delayed(const Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWithCalculatorStatus(id, const CalculatorSaveStatusIdle()));
+      });
+    });
   }
 
   // TODO - register measurements

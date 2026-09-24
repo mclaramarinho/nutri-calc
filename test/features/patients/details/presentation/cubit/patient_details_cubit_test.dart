@@ -7,6 +7,7 @@ import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cas
 import 'package:nutri_calc/features/measurements/height/domain/entities/height_entity.dart';
 import 'package:nutri_calc/features/measurements/height/domain/use_cases/create_height_use_case.dart';
 import 'package:nutri_calc/features/measurements/height/domain/use_cases/get_heights_use_case.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/calculator_ids.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/entities/bmi_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_calculation_entity.dart';
@@ -1021,19 +1022,19 @@ void main() {
       ];
     });
 
-    test('on success: sets isBmiSaved true and clears isSavingBmi', () async {
+    test('on success: sets calculatorStatus(CalculatorIds.bmi).isSaved true and clears calculatorStatus(CalculatorIds.bmi).isSaving', () async {
       await cubit.init(patientId);
 
       await cubit.saveBmiCalculation();
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isBmiSaved, isTrue);
-      expect(state.isSavingBmi, isFalse);
-      expect(state.isBmiSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.bmi).isSaved, isTrue);
+      expect(state.calculatorStatus(CalculatorIds.bmi).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.bmi).isError, isFalse);
     });
 
     test(
-      'on error: sets isBmiSaveError/bmiSaveErrorMessage and clears isSavingBmi',
+      'on error: sets calculatorStatus(CalculatorIds.bmi).isError/calculatorStatus(CalculatorIds.bmi).errorMessage and clears calculatorStatus(CalculatorIds.bmi).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveBmiCalculation.resultToReturn = Error("db failure");
@@ -1041,42 +1042,42 @@ void main() {
         await cubit.saveBmiCalculation();
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isBmiSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.bmi).isError, isTrue);
         expect(
-          state.bmiSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.bmi).errorMessage,
           "Não foi possível salvar o cálculo de IMC. Tente novamente.",
         );
-        expect(state.isSavingBmi, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.bmi).isSaving, isFalse);
       },
     );
 
     test(
-      'closedBmiErrorModal() resets isBmiSaveError/bmiSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.bmi) resets calculatorStatus(CalculatorIds.bmi).isError/calculatorStatus(CalculatorIds.bmi).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveBmiCalculation.resultToReturn = Error("db failure");
         await cubit.saveBmiCalculation();
 
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isBmiSaveError,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.bmi).isError,
           isTrue,
         );
 
-        cubit.closedBmiErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.bmi);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isBmiSaveError, isFalse);
-        expect(state.bmiSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.bmi).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.bmi).errorMessage, isNull);
       },
     );
 
     test(
-      // Regression test for the bug where closedBmiErrorModal() used a full
+      // Regression test for the bug where closedCalculatorErrorModal(CalculatorIds.bmi) used a full
       // PatientDetailsStateLoaded(...) reconstruction that omitted the
       // newer calculator save flags, silently resetting them to their
       // constructor defaults (see roadmap tech-lead review, 2026-09-22).
-      'closedBmiErrorModal() preserves unrelated in-flight calculator save '
-      'state (e.g. isEnteralNutritionDrippingSaved)',
+      'closedCalculatorErrorModal(CalculatorIds.bmi) preserves unrelated in-flight calculator save '
+      'state (e.g. calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved)',
       () async {
         await cubit.init(patientId);
 
@@ -1086,16 +1087,16 @@ void main() {
         );
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionDrippingSaved,
+              .calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved,
           isTrue,
         );
 
         fakeSaveBmiCalculation.resultToReturn = Error("db failure");
         await cubit.saveBmiCalculation();
-        cubit.closedBmiErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.bmi);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionDrippingSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved, isTrue);
       },
     );
 
@@ -1106,31 +1107,31 @@ void main() {
       await cubit.saveBmiCalculation();
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingBmi, isFalse);
-      expect(state.isBmiSaved, isFalse);
-      expect(state.isBmiSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.bmi).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.bmi).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.bmi).isError, isFalse);
     });
 
     test(
       // Regression test for the same "stuck true forever" bug class fixed
-      // for isSaveError (roadmap 2.1.4 general notes, 2026-09-19): isBmiSaved
+      // for isSaveError (roadmap 2.1.4 general notes, 2026-09-19): calculatorStatus(CalculatorIds.bmi).isSaved
       // must revert to false ~2s after a successful save so the page's
       // listenWhen previous-vs-current true-transition check can fire again
       // for a later successful calculation.
-      'on success: isBmiSaved reverts to false after the auto-close delay',
+      'on success: calculatorStatus(CalculatorIds.bmi).isSaved reverts to false after the auto-close delay',
       () async {
         await cubit.init(patientId);
 
         await cubit.saveBmiCalculation();
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isBmiSaved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.bmi).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isBmiSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.bmi).isSaved, isFalse);
       },
     );
   });
@@ -1149,8 +1150,8 @@ void main() {
     });
 
     test(
-      'on success: sets isEnergyExpenditureSaved true and clears '
-      'isSavingEnergyExpenditure',
+      'on success: sets calculatorStatus(CalculatorIds.energyExpenditure).isSaved true and clears '
+      'calculatorStatus(CalculatorIds.energyExpenditure).isSaving',
       () async {
         await cubit.init(patientId);
 
@@ -1159,15 +1160,15 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnergyExpenditureSaved, isTrue);
-        expect(state.isSavingEnergyExpenditure, isFalse);
-        expect(state.isEnergyExpenditureSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isEnergyExpenditureSaveError/'
-      'energyExpenditureSaveErrorMessage and clears isSavingEnergyExpenditure',
+      'on error: sets calculatorStatus(CalculatorIds.energyExpenditure).isError/'
+      'calculatorStatus(CalculatorIds.energyExpenditure).errorMessage and clears calculatorStatus(CalculatorIds.energyExpenditure).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveEnergyExpenditureCalculation.resultToReturn = Error(
@@ -1179,18 +1180,18 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnergyExpenditureSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isError, isTrue);
         expect(
-          state.energyExpenditureSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.energyExpenditure).errorMessage,
           "Não foi possível salvar o cálculo de gasto energético. Tente novamente.",
         );
-        expect(state.isSavingEnergyExpenditure, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isSaving, isFalse);
       },
     );
 
     test(
-      'closedEnergyExpenditureErrorModal() resets '
-      'isEnergyExpenditureSaveError/energyExpenditureSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.energyExpenditure) resets '
+      'calculatorStatus(CalculatorIds.energyExpenditure).isError/calculatorStatus(CalculatorIds.energyExpenditure).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveEnergyExpenditureCalculation.resultToReturn = Error(
@@ -1201,22 +1202,22 @@ void main() {
         );
 
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isEnergyExpenditureSaveError,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.energyExpenditure).isError,
           isTrue,
         );
 
-        cubit.closedEnergyExpenditureErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.energyExpenditure);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnergyExpenditureSaveError, isFalse);
-        expect(state.energyExpenditureSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.energyExpenditure).errorMessage, isNull);
       },
     );
 
     test(
-      // Regression test: see closedBmiErrorModal() equivalent above.
-      'closedEnergyExpenditureErrorModal() preserves unrelated in-flight '
-      'calculator save state (e.g. isEnteralNutritionDrippingSaved)',
+      // Regression test: see closedCalculatorErrorModal(CalculatorIds.bmi) equivalent above.
+      'closedCalculatorErrorModal(CalculatorIds.energyExpenditure) preserves unrelated in-flight '
+      'calculator save state (e.g. calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved)',
       () async {
         await cubit.init(patientId);
 
@@ -1226,7 +1227,7 @@ void main() {
         );
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionDrippingSaved,
+              .calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved,
           isTrue,
         );
 
@@ -1236,10 +1237,10 @@ void main() {
         await cubit.saveEnergyExpenditureCalculation(
           formula: EnergyExpenditureFormulaEnum.pocket,
         );
-        cubit.closedEnergyExpenditureErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.energyExpenditure);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionDrippingSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved, isTrue);
       },
     );
 
@@ -1252,18 +1253,18 @@ void main() {
       );
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingEnergyExpenditure, isFalse);
-      expect(state.isEnergyExpenditureSaved, isFalse);
-      expect(state.isEnergyExpenditureSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isError, isFalse);
     });
 
     test(
       // Regression test for the same "stuck true forever" bug class fixed
-      // for isBmiSaved/isSaveError: isEnergyExpenditureSaved must revert to
+      // for calculatorStatus(CalculatorIds.bmi).isSaved/isSaveError: calculatorStatus(CalculatorIds.energyExpenditure).isSaved must revert to
       // false ~2s after a successful save so the page's listenWhen
       // previous-vs-current true-transition check can fire again for a
       // later successful calculation.
-      'on success: isEnergyExpenditureSaved reverts to false after the '
+      'on success: calculatorStatus(CalculatorIds.energyExpenditure).isSaved reverts to false after the '
       'auto-close delay',
       () async {
         await cubit.init(patientId);
@@ -1272,22 +1273,22 @@ void main() {
           formula: EnergyExpenditureFormulaEnum.pocket,
         );
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isEnergyExpenditureSaved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.energyExpenditure).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnergyExpenditureSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.energyExpenditure).isSaved, isFalse);
       },
     );
   });
 
   group('saveNitrogenBalanceCalculation', () {
     test(
-      'on success: sets isNitrogenBalanceSaved true and clears '
-      'isSavingNitrogenBalance',
+      'on success: sets calculatorStatus(CalculatorIds.nitrogenBalance).isSaved true and clears '
+      'calculatorStatus(CalculatorIds.nitrogenBalance).isSaving',
       () async {
         await cubit.init(patientId);
 
@@ -1297,15 +1298,15 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isNitrogenBalanceSaved, isTrue);
-        expect(state.isSavingNitrogenBalance, isFalse);
-        expect(state.isNitrogenBalanceSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nitrogenBalance).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.nitrogenBalance).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nitrogenBalance).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isNitrogenBalanceSaveError/'
-      'nitrogenBalanceSaveErrorMessage and clears isSavingNitrogenBalance',
+      'on error: sets calculatorStatus(CalculatorIds.nitrogenBalance).isError/'
+      'calculatorStatus(CalculatorIds.nitrogenBalance).errorMessage and clears calculatorStatus(CalculatorIds.nitrogenBalance).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveNitrogenBalanceCalculation.resultToReturn = Error(
@@ -1318,18 +1319,18 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isNitrogenBalanceSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.nitrogenBalance).isError, isTrue);
         expect(
-          state.nitrogenBalanceSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.nitrogenBalance).errorMessage,
           "Não foi possível salvar o balanço nitrogenado. Tente novamente.",
         );
-        expect(state.isSavingNitrogenBalance, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nitrogenBalance).isSaving, isFalse);
       },
     );
 
     test(
-      'closedNitrogenBalanceErrorModal() resets '
-      'isNitrogenBalanceSaveError/nitrogenBalanceSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.nitrogenBalance) resets '
+      'calculatorStatus(CalculatorIds.nitrogenBalance).isError/calculatorStatus(CalculatorIds.nitrogenBalance).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveNitrogenBalanceCalculation.resultToReturn = Error(
@@ -1341,22 +1342,22 @@ void main() {
         );
 
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isNitrogenBalanceSaveError,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.nitrogenBalance).isError,
           isTrue,
         );
 
-        cubit.closedNitrogenBalanceErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.nitrogenBalance);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isNitrogenBalanceSaveError, isFalse);
-        expect(state.nitrogenBalanceSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.nitrogenBalance).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nitrogenBalance).errorMessage, isNull);
       },
     );
 
     test(
-      // Regression test: see closedBmiErrorModal() equivalent above.
-      'closedNitrogenBalanceErrorModal() preserves unrelated in-flight '
-      'calculator save state (e.g. isEnteralNutritionDrippingSaved)',
+      // Regression test: see closedCalculatorErrorModal(CalculatorIds.bmi) equivalent above.
+      'closedCalculatorErrorModal(CalculatorIds.nitrogenBalance) preserves unrelated in-flight '
+      'calculator save state (e.g. calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved)',
       () async {
         await cubit.init(patientId);
 
@@ -1366,7 +1367,7 @@ void main() {
         );
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionDrippingSaved,
+              .calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved,
           isTrue,
         );
 
@@ -1377,15 +1378,15 @@ void main() {
           ingestedProtein: 90,
           urineNitrogen24h: 10,
         );
-        cubit.closedNitrogenBalanceErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.nitrogenBalance);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionDrippingSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved, isTrue);
       },
     );
 
     test(
-      'on success: isNitrogenBalanceSaved reverts to false after the '
+      'on success: calculatorStatus(CalculatorIds.nitrogenBalance).isSaved reverts to false after the '
       'auto-close delay',
       () async {
         await cubit.init(patientId);
@@ -1395,14 +1396,14 @@ void main() {
           urineNitrogen24h: 10,
         );
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isNitrogenBalanceSaved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.nitrogenBalance).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isNitrogenBalanceSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nitrogenBalance).isSaved, isFalse);
       },
     );
   });
@@ -1421,8 +1422,8 @@ void main() {
     });
 
     test(
-      'on success: sets isProteinNeedsSaved true and clears '
-      'isSavingProteinNeeds',
+      'on success: sets calculatorStatus(CalculatorIds.proteinNeeds).isSaved true and clears '
+      'calculatorStatus(CalculatorIds.proteinNeeds).isSaving',
       () async {
         await cubit.init(patientId);
 
@@ -1431,15 +1432,15 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isProteinNeedsSaved, isTrue);
-        expect(state.isSavingProteinNeeds, isFalse);
-        expect(state.isProteinNeedsSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isProteinNeedsSaveError/proteinNeedsSaveErrorMessage '
-      'and clears isSavingProteinNeeds',
+      'on error: sets calculatorStatus(CalculatorIds.proteinNeeds).isError/calculatorStatus(CalculatorIds.proteinNeeds).errorMessage '
+      'and clears calculatorStatus(CalculatorIds.proteinNeeds).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveProteinNeedsCalculation.resultToReturn = Error("db failure");
@@ -1449,18 +1450,18 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isProteinNeedsSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isError, isTrue);
         expect(
-          state.proteinNeedsSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.proteinNeeds).errorMessage,
           "Não foi possível salvar o cálculo de necessidade proteica. Tente novamente.",
         );
-        expect(state.isSavingProteinNeeds, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isSaving, isFalse);
       },
     );
 
     test(
-      'closedProteinNeedsErrorModal() resets '
-      'isProteinNeedsSaveError/proteinNeedsSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.proteinNeeds) resets '
+      'calculatorStatus(CalculatorIds.proteinNeeds).isError/calculatorStatus(CalculatorIds.proteinNeeds).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveProteinNeedsCalculation.resultToReturn = Error("db failure");
@@ -1469,22 +1470,22 @@ void main() {
         );
 
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isProteinNeedsSaveError,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.proteinNeeds).isError,
           isTrue,
         );
 
-        cubit.closedProteinNeedsErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.proteinNeeds);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isProteinNeedsSaveError, isFalse);
-        expect(state.proteinNeedsSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.proteinNeeds).errorMessage, isNull);
       },
     );
 
     test(
-      // Regression test: see closedBmiErrorModal() equivalent above.
-      'closedProteinNeedsErrorModal() preserves unrelated in-flight '
-      'calculator save state (e.g. isEnteralNutritionDrippingSaved)',
+      // Regression test: see closedCalculatorErrorModal(CalculatorIds.bmi) equivalent above.
+      'closedCalculatorErrorModal(CalculatorIds.proteinNeeds) preserves unrelated in-flight '
+      'calculator save state (e.g. calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved)',
       () async {
         await cubit.init(patientId);
 
@@ -1494,7 +1495,7 @@ void main() {
         );
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionDrippingSaved,
+              .calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved,
           isTrue,
         );
 
@@ -1502,10 +1503,10 @@ void main() {
         await cubit.saveProteinNeedsCalculation(
           patientState: PatientState.healthy,
         );
-        cubit.closedProteinNeedsErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.proteinNeeds);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionDrippingSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved, isTrue);
       },
     );
 
@@ -1518,13 +1519,13 @@ void main() {
       );
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingProteinNeeds, isFalse);
-      expect(state.isProteinNeedsSaved, isFalse);
-      expect(state.isProteinNeedsSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isError, isFalse);
     });
 
     test(
-      'on success: isProteinNeedsSaved reverts to false after the '
+      'on success: calculatorStatus(CalculatorIds.proteinNeeds).isSaved reverts to false after the '
       'auto-close delay',
       () async {
         await cubit.init(patientId);
@@ -1533,14 +1534,14 @@ void main() {
           patientState: PatientState.healthy,
         );
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isProteinNeedsSaved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.proteinNeeds).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isProteinNeedsSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.proteinNeeds).isSaved, isFalse);
       },
     );
   });
@@ -1559,7 +1560,7 @@ void main() {
     });
 
     test(
-      'on success: sets isWaterNeedsSaved true and clears isSavingWaterNeeds',
+      'on success: sets calculatorStatus(CalculatorIds.waterNeeds).isSaved true and clears calculatorStatus(CalculatorIds.waterNeeds).isSaving',
       () async {
         fakeLoad.formToReturn = EditPatientFormEntity(
           firstName: "Ana",
@@ -1572,15 +1573,15 @@ void main() {
         await cubit.saveWaterNeedsCalculation();
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isWaterNeedsSaved, isTrue);
-        expect(state.isSavingWaterNeeds, isFalse);
-        expect(state.isWaterNeedsSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.waterNeeds).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.waterNeeds).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.waterNeeds).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isWaterNeedsSaveError/waterNeedsSaveErrorMessage and '
-      'clears isSavingWaterNeeds',
+      'on error: sets calculatorStatus(CalculatorIds.waterNeeds).isError/calculatorStatus(CalculatorIds.waterNeeds).errorMessage and '
+      'clears calculatorStatus(CalculatorIds.waterNeeds).isSaving',
       () async {
         fakeLoad.formToReturn = EditPatientFormEntity(
           firstName: "Ana",
@@ -1594,18 +1595,18 @@ void main() {
         await cubit.saveWaterNeedsCalculation();
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isWaterNeedsSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.waterNeeds).isError, isTrue);
         expect(
-          state.waterNeedsSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.waterNeeds).errorMessage,
           "Não foi possível salvar o cálculo de necessidade hídrica. Tente novamente.",
         );
-        expect(state.isSavingWaterNeeds, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.waterNeeds).isSaving, isFalse);
       },
     );
 
     test(
-      'closedWaterNeedsErrorModal() resets isWaterNeedsSaveError/'
-      'waterNeedsSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.waterNeeds) resets calculatorStatus(CalculatorIds.waterNeeds).isError/'
+      'calculatorStatus(CalculatorIds.waterNeeds).errorMessage',
       () async {
         fakeLoad.formToReturn = EditPatientFormEntity(
           firstName: "Ana",
@@ -1618,15 +1619,15 @@ void main() {
         await cubit.saveWaterNeedsCalculation();
 
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isWaterNeedsSaveError,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.waterNeeds).isError,
           isTrue,
         );
 
-        cubit.closedWaterNeedsErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.waterNeeds);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isWaterNeedsSaveError, isFalse);
-        expect(state.waterNeedsSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.waterNeeds).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.waterNeeds).errorMessage, isNull);
       },
     );
 
@@ -1643,9 +1644,9 @@ void main() {
       await cubit.saveWaterNeedsCalculation();
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingWaterNeeds, isFalse);
-      expect(state.isWaterNeedsSaved, isFalse);
-      expect(state.isWaterNeedsSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.waterNeeds).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.waterNeeds).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.waterNeeds).isError, isFalse);
     });
 
     test('no age: does nothing', () async {
@@ -1659,13 +1660,13 @@ void main() {
       await cubit.saveWaterNeedsCalculation();
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingWaterNeeds, isFalse);
-      expect(state.isWaterNeedsSaved, isFalse);
-      expect(state.isWaterNeedsSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.waterNeeds).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.waterNeeds).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.waterNeeds).isError, isFalse);
     });
 
     test(
-      'on success: isWaterNeedsSaved reverts to false after the auto-close '
+      'on success: calculatorStatus(CalculatorIds.waterNeeds).isSaved reverts to false after the auto-close '
       'delay',
       () async {
         fakeLoad.formToReturn = EditPatientFormEntity(
@@ -1678,22 +1679,22 @@ void main() {
 
         await cubit.saveWaterNeedsCalculation();
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isWaterNeedsSaved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.waterNeeds).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isWaterNeedsSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.waterNeeds).isSaved, isFalse);
       },
     );
   });
 
   group('saveEnteralNutritionDrippingCalculation', () {
     test(
-      'on success: sets isEnteralNutritionDrippingSaved true and clears '
-      'isSavingEnteralNutritionDripping',
+      'on success: sets calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved true and clears '
+      'calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaving',
       () async {
         await cubit.init(patientId);
 
@@ -1703,16 +1704,16 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionDrippingSaved, isTrue);
-        expect(state.isSavingEnteralNutritionDripping, isFalse);
-        expect(state.isEnteralNutritionDrippingSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isEnteralNutritionDrippingSaveError/'
-      'enteralNutritionDrippingSaveErrorMessage and clears '
-      'isSavingEnteralNutritionDripping',
+      'on error: sets calculatorStatus(CalculatorIds.enteralNutritionDripping).isError/'
+      'calculatorStatus(CalculatorIds.enteralNutritionDripping).errorMessage and clears '
+      'calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveEnteralNutritionDrippingCalculation.resultToReturn = Error(
@@ -1725,19 +1726,19 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionDrippingSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isError, isTrue);
         expect(
-          state.enteralNutritionDrippingSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.enteralNutritionDripping).errorMessage,
           "Não foi possível salvar o cálculo de gotejamento. Tente novamente.",
         );
-        expect(state.isSavingEnteralNutritionDripping, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaving, isFalse);
       },
     );
 
     test(
-      'closedEnteralNutritionDrippingErrorModal() resets '
-      'isEnteralNutritionDrippingSaveError/'
-      'enteralNutritionDrippingSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.enteralNutritionDripping) resets '
+      'calculatorStatus(CalculatorIds.enteralNutritionDripping).isError/'
+      'calculatorStatus(CalculatorIds.enteralNutritionDripping).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveEnteralNutritionDrippingCalculation.resultToReturn = Error(
@@ -1750,20 +1751,20 @@ void main() {
 
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionDrippingSaveError,
+              .calculatorStatus(CalculatorIds.enteralNutritionDripping).isError,
           isTrue,
         );
 
-        cubit.closedEnteralNutritionDrippingErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.enteralNutritionDripping);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionDrippingSaveError, isFalse);
-        expect(state.enteralNutritionDrippingSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).errorMessage, isNull);
       },
     );
 
     test(
-      'on success: isEnteralNutritionDrippingSaved reverts to false after '
+      'on success: calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved reverts to false after '
       'the auto-close delay',
       () async {
         await cubit.init(patientId);
@@ -1774,22 +1775,22 @@ void main() {
         );
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionDrippingSaved,
+              .calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionDrippingSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionDripping).isSaved, isFalse);
       },
     );
   });
 
   group('saveEnteralNutritionSpeedCalculation', () {
     test(
-      'on success: sets isEnteralNutritionSpeedSaved true and clears '
-      'isSavingEnteralNutritionSpeed',
+      'on success: sets calculatorStatus(CalculatorIds.enteralNutritionSpeed).isSaved true and clears '
+      'calculatorStatus(CalculatorIds.enteralNutritionSpeed).isSaving',
       () async {
         await cubit.init(patientId);
 
@@ -1798,16 +1799,16 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionSpeedSaved, isTrue);
-        expect(state.isSavingEnteralNutritionSpeed, isFalse);
-        expect(state.isEnteralNutritionSpeedSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionSpeed).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionSpeed).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionSpeed).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isEnteralNutritionSpeedSaveError/'
-      'enteralNutritionSpeedSaveErrorMessage and clears '
-      'isSavingEnteralNutritionSpeed',
+      'on error: sets calculatorStatus(CalculatorIds.enteralNutritionSpeed).isError/'
+      'calculatorStatus(CalculatorIds.enteralNutritionSpeed).errorMessage and clears '
+      'calculatorStatus(CalculatorIds.enteralNutritionSpeed).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveEnteralNutritionSpeedCalculation.resultToReturn = Error(
@@ -1819,19 +1820,19 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionSpeedSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionSpeed).isError, isTrue);
         expect(
-          state.enteralNutritionSpeedSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.enteralNutritionSpeed).errorMessage,
           "Não foi possível salvar o cálculo de velocidade de infusão. "
           "Tente novamente.",
         );
-        expect(state.isSavingEnteralNutritionSpeed, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionSpeed).isSaving, isFalse);
       },
     );
 
     test(
-      'closedEnteralNutritionSpeedErrorModal() resets '
-      'isEnteralNutritionSpeedSaveError/enteralNutritionSpeedSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.enteralNutritionSpeed) resets '
+      'calculatorStatus(CalculatorIds.enteralNutritionSpeed).isError/calculatorStatus(CalculatorIds.enteralNutritionSpeed).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveEnteralNutritionSpeedCalculation.resultToReturn = Error(
@@ -1843,20 +1844,20 @@ void main() {
 
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionSpeedSaveError,
+              .calculatorStatus(CalculatorIds.enteralNutritionSpeed).isError,
           isTrue,
         );
 
-        cubit.closedEnteralNutritionSpeedErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.enteralNutritionSpeed);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionSpeedSaveError, isFalse);
-        expect(state.enteralNutritionSpeedSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionSpeed).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionSpeed).errorMessage, isNull);
       },
     );
 
     test(
-      'on success: isEnteralNutritionSpeedSaved reverts to false after the '
+      'on success: calculatorStatus(CalculatorIds.enteralNutritionSpeed).isSaved reverts to false after the '
       'auto-close delay',
       () async {
         await cubit.init(patientId);
@@ -1866,22 +1867,22 @@ void main() {
         );
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionSpeedSaved,
+              .calculatorStatus(CalculatorIds.enteralNutritionSpeed).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionSpeedSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionSpeed).isSaved, isFalse);
       },
     );
   });
 
   group('saveEnteralNutritionVolumeCalculation', () {
     test(
-      'on success: sets isEnteralNutritionVolumeSaved true and clears '
-      'isSavingEnteralNutritionVolume',
+      'on success: sets calculatorStatus(CalculatorIds.enteralNutritionVolume).isSaved true and clears '
+      'calculatorStatus(CalculatorIds.enteralNutritionVolume).isSaving',
       () async {
         await cubit.init(patientId);
 
@@ -1891,16 +1892,16 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionVolumeSaved, isTrue);
-        expect(state.isSavingEnteralNutritionVolume, isFalse);
-        expect(state.isEnteralNutritionVolumeSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionVolume).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionVolume).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionVolume).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isEnteralNutritionVolumeSaveError/'
-      'enteralNutritionVolumeSaveErrorMessage and clears '
-      'isSavingEnteralNutritionVolume',
+      'on error: sets calculatorStatus(CalculatorIds.enteralNutritionVolume).isError/'
+      'calculatorStatus(CalculatorIds.enteralNutritionVolume).errorMessage and clears '
+      'calculatorStatus(CalculatorIds.enteralNutritionVolume).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveEnteralNutritionVolumeCalculation.resultToReturn = Error(
@@ -1913,19 +1914,19 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionVolumeSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionVolume).isError, isTrue);
         expect(
-          state.enteralNutritionVolumeSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.enteralNutritionVolume).errorMessage,
           "Não foi possível salvar o cálculo de volume total. Tente novamente.",
         );
-        expect(state.isSavingEnteralNutritionVolume, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionVolume).isSaving, isFalse);
       },
     );
 
     test(
-      'closedEnteralNutritionVolumeErrorModal() resets '
-      'isEnteralNutritionVolumeSaveError/'
-      'enteralNutritionVolumeSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.enteralNutritionVolume) resets '
+      'calculatorStatus(CalculatorIds.enteralNutritionVolume).isError/'
+      'calculatorStatus(CalculatorIds.enteralNutritionVolume).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveEnteralNutritionVolumeCalculation.resultToReturn = Error(
@@ -1938,20 +1939,20 @@ void main() {
 
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionVolumeSaveError,
+              .calculatorStatus(CalculatorIds.enteralNutritionVolume).isError,
           isTrue,
         );
 
-        cubit.closedEnteralNutritionVolumeErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.enteralNutritionVolume);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionVolumeSaveError, isFalse);
-        expect(state.enteralNutritionVolumeSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionVolume).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionVolume).errorMessage, isNull);
       },
     );
 
     test(
-      'on success: isEnteralNutritionVolumeSaved reverts to false after the '
+      'on success: calculatorStatus(CalculatorIds.enteralNutritionVolume).isSaved reverts to false after the '
       'auto-close delay',
       () async {
         await cubit.init(patientId);
@@ -1962,14 +1963,14 @@ void main() {
         );
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isEnteralNutritionVolumeSaved,
+              .calculatorStatus(CalculatorIds.enteralNutritionVolume).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isEnteralNutritionVolumeSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.enteralNutritionVolume).isSaved, isFalse);
       },
     );
   });
@@ -1988,24 +1989,24 @@ void main() {
     });
 
     test(
-      'on success: sets isGlucoseInfusionRateSaved true and clears '
-      'isSavingGlucoseInfusionRate',
+      'on success: sets calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaved true and clears '
+      'calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaving',
       () async {
         await cubit.init(patientId);
 
         await cubit.saveGlucoseInfusionRateCalculation(totalGlucose: 50);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isGlucoseInfusionRateSaved, isTrue);
-        expect(state.isSavingGlucoseInfusionRate, isFalse);
-        expect(state.isGlucoseInfusionRateSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isGlucoseInfusionRateSaveError/'
-      'glucoseInfusionRateSaveErrorMessage and clears '
-      'isSavingGlucoseInfusionRate',
+      'on error: sets calculatorStatus(CalculatorIds.glucoseInfusionRate).isError/'
+      'calculatorStatus(CalculatorIds.glucoseInfusionRate).errorMessage and clears '
+      'calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveGlucoseInfusionRateCalculation.resultToReturn = Error(
@@ -2015,18 +2016,18 @@ void main() {
         await cubit.saveGlucoseInfusionRateCalculation(totalGlucose: 50);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isGlucoseInfusionRateSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isError, isTrue);
         expect(
-          state.glucoseInfusionRateSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.glucoseInfusionRate).errorMessage,
           "Não foi possível salvar o cálculo de TIG. Tente novamente.",
         );
-        expect(state.isSavingGlucoseInfusionRate, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaving, isFalse);
       },
     );
 
     test(
-      'closedGlucoseInfusionRateErrorModal() resets '
-      'isGlucoseInfusionRateSaveError/glucoseInfusionRateSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.glucoseInfusionRate) resets '
+      'calculatorStatus(CalculatorIds.glucoseInfusionRate).isError/calculatorStatus(CalculatorIds.glucoseInfusionRate).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveGlucoseInfusionRateCalculation.resultToReturn = Error(
@@ -2036,15 +2037,15 @@ void main() {
 
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isGlucoseInfusionRateSaveError,
+              .calculatorStatus(CalculatorIds.glucoseInfusionRate).isError,
           isTrue,
         );
 
-        cubit.closedGlucoseInfusionRateErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.glucoseInfusionRate);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isGlucoseInfusionRateSaveError, isFalse);
-        expect(state.glucoseInfusionRateSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).errorMessage, isNull);
       },
     );
 
@@ -2055,27 +2056,27 @@ void main() {
       await cubit.saveGlucoseInfusionRateCalculation(totalGlucose: 50);
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingGlucoseInfusionRate, isFalse);
-      expect(state.isGlucoseInfusionRateSaved, isFalse);
-      expect(state.isGlucoseInfusionRateSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isError, isFalse);
     });
 
     test(
-      'on success: isGlucoseInfusionRateSaved reverts to false after the '
+      'on success: calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaved reverts to false after the '
       'auto-close delay',
       () async {
         await cubit.init(patientId);
 
         await cubit.saveGlucoseInfusionRateCalculation(totalGlucose: 50);
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isGlucoseInfusionRateSaved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isGlucoseInfusionRateSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.glucoseInfusionRate).isSaved, isFalse);
       },
     );
   });
@@ -2101,24 +2102,24 @@ void main() {
     });
 
     test(
-      'on success: sets isWeightLossClassificationSaved true and clears '
-      'isSavingWeightLossClassification',
+      'on success: sets calculatorStatus(CalculatorIds.weightLossClassification).isSaved true and clears '
+      'calculatorStatus(CalculatorIds.weightLossClassification).isSaving',
       () async {
         await cubit.init(patientId);
 
         await cubit.saveWeightLossClassificationCalculation();
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isWeightLossClassificationSaved, isTrue);
-        expect(state.isSavingWeightLossClassification, isFalse);
-        expect(state.isWeightLossClassificationSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isWeightLossClassificationSaveError/'
-      'weightLossClassificationSaveErrorMessage and clears '
-      'isSavingWeightLossClassification',
+      'on error: sets calculatorStatus(CalculatorIds.weightLossClassification).isError/'
+      'calculatorStatus(CalculatorIds.weightLossClassification).errorMessage and clears '
+      'calculatorStatus(CalculatorIds.weightLossClassification).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveWeightLossClassificationCalculation.resultToReturn = Error(
@@ -2128,19 +2129,19 @@ void main() {
         await cubit.saveWeightLossClassificationCalculation();
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isWeightLossClassificationSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isError, isTrue);
         expect(
-          state.weightLossClassificationSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.weightLossClassification).errorMessage,
           "Não foi possível salvar a classificação de perda de peso. Tente novamente.",
         );
-        expect(state.isSavingWeightLossClassification, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isSaving, isFalse);
       },
     );
 
     test(
-      'closedWeightLossClassificationErrorModal() resets '
-      'isWeightLossClassificationSaveError/'
-      'weightLossClassificationSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.weightLossClassification) resets '
+      'calculatorStatus(CalculatorIds.weightLossClassification).isError/'
+      'calculatorStatus(CalculatorIds.weightLossClassification).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveWeightLossClassificationCalculation.resultToReturn = Error(
@@ -2150,15 +2151,15 @@ void main() {
 
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isWeightLossClassificationSaveError,
+              .calculatorStatus(CalculatorIds.weightLossClassification).isError,
           isTrue,
         );
 
-        cubit.closedWeightLossClassificationErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.weightLossClassification);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isWeightLossClassificationSaveError, isFalse);
-        expect(state.weightLossClassificationSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.weightLossClassification).errorMessage, isNull);
       },
     );
 
@@ -2177,13 +2178,13 @@ void main() {
       await cubit.saveWeightLossClassificationCalculation();
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingWeightLossClassification, isFalse);
-      expect(state.isWeightLossClassificationSaved, isFalse);
-      expect(state.isWeightLossClassificationSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isError, isFalse);
     });
 
     test(
-      'on success: isWeightLossClassificationSaved reverts to false after '
+      'on success: calculatorStatus(CalculatorIds.weightLossClassification).isSaved reverts to false after '
       'the auto-close delay',
       () async {
         await cubit.init(patientId);
@@ -2191,21 +2192,21 @@ void main() {
         await cubit.saveWeightLossClassificationCalculation();
         expect(
           (cubit.state as PatientDetailsStateLoaded)
-              .isWeightLossClassificationSaved,
+              .calculatorStatus(CalculatorIds.weightLossClassification).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isWeightLossClassificationSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.weightLossClassification).isSaved, isFalse);
       },
     );
   });
 
   group('saveMustCalculation', () {
     test(
-      'on success: sets isMustSaved true and clears isSavingMust',
+      'on success: sets calculatorStatus(CalculatorIds.must).isSaved true and clears calculatorStatus(CalculatorIds.must).isSaving',
       () async {
         await cubit.init(patientId);
 
@@ -2218,15 +2219,15 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isMustSaved, isTrue);
-        expect(state.isSavingMust, isFalse);
-        expect(state.isMustSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.must).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.must).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.must).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isMustSaveError/mustSaveErrorMessage and clears '
-      'isSavingMust',
+      'on error: sets calculatorStatus(CalculatorIds.must).isError/calculatorStatus(CalculatorIds.must).errorMessage and clears '
+      'calculatorStatus(CalculatorIds.must).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveMustCalculation.resultToReturn = Error("db failure");
@@ -2240,17 +2241,17 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isMustSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.must).isError, isTrue);
         expect(
-          state.mustSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.must).errorMessage,
           "Não foi possível salvar a triagem MUST. Tente novamente.",
         );
-        expect(state.isSavingMust, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.must).isSaving, isFalse);
       },
     );
 
     test(
-      'closedMustErrorModal() resets isMustSaveError/mustSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.must) resets calculatorStatus(CalculatorIds.must).isError/calculatorStatus(CalculatorIds.must).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveMustCalculation.resultToReturn = Error("db failure");
@@ -2263,20 +2264,20 @@ void main() {
         );
 
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isMustSaveError,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.must).isError,
           isTrue,
         );
 
-        cubit.closedMustErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.must);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isMustSaveError, isFalse);
-        expect(state.mustSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.must).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.must).errorMessage, isNull);
       },
     );
 
     test(
-      'on success: isMustSaved reverts to false after the auto-close delay',
+      'on success: calculatorStatus(CalculatorIds.must).isSaved reverts to false after the auto-close delay',
       () async {
         await cubit.init(patientId);
 
@@ -2288,21 +2289,21 @@ void main() {
           willReduceFoodIntakeForMoreThan5Days: false,
         );
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isMustSaved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.must).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isMustSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.must).isSaved, isFalse);
       },
     );
   });
 
   group('saveNrs2002Calculation', () {
     test(
-      'on success: sets isNrs2002Saved true and clears isSavingNrs2002',
+      'on success: sets calculatorStatus(CalculatorIds.nrs2002).isSaved true and clears calculatorStatus(CalculatorIds.nrs2002).isSaving',
       () async {
         fakeLoad.formToReturn = EditPatientFormEntity(
           firstName: "Ana",
@@ -2322,9 +2323,9 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isNrs2002Saved, isTrue);
-        expect(state.isSavingNrs2002, isFalse);
-        expect(state.isNrs2002SaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nrs2002).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.nrs2002).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nrs2002).isError, isFalse);
       },
     );
 
@@ -2341,14 +2342,14 @@ void main() {
       );
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingNrs2002, isFalse);
-      expect(state.isNrs2002Saved, isFalse);
-      expect(state.isNrs2002SaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.nrs2002).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.nrs2002).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.nrs2002).isError, isFalse);
     });
 
     test(
-      'on error: sets isNrs2002SaveError/nrs2002SaveErrorMessage and clears '
-      'isSavingNrs2002',
+      'on error: sets calculatorStatus(CalculatorIds.nrs2002).isError/calculatorStatus(CalculatorIds.nrs2002).errorMessage and clears '
+      'calculatorStatus(CalculatorIds.nrs2002).isSaving',
       () async {
         fakeLoad.formToReturn = EditPatientFormEntity(
           firstName: "Ana",
@@ -2369,18 +2370,18 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isNrs2002SaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.nrs2002).isError, isTrue);
         expect(
-          state.nrs2002SaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.nrs2002).errorMessage,
           "Não foi possível salvar a triagem NRS-2002. Tente novamente.",
         );
-        expect(state.isSavingNrs2002, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nrs2002).isSaving, isFalse);
       },
     );
 
     test(
-      'closedNrs2002ErrorModal() resets isNrs2002SaveError/'
-      'nrs2002SaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.nrs2002) resets calculatorStatus(CalculatorIds.nrs2002).isError/'
+      'calculatorStatus(CalculatorIds.nrs2002).errorMessage',
       () async {
         fakeLoad.formToReturn = EditPatientFormEntity(
           firstName: "Ana",
@@ -2400,20 +2401,20 @@ void main() {
         );
 
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isNrs2002SaveError,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.nrs2002).isError,
           isTrue,
         );
 
-        cubit.closedNrs2002ErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.nrs2002);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isNrs2002SaveError, isFalse);
-        expect(state.nrs2002SaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.nrs2002).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nrs2002).errorMessage, isNull);
       },
     );
 
     test(
-      'on success: isNrs2002Saved reverts to false after the auto-close '
+      'on success: calculatorStatus(CalculatorIds.nrs2002).isSaved reverts to false after the auto-close '
       'delay',
       () async {
         fakeLoad.formToReturn = EditPatientFormEntity(
@@ -2433,22 +2434,22 @@ void main() {
           illnessSeverityClassification: Nrs2002Step2Classification.absent,
         );
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isNrs2002Saved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.nrs2002).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isNrs2002Saved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.nrs2002).isSaved, isFalse);
       },
     );
   });
 
   group('saveStrongKidsCalculation', () {
     test(
-      'on success: sets isStrongKidsSaved true and clears '
-      'isSavingStrongKids',
+      'on success: sets calculatorStatus(CalculatorIds.strongKids).isSaved true and clears '
+      'calculatorStatus(CalculatorIds.strongKids).isSaving',
       () async {
         await cubit.init(patientId);
 
@@ -2460,15 +2461,15 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isStrongKidsSaved, isTrue);
-        expect(state.isSavingStrongKids, isFalse);
-        expect(state.isStrongKidsSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.strongKids).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.strongKids).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.strongKids).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isStrongKidsSaveError/strongKidsSaveErrorMessage and '
-      'clears isSavingStrongKids',
+      'on error: sets calculatorStatus(CalculatorIds.strongKids).isError/calculatorStatus(CalculatorIds.strongKids).errorMessage and '
+      'clears calculatorStatus(CalculatorIds.strongKids).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveStrongKidsCalculation.resultToReturn = Error("db failure");
@@ -2481,18 +2482,18 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isStrongKidsSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.strongKids).isError, isTrue);
         expect(
-          state.strongKidsSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.strongKids).errorMessage,
           "Não foi possível salvar a triagem STRONG-Kids. Tente novamente.",
         );
-        expect(state.isSavingStrongKids, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.strongKids).isSaving, isFalse);
       },
     );
 
     test(
-      'closedStrongKidsErrorModal() resets isStrongKidsSaveError/'
-      'strongKidsSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.strongKids) resets calculatorStatus(CalculatorIds.strongKids).isError/'
+      'calculatorStatus(CalculatorIds.strongKids).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveStrongKidsCalculation.resultToReturn = Error("db failure");
@@ -2504,20 +2505,20 @@ void main() {
         );
 
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isStrongKidsSaveError,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.strongKids).isError,
           isTrue,
         );
 
-        cubit.closedStrongKidsErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.strongKids);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isStrongKidsSaveError, isFalse);
-        expect(state.strongKidsSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.strongKids).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.strongKids).errorMessage, isNull);
       },
     );
 
     test(
-      'on success: isStrongKidsSaved reverts to false after the auto-close '
+      'on success: calculatorStatus(CalculatorIds.strongKids).isSaved reverts to false after the auto-close '
       'delay',
       () async {
         await cubit.init(patientId);
@@ -2529,14 +2530,14 @@ void main() {
           weightLossOrGrowthDeficit: false,
         );
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isStrongKidsSaved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.strongKids).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isStrongKidsSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.strongKids).isSaved, isFalse);
       },
     );
   });
@@ -2562,7 +2563,7 @@ void main() {
     });
 
     test(
-      'on success: sets isIdealWeightSaved true, clears isSavingIdealWeight, '
+      'on success: sets calculatorStatus(CalculatorIds.idealWeight).isSaved true, clears calculatorStatus(CalculatorIds.idealWeight).isSaving, '
       'refetches weights and recomputes BMI',
       () async {
         await cubit.init(patientId);
@@ -2579,15 +2580,15 @@ void main() {
         await Future.delayed(Duration.zero);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isIdealWeightSaved, isTrue);
-        expect(state.isSavingIdealWeight, isFalse);
-        expect(state.isIdealWeightSaveError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.idealWeight).isSaved, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.idealWeight).isSaving, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.idealWeight).isError, isFalse);
       },
     );
 
     test(
-      'on error: sets isIdealWeightSaveError/idealWeightSaveErrorMessage '
-      'and clears isSavingIdealWeight',
+      'on error: sets calculatorStatus(CalculatorIds.idealWeight).isError/calculatorStatus(CalculatorIds.idealWeight).errorMessage '
+      'and clears calculatorStatus(CalculatorIds.idealWeight).isSaving',
       () async {
         await cubit.init(patientId);
         fakeSaveIdealWeightCalculation.resultToReturn = Error("db failure");
@@ -2598,18 +2599,18 @@ void main() {
         );
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isIdealWeightSaveError, isTrue);
+        expect(state.calculatorStatus(CalculatorIds.idealWeight).isError, isTrue);
         expect(
-          state.idealWeightSaveErrorMessage,
+          state.calculatorStatus(CalculatorIds.idealWeight).errorMessage,
           "Não foi possível salvar o cálculo de Peso Ideal. Tente novamente.",
         );
-        expect(state.isSavingIdealWeight, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.idealWeight).isSaving, isFalse);
       },
     );
 
     test(
-      'closedIdealWeightErrorModal() resets isIdealWeightSaveError/'
-      'idealWeightSaveErrorMessage',
+      'closedCalculatorErrorModal(CalculatorIds.idealWeight) resets calculatorStatus(CalculatorIds.idealWeight).isError/'
+      'calculatorStatus(CalculatorIds.idealWeight).errorMessage',
       () async {
         await cubit.init(patientId);
         fakeSaveIdealWeightCalculation.resultToReturn = Error("db failure");
@@ -2619,15 +2620,15 @@ void main() {
         );
 
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isIdealWeightSaveError,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.idealWeight).isError,
           isTrue,
         );
 
-        cubit.closedIdealWeightErrorModal();
+        cubit.closedCalculatorErrorModal(CalculatorIds.idealWeight);
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isIdealWeightSaveError, isFalse);
-        expect(state.idealWeightSaveErrorMessage, isNull);
+        expect(state.calculatorStatus(CalculatorIds.idealWeight).isError, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.idealWeight).errorMessage, isNull);
       },
     );
 
@@ -2641,9 +2642,9 @@ void main() {
       );
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingIdealWeight, isFalse);
-      expect(state.isIdealWeightSaved, isFalse);
-      expect(state.isIdealWeightSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.idealWeight).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.idealWeight).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.idealWeight).isError, isFalse);
     });
 
     test('no weight data: does nothing', () async {
@@ -2656,9 +2657,9 @@ void main() {
       );
 
       final state = cubit.state as PatientDetailsStateLoaded;
-      expect(state.isSavingIdealWeight, isFalse);
-      expect(state.isIdealWeightSaved, isFalse);
-      expect(state.isIdealWeightSaveError, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.idealWeight).isSaving, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.idealWeight).isSaved, isFalse);
+      expect(state.calculatorStatus(CalculatorIds.idealWeight).isError, isFalse);
     });
 
     test(
@@ -2695,7 +2696,7 @@ void main() {
     );
 
     test(
-      'on success: isIdealWeightSaved reverts to false after the '
+      'on success: calculatorStatus(CalculatorIds.idealWeight).isSaved reverts to false after the '
       'auto-close delay',
       () async {
         await cubit.init(patientId);
@@ -2709,14 +2710,14 @@ void main() {
         // saveWeight's identical precedent.
         await Future.delayed(Duration.zero);
         expect(
-          (cubit.state as PatientDetailsStateLoaded).isIdealWeightSaved,
+          (cubit.state as PatientDetailsStateLoaded).calculatorStatus(CalculatorIds.idealWeight).isSaved,
           isTrue,
         );
 
         await Future.delayed(Duration(seconds: 2, milliseconds: 100));
 
         final state = cubit.state as PatientDetailsStateLoaded;
-        expect(state.isIdealWeightSaved, isFalse);
+        expect(state.calculatorStatus(CalculatorIds.idealWeight).isSaved, isFalse);
       },
     );
   });
