@@ -17,7 +17,10 @@ enum AppDatabaseTables {
   weightLossClassifications(
     name: "WEIGHT_LOSS_CLASSIFICATIONS",
     sinceVersion: 7,
-  );
+  ),
+  screeningMust(name: "SCREENING_MUST", sinceVersion: 8),
+  screeningNrs2002(name: "SCREENING_NRS_2002", sinceVersion: 8),
+  screeningStrongKids(name: "SCREENING_STRONG_KIDS", sinceVersion: 8);
 
   final String name;
   final int sinceVersion;
@@ -233,6 +236,70 @@ enum AppDatabaseTables {
             type: .integer,
             constraints: [.notNull],
           ),
+          TableSqlField(
+            name: "classification",
+            type: .text,
+            constraints: [.notNull],
+          ),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .screeningMust:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "score", type: .integer, constraints: [.notNull]),
+          TableSqlField(
+            name: "scoreStep1",
+            type: .integer,
+            constraints: [.notNull],
+          ),
+          TableSqlField(
+            name: "scoreStep2",
+            type: .integer,
+            constraints: [.notNull],
+          ),
+          TableSqlField(
+            name: "scoreStep3",
+            type: .integer,
+            constraints: [.notNull],
+          ),
+          TableSqlField(
+            name: "classification",
+            type: .text,
+            constraints: [.notNull],
+          ),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .screeningNrs2002:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "score", type: .integer, constraints: [.notNull]),
+          TableSqlField(name: "createdAt", type: .text, constraints: [.notNull]),
+          TableSqlField(
+            name: "inputParams",
+            type: .json,
+            constraints: [.notNull],
+          ),
+        ];
+
+      case .screeningStrongKids:
+        return [
+          TableSqlField(name: "id", type: .text, constraints: [.primaryKey]),
+          TableSqlField(name: "patientId", type: .text, constraints: [.notNull]),
+          TableSqlField(name: "score", type: .integer, constraints: [.notNull]),
           TableSqlField(
             name: "classification",
             type: .text,

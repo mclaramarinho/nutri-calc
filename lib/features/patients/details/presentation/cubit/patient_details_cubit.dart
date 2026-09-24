@@ -21,6 +21,9 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._saveEnteralNutritionVolumeCalculationUseCase,
     required this._saveGlucoseInfusionRateCalculationUseCase,
     required this._saveWeightLossClassificationCalculationUseCase,
+    required this._saveMustCalculationUseCase,
+    required this._saveNrs2002CalculationUseCase,
+    required this._saveStrongKidsCalculationUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
@@ -52,6 +55,9 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   _saveGlucoseInfusionRateCalculationUseCase;
   final SaveWeightLossClassificationCalculationUseCase
   _saveWeightLossClassificationCalculationUseCase;
+  final SaveMustCalculationUseCase _saveMustCalculationUseCase;
+  final SaveNrs2002CalculationUseCase _saveNrs2002CalculationUseCase;
+  final SaveStrongKidsCalculationUseCase _saveStrongKidsCalculationUseCase;
 
   // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
@@ -272,6 +278,31 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
         current.copyWith(
           isWeightLossClassificationSaveError: false,
           weightLossClassificationSaveErrorMessage: null,
+        ),
+      );
+    });
+  }
+
+  void closedMustErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(current.copyWith(isMustSaveError: false, mustSaveErrorMessage: null));
+    });
+  }
+
+  void closedNrs2002ErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        current.copyWith(isNrs2002SaveError: false, nrs2002SaveErrorMessage: null),
+      );
+    });
+  }
+
+  void closedStrongKidsErrorModal() {
+    _executeOnStateLoaded((current) {
+      emit(
+        current.copyWith(
+          isStrongKidsSaveError: false,
+          strongKidsSaveErrorMessage: null,
         ),
       );
     });
@@ -1000,6 +1031,153 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       await Future.delayed(Duration(seconds: 2));
       _executeOnStateLoaded((latest) {
         emit(latest.copyWith(isWeightLossClassificationSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveMustCalculation({
+    required double bmi,
+    required double avgWeightLossIn3To6Months,
+    required bool severeIllnessPresent,
+    required bool reducedFoodIntakeForMoreThan5Days,
+    required bool willReduceFoodIntakeForMoreThan5Days,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(isSavingMust: true));
+
+      final res = await _saveMustCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        bmi: bmi,
+        avgWeightLossIn3To6Months: avgWeightLossIn3To6Months,
+        severeIllnessPresent: severeIllnessPresent,
+        reducedFoodIntakeForMoreThan5Days: reducedFoodIntakeForMoreThan5Days,
+        willReduceFoodIntakeForMoreThan5Days:
+            willReduceFoodIntakeForMoreThan5Days,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingMust: false,
+            isMustSaveError: true,
+            mustSaveErrorMessage:
+                "Não foi possível salvar a triagem MUST. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(isSavingMust: false, isMustSaveError: false, isMustSaved: true),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isMustSaved` back to `false`, the page's `listenWhen`
+      // previous-vs-current true-transition check would never fire again
+      // for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isMustSaved: false));
+      });
+    });
+  }
+
+  Future<void> saveNrs2002Calculation({
+    required bool isSeverelyIll,
+    required bool weightLossLast3Months,
+    required bool reducedFoodIntakeLastWeek,
+    required bool lowBmi,
+    required Nrs2002Step2Classification nutritionalStatusClassification,
+    required Nrs2002Step2Classification illnessSeverityClassification,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      if (current.form.age == null) return;
+
+      emit(current.copyWith(isSavingNrs2002: true));
+
+      final res = await _saveNrs2002CalculationUseCase(
+        patientId: current.form.patientLocalId,
+        age: current.form.age!,
+        isSeverelyIll: isSeverelyIll,
+        weightLossLast3Months: weightLossLast3Months,
+        reducedFoodIntakeLastWeek: reducedFoodIntakeLastWeek,
+        lowBmi: lowBmi,
+        nutritionalStatusClassification: nutritionalStatusClassification,
+        illnessSeverityClassification: illnessSeverityClassification,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingNrs2002: false,
+            isNrs2002SaveError: true,
+            nrs2002SaveErrorMessage:
+                "Não foi possível salvar a triagem NRS-2002. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingNrs2002: false,
+          isNrs2002SaveError: false,
+          isNrs2002Saved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isNrs2002Saved` back to `false`, the page's `listenWhen`
+      // previous-vs-current true-transition check would never fire again
+      // for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isNrs2002Saved: false));
+      });
+    });
+  }
+
+  Future<void> saveStrongKidsCalculation({
+    required bool clinicalAppearanceOfMalnutrition,
+    required bool highRiskDiseasePresent,
+    required bool reducedIntakeOrLosses,
+    required bool weightLossOrGrowthDeficit,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      emit(current.copyWith(isSavingStrongKids: true));
+
+      final res = await _saveStrongKidsCalculationUseCase(
+        patientId: current.form.patientLocalId,
+        clinicalAppearanceOfMalnutrition: clinicalAppearanceOfMalnutrition,
+        highRiskDiseasePresent: highRiskDiseasePresent,
+        reducedIntakeOrLosses: reducedIntakeOrLosses,
+        weightLossOrGrowthDeficit: weightLossOrGrowthDeficit,
+      );
+
+      if (res.isError) {
+        emit(
+          current.copyWith(
+            isSavingStrongKids: false,
+            isStrongKidsSaveError: true,
+            strongKidsSaveErrorMessage:
+                "Não foi possível salvar a triagem STRONG-Kids. Tente novamente.",
+          ),
+        );
+        return;
+      }
+
+      emit(
+        current.copyWith(
+          isSavingStrongKids: false,
+          isStrongKidsSaveError: false,
+          isStrongKidsSaved: true,
+        ),
+      );
+      // Mirrors `saveBmiCalculation`'s reset-after-delay: without resetting
+      // `isStrongKidsSaved` back to `false`, the page's `listenWhen`
+      // previous-vs-current true-transition check would never fire again
+      // for a subsequent successful calculation.
+      await Future.delayed(Duration(seconds: 2));
+      _executeOnStateLoaded((latest) {
+        emit(latest.copyWith(isStrongKidsSaved: false));
       });
     });
   }

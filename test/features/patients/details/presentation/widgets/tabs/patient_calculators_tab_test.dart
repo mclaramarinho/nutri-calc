@@ -16,14 +16,23 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/entities/glucose_infusion_rate_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/must/domain/entities/must_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/must/domain/use_cases/save_must_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/entities/nitrogen_balance_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/nrs_2002/domain/entities/nrs_2002_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/nrs_2002/domain/use_cases/save_nrs_2002_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/entities/protein_needs_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/strong_kids/domain/entities/strong_kids_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/strong_kids/domain/use_cases/save_strong_kids_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/entities/water_needs_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/entities/weight_loss_classification_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/use_cases/save_weight_loss_classification_calculation_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/must/must_classification_result.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/nrs_2002/nrs_2002_step_2_classification.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/strong_kids/strong_kids_score_classification.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss_classification.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
@@ -370,6 +379,89 @@ class _FakeSaveWeightLossClassificationCalculationUseCase
   }
 }
 
+class _FakeSaveMustCalculationUseCase implements SaveMustCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<MustCalculationEntity, String>> call({
+    required String patientId,
+    required double bmi,
+    required double avgWeightLossIn3To6Months,
+    required bool severeIllnessPresent,
+    required bool reducedFoodIntakeForMoreThan5Days,
+    required bool willReduceFoodIntakeForMoreThan5Days,
+  }) async {
+    callCount++;
+    return Ok(
+      MustCalculationEntity(
+        id: 'must-1',
+        patientId: patientId,
+        score: 0,
+        scoreStep1: 0,
+        scoreStep2: 0,
+        scoreStep3: 0,
+        classification: MustClassificationResult.lowRisk,
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
+class _FakeSaveNrs2002CalculationUseCase
+    implements SaveNrs2002CalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<Nrs2002CalculationEntity, String>> call({
+    required String patientId,
+    required int age,
+    required bool isSeverelyIll,
+    required bool weightLossLast3Months,
+    required bool reducedFoodIntakeLastWeek,
+    required bool lowBmi,
+    required Nrs2002Step2Classification nutritionalStatusClassification,
+    required Nrs2002Step2Classification illnessSeverityClassification,
+  }) async {
+    callCount++;
+    return Ok(
+      Nrs2002CalculationEntity(
+        id: 'nrs-1',
+        patientId: patientId,
+        score: 0,
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
+class _FakeSaveStrongKidsCalculationUseCase
+    implements SaveStrongKidsCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<StrongKidsCalculationEntity, String>> call({
+    required String patientId,
+    required bool clinicalAppearanceOfMalnutrition,
+    required bool highRiskDiseasePresent,
+    required bool reducedIntakeOrLosses,
+    required bool weightLossOrGrowthDeficit,
+  }) async {
+    callCount++;
+    return Ok(
+      StrongKidsCalculationEntity(
+        id: 'sk-1',
+        patientId: patientId,
+        score: 0,
+        classification: StrongKidsScoreClassification.low,
+        createdAt: DateTime.now(),
+        inputParams: const [],
+      ),
+    );
+  }
+}
+
 /// Pops via the Navigator wired to [navigatorKey], mirroring how a real
 /// GoRouter-backed AppRouter.pop() closes the DsBottomSheet's modal route -
 /// needed so DsBottomSheet.show's returned Future actually resolves in tests.
@@ -425,6 +517,9 @@ void main() {
   fakeSaveGlucoseInfusionRateCalculation;
   late _FakeSaveWeightLossClassificationCalculationUseCase
   fakeSaveWeightLossClassificationCalculation;
+  late _FakeSaveMustCalculationUseCase fakeSaveMustCalculation;
+  late _FakeSaveNrs2002CalculationUseCase fakeSaveNrs2002Calculation;
+  late _FakeSaveStrongKidsCalculationUseCase fakeSaveStrongKidsCalculation;
   late PatientDetailsCubit cubit;
   final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -449,6 +544,9 @@ void main() {
         _FakeSaveGlucoseInfusionRateCalculationUseCase();
     fakeSaveWeightLossClassificationCalculation =
         _FakeSaveWeightLossClassificationCalculationUseCase();
+    fakeSaveMustCalculation = _FakeSaveMustCalculationUseCase();
+    fakeSaveNrs2002Calculation = _FakeSaveNrs2002CalculationUseCase();
+    fakeSaveStrongKidsCalculation = _FakeSaveStrongKidsCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -475,6 +573,9 @@ void main() {
           fakeSaveGlucoseInfusionRateCalculation,
       saveWeightLossClassificationCalculationUseCase:
           fakeSaveWeightLossClassificationCalculation,
+      saveMustCalculationUseCase: fakeSaveMustCalculation,
+      saveNrs2002CalculationUseCase: fakeSaveNrs2002Calculation,
+      saveStrongKidsCalculationUseCase: fakeSaveStrongKidsCalculation,
     );
 
     getIt.registerSingleton<AppRouter>(_FakeAppRouter(navigatorKey));
@@ -595,14 +696,14 @@ void main() {
         await tester.pumpWidget(wrap());
         await tester.pumpAndSettle();
 
-        // Protein Needs and Water Needs are always relevant (roadmap 3.1 /
-        // PO inference respectively), so the relevant view is not empty even
-        // though BMI/Energy Expenditure/Nitrogen Balance don't qualify here.
+        // Protein Needs, Water Needs (always relevant) and STRONG-Kids
+        // (age < 19, added Slice 7) are relevant even though BMI/Energy
+        // Expenditure/Nitrogen Balance/MUST/NRS-2002 don't qualify here.
         expect(
           find.text('Nenhuma calculadora relevante no momento.'),
           findsNothing,
         );
-        expect(find.byType(DsListTile), findsNWidgets(2));
+        expect(find.byType(DsListTile), findsNWidgets(3));
 
         await tester.tap(find.byType(DsButton));
         await tester.pumpAndSettle();
@@ -620,10 +721,11 @@ void main() {
         // Slice 5 added 4 more calculators (Enteral Nutrition Dripping/
         // Speed/Volume, Glucose Infusion Rate), none relevant for this
         // patient (not on enteral/parenteral nutrition); Slice 6 added
-        // Weight Loss Classification (not relevant - no weights registered).
-        // All still shown by "See All": 5 pre-slice-5 tiles + 4 slice-5 +
-        // 1 slice-6.
-        expect(find.byType(DsListTile), findsNWidgets(10));
+        // Weight Loss Classification (not relevant - no weights registered);
+        // Slice 7 added MUST/NRS-2002/STRONG-Kids (3 more). All still shown
+        // by "See All": 5 pre-slice-5 tiles + 4 slice-5 + 1 slice-6 + 3
+        // slice-7.
+        expect(find.byType(DsListTile), findsNWidgets(13));
       },
     );
 
@@ -654,8 +756,10 @@ void main() {
         await tester.pumpWidget(wrap());
         await tester.pumpAndSettle();
 
-        // BMI (age >= 19) + Protein Needs/Water Needs (always relevant).
-        expect(find.byType(DsListTile), findsNWidgets(3));
+        // BMI + MUST (both age >= 19, MUST added Slice 7) + Protein
+        // Needs/Water Needs (always relevant). NRS-2002 also needs age >= 19
+        // but additionally requires `hospitalized`, not set here.
+        expect(find.byType(DsListTile), findsNWidgets(4));
         expect(find.text('IMC'), findsOneWidget);
 
         await tester.tap(find.text('IMC'));
@@ -1376,6 +1480,15 @@ void main() {
         await tester.tap(find.text('Ver todas as calculadoras'));
         await tester.pumpAndSettle();
 
+        // Slice 7's "Triagem" group (screening tools) sorts before
+        // "Classificação de Perda de Peso" in CalculatorType enum order,
+        // pushing this tile below the fixed test viewport - scroll it into
+        // view before tapping.
+        await tester.ensureVisible(
+          find.text('Classificação de Perda de Peso').last,
+        );
+        await tester.pumpAndSettle();
+
         await tester.tap(find.text('Classificação de Perda de Peso').last);
         await tester.pumpAndSettle();
 
@@ -1441,6 +1554,220 @@ void main() {
         await tester.pump(const Duration(seconds: 3));
 
         expect(fakeSaveWeightLossClassificationCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'MUST tap-flow: filling BMI/weight-loss fields, calculating and '
+      'confirming calls cubit.saveMustCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('MUST'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextFormField).at(0), '19');
+        await tester.enterText(find.byType(TextFormField).at(1), '3');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isMustSaved auto-reset delay in
+        // PatientDetailsCubit.saveMustCalculation so no pending Timer leaks
+        // past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveMustCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'NRS-2002 tap-flow: selecting both classification dropdowns, '
+      'calculating and confirming calls cubit.saveNrs2002Calculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          hospitalized: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('NRS-2002'));
+        await tester.pumpAndSettle();
+
+        final dropdowns = find.byType(
+          DropdownMenuFormField<Nrs2002Step2Classification>,
+        );
+
+        await tester.tap(dropdowns.at(0));
+        await tester.pumpAndSettle();
+        await tester
+            .tap(find.text('Ausente - estado nutricional normal').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(dropdowns.at(1));
+        await tester.pumpAndSettle();
+        await tester
+            .tap(find.text('Ausente - estado nutricional normal').last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isNrs2002Saved auto-reset delay in
+        // PatientDetailsCubit.saveNrs2002Calculation so no pending Timer
+        // leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveNrs2002Calculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'STRONG-Kids tap-flow: answering all 4 questions, calculating and '
+      'confirming calls cubit.saveStrongKidsCalculation()',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 10,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('STRONG-Kids'));
+        await tester.pumpAndSettle();
+
+        // "Calcular" starts disabled until all 4 questions are explicitly
+        // answered (RESOLVED UX decision - see StrongKidsSheetBody).
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isTrue,
+        );
+
+        for (final checkbox in find.byType(Checkbox).evaluate().toList()) {
+          await tester.tap(find.byWidget(checkbox.widget));
+          await tester.pumpAndSettle();
+        }
+
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isFalse,
+        );
+
+        await tester.tap(find.text('Calcular'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cancelar'), findsOneWidget);
+        expect(find.text('Confirmar'), findsOneWidget);
+
+        await tester.tap(find.text('Confirmar'));
+        await tester.pump();
+        // Flush the 2s isStrongKidsSaved auto-reset delay in
+        // PatientDetailsCubit.saveStrongKidsCalculation so no pending Timer
+        // leaks past the end of the test.
+        await tester.pump(const Duration(seconds: 3));
+
+        expect(fakeSaveStrongKidsCalculation.callCount, 1);
+      },
+    );
+
+    testWidgets(
+      'STRONG-Kids Calcular gating: disabled until all 4 questions are '
+      'explicitly answered - answering 3 of 4 keeps it disabled, and '
+      'answering all 4 even as "Não" enables it (nullable bool? per-question '
+      'state, not a silent default-to-false)',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 10,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('STRONG-Kids'));
+        await tester.pumpAndSettle();
+
+        // Untouched: disabled.
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isTrue,
+        );
+
+        final checkboxes = find.byType(Checkbox).evaluate().toList();
+        expect(checkboxes.length, 4);
+
+        // Answer only 3 of the 4 questions: still disabled.
+        for (final checkbox in checkboxes.take(3)) {
+          await tester.tap(find.byWidget(checkbox.widget));
+          await tester.pumpAndSettle();
+        }
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isTrue,
+        );
+
+        // Answer the 4th question, then flip every answer back to "Não"
+        // (each checkbox: unanswered -> "Sim" -> "Não") so every question
+        // ends up explicitly answered false, not just left untouched.
+        final allCheckboxes = find.byType(Checkbox).evaluate().toList();
+        await tester.tap(find.byWidget(allCheckboxes[3].widget));
+        await tester.pumpAndSettle();
+
+        for (final checkbox in find.byType(Checkbox).evaluate().toList()) {
+          await tester.tap(find.byWidget(checkbox.widget));
+          await tester.pumpAndSettle();
+        }
+
+        // All 4 questions explicitly answered "Não" (false): Calcular must
+        // enable - a missing gate would silently default each question to
+        // false and never distinguish "answered no" from "untouched".
+        expect(
+          tester
+              .widget<DsButton>(find.widgetWithText(DsButton, 'Calcular'))
+              .disabled,
+          isFalse,
+        );
       },
     );
   });

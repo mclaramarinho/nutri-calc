@@ -788,6 +788,209 @@ void main() {
     },
   );
 
+  group(
+    'SCREENING_MUST/SCREENING_NRS_2002/SCREENING_STRONG_KIDS tables '
+    'migration (real production schema, v7 -> v8)',
+    () {
+      test(
+        'fresh install (straight at v8) creates all three new screening '
+        'tables with all their declared columns',
+        () async {
+          final path = _newTempDbPath('slice7_tables_fresh_v8');
+          final service = AppDatabaseServiceImpl();
+          await service.init(dbPath: path, version: 8);
+
+          final db = await openDatabase(path);
+          try {
+            for (final table in [
+              AppDatabaseTables.screeningMust,
+              AppDatabaseTables.screeningNrs2002,
+              AppDatabaseTables.screeningStrongKids,
+            ]) {
+              final tables = await db.rawQuery(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='${table.name}'",
+              );
+              expect(tables, hasLength(1), reason: '${table.name} must exist');
+
+              final columns = await db.rawQuery(
+                'PRAGMA table_info(${table.name})',
+              );
+              expect(
+                columns.map((c) => c['name']).toSet(),
+                table.fields.map((f) => f.name).toSet(),
+                reason: '${table.name} columns must match its declared fields',
+              );
+            }
+          } finally {
+            await db.close();
+          }
+        },
+      );
+
+      test(
+        'an existing v7 database upgrading to v8 gets SCREENING_MUST, '
+        'SCREENING_NRS_2002 and SCREENING_STRONG_KIDS created whole (they '
+        'did not exist at oldVersion 7), and each is usable for real '
+        'insert/read',
+        () async {
+          final path = _newTempDbPath('slice7_tables_upgrade_v7_to_v8');
+
+          // Seed at v7: the new screening tables do not exist yet
+          // (sinceVersion 8), but WEIGHT_LOSS_CLASSIFICATIONS and the base
+          // tables do.
+          final v7Service = AppDatabaseServiceImpl();
+          await v7Service.init(dbPath: path, version: 7);
+          final insertResult = await v7Service.insert(
+            AppDatabaseTables.patient,
+            {
+              'id': 'p1',
+              'patientId': 'PID-1',
+              'firstName': 'Ana',
+              'lastName': 'Silva',
+              'birthdate': '2000-01-01',
+              'age': 26,
+              'ageUnit': 'year',
+            },
+          );
+          expect(insertResult.isOk, isTrue);
+
+          // Reopen at v8 - onUpgrade must CREATE TABLE each of the new
+          // screening tables whole (they didn't exist at oldVersion 7 -
+          // exercises onUpgrade's "table didn't exist at oldVersion" branch,
+          // mirroring NITROGEN_BALANCES/PROTEIN_NEEDS/WATER_NEEDS's v4->v5
+          // migration test).
+          final v8Service = AppDatabaseServiceImpl();
+          await v8Service.init(dbPath: path, version: 8);
+
+          // Opened with `singleInstance: false` so that closing this
+          // inspection-only connection doesn't tear down the shared,
+          // path-cached connection `v8Service` still needs below.
+          final db = await openDatabase(path, singleInstance: false);
+          try {
+            for (final table in [
+              AppDatabaseTables.screeningMust,
+              AppDatabaseTables.screeningNrs2002,
+              AppDatabaseTables.screeningStrongKids,
+            ]) {
+              final tables = await db.rawQuery(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='${table.name}'",
+              );
+              expect(
+                tables,
+                hasLength(1),
+                reason:
+                    '${table.name} table must be created via onUpgrade, '
+                    'not just onCreate',
+              );
+            }
+          } finally {
+            await db.close();
+          }
+
+          final readResult = await v8Service.read(
+            AppDatabaseTables.patient,
+            where: 'id = ?',
+            whereArgs: ['p1'],
+          );
+          expect(readResult.isOk, isTrue);
+          readResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['firstName'], 'Ana', reason: 'pre-existing data intact');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+
+          // Each new table, created via onUpgrade's "table didn't exist at
+          // oldVersion" branch, must actually be usable for real
+          // insert/read - not just present in the schema.
+          final insertMustResult = await v8Service.insert(
+            AppDatabaseTables.screeningMust,
+            {
+              'id': 'must1',
+              'patientId': 'p1',
+              'score': 0,
+              'scoreStep1': 0,
+              'scoreStep2': 0,
+              'scoreStep3': 0,
+              'classification': 'lowRisk',
+              'createdAt': '2026-09-22',
+              'inputParams': '[]',
+            },
+          );
+          expect(insertMustResult.isOk, isTrue);
+
+          final readMustResult = await v8Service.read(
+            AppDatabaseTables.screeningMust,
+            where: 'id = ?',
+            whereArgs: ['must1'],
+          );
+          expect(readMustResult.isOk, isTrue);
+          readMustResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['patientId'], 'p1');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+
+          final insertNrs2002Result = await v8Service.insert(
+            AppDatabaseTables.screeningNrs2002,
+            {
+              'id': 'nrs1',
+              'patientId': 'p1',
+              'score': 3,
+              'createdAt': '2026-09-22',
+              'inputParams': '[]',
+            },
+          );
+          expect(insertNrs2002Result.isOk, isTrue);
+
+          final readNrs2002Result = await v8Service.read(
+            AppDatabaseTables.screeningNrs2002,
+            where: 'id = ?',
+            whereArgs: ['nrs1'],
+          );
+          expect(readNrs2002Result.isOk, isTrue);
+          readNrs2002Result.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['patientId'], 'p1');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+
+          final insertStrongKidsResult = await v8Service.insert(
+            AppDatabaseTables.screeningStrongKids,
+            {
+              'id': 'sk1',
+              'patientId': 'p1',
+              'score': 0,
+              'classification': 'low',
+              'createdAt': '2026-09-22',
+              'inputParams': '[]',
+            },
+          );
+          expect(insertStrongKidsResult.isOk, isTrue);
+
+          final readStrongKidsResult = await v8Service.read(
+            AppDatabaseTables.screeningStrongKids,
+            where: 'id = ?',
+            whereArgs: ['sk1'],
+          );
+          expect(readStrongKidsResult.isOk, isTrue);
+          readStrongKidsResult.when(
+            ok: (rows) {
+              expect(rows, hasLength(1));
+              expect(rows.first['patientId'], 'p1');
+            },
+            error: (_) => fail('expected Ok'),
+          );
+        },
+      );
+    },
+  );
+
   group('Migration mechanics (onCreate/onUpgrade algorithm) against a versioned fixture', () {
     // Local fixture mirroring AppDatabaseTables' shape: a "patient"-like
     // table that exists since v1 and gains a column at v2, plus a brand new

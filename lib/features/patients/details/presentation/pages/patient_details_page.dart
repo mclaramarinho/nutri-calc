@@ -116,7 +116,25 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                           !previous.isWeightLossClassificationSaveError)) ||
                   (current.isWeightLossClassificationSaved &&
                       (previous is! PatientDetailsStateLoaded ||
-                          !previous.isWeightLossClassificationSaved))),
+                          !previous.isWeightLossClassificationSaved)) ||
+                  (current.isMustSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isMustSaveError)) ||
+                  (current.isMustSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isMustSaved)) ||
+                  (current.isNrs2002SaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isNrs2002SaveError)) ||
+                  (current.isNrs2002Saved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isNrs2002Saved)) ||
+                  (current.isStrongKidsSaveError &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isStrongKidsSaveError)) ||
+                  (current.isStrongKidsSaved &&
+                      (previous is! PatientDetailsStateLoaded ||
+                          !previous.isStrongKidsSaved))),
           listener: (context, state) {
             if (state is PatientDetailsStateLoaded && state.isSaveError) {
               DsDialog.show(
@@ -363,6 +381,72 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                 title: "Sucesso",
                 message:
                     "Cálculo de Classificação de Perda de Peso salvo com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isMustSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.mustSaveErrorMessage ??
+                    "Não foi possível salvar a triagem MUST. Tente novamente.",
+                showCloseButton: true,
+                onClose: context.read<PatientDetailsCubit>().closedMustErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isMustSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Triagem MUST salva com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isNrs2002SaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.nrs2002SaveErrorMessage ??
+                    "Não foi possível salvar a triagem NRS-2002. Tente novamente.",
+                showCloseButton: true,
+                onClose:
+                    context.read<PatientDetailsCubit>().closedNrs2002ErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isNrs2002Saved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Triagem NRS-2002 salva com sucesso.",
+                showCloseButton: false,
+                isDismissible: false,
+                duration: Duration(seconds: 2),
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isStrongKidsSaveError) {
+              DsDialog.show(
+                context,
+                title: "Erro ao salvar",
+                message:
+                    state.strongKidsSaveErrorMessage ??
+                    "Não foi possível salvar a triagem STRONG-Kids. Tente novamente.",
+                showCloseButton: true,
+                onClose: context
+                    .read<PatientDetailsCubit>()
+                    .closedStrongKidsErrorModal,
+              );
+            } else if (state is PatientDetailsStateLoaded &&
+                state.isStrongKidsSaved) {
+              DsDialog.show(
+                context,
+                title: "Sucesso",
+                message: "Triagem STRONG-Kids salva com sucesso.",
                 showCloseButton: false,
                 isDismissible: false,
                 duration: Duration(seconds: 2),

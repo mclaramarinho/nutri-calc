@@ -14,11 +14,17 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/presentation/widgets/enteral_nutrition_volume_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/glucose_infusion_rate_relevance.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/presentation/widgets/glucose_infusion_rate_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/must/domain/must_relevance.dart';
+import 'package:nutri_calc/features/calculators/must/presentation/widgets/must_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/nitrogen_balance_relevance.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/presentation/widgets/nitrogen_balance_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/nrs_2002/domain/nrs_2002_relevance.dart';
+import 'package:nutri_calc/features/calculators/nrs_2002/presentation/widgets/nrs_2002_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/presentation/widgets/calculator_list.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/protein_needs_relevance.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/presentation/widgets/protein_needs_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/strong_kids/domain/strong_kids_relevance.dart';
+import 'package:nutri_calc/features/calculators/strong_kids/presentation/widgets/strong_kids_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/water_needs_relevance.dart';
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/weight_loss_classification_relevance.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
@@ -511,6 +517,86 @@ class PatientCalculatorsTab extends StatelessWidget {
     }
   }
 
+  Future<void> _openMustBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    // The BMI field is only a convenience prefill from patient data — the
+    // tool remains fully usable (and its Calcular gate fully manual) with
+    // no BMI on file, so there is no insufficient-data pre-gate here.
+    final gathered = await DsBottomSheet.show<GatheredMustInputs?>(
+      context,
+      title: "MUST",
+      body: MustSheetBody(currentBmi: state.bmi?.value),
+      actions: null,
+    );
+
+    if (gathered != null) {
+      await cubit.saveMustCalculation(
+        bmi: gathered.bmi,
+        avgWeightLossIn3To6Months: gathered.avgWeightLossIn3To6Months,
+        severeIllnessPresent: gathered.severeIllnessPresent,
+        reducedFoodIntakeForMoreThan5Days:
+            gathered.reducedFoodIntakeForMoreThan5Days,
+        willReduceFoodIntakeForMoreThan5Days:
+            gathered.willReduceFoodIntakeForMoreThan5Days,
+      );
+    }
+  }
+
+  Future<void> _openNrs2002BottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    final age = state.form.age;
+
+    final gathered = await DsBottomSheet.show<GatheredNrs2002Inputs?>(
+      context,
+      title: "NRS-2002",
+      body: Nrs2002SheetBody(age: age),
+      actions: null,
+    );
+
+    if (gathered != null && age != null) {
+      await cubit.saveNrs2002Calculation(
+        isSeverelyIll: gathered.isSeverelyIll,
+        weightLossLast3Months: gathered.weightLossLast3Months,
+        reducedFoodIntakeLastWeek: gathered.reducedFoodIntakeLastWeek,
+        lowBmi: gathered.lowBmi,
+        nutritionalStatusClassification:
+            gathered.nutritionalStatusClassification,
+        illnessSeverityClassification: gathered.illnessSeverityClassification,
+      );
+    }
+  }
+
+  Future<void> _openStrongKidsBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    // All 4 questions are fully manual - nothing derived from patient data,
+    // so there's no insufficient-data pre-gate.
+    final gathered = await DsBottomSheet.show<GatheredStrongKidsInputs?>(
+      context,
+      title: "STRONG-Kids",
+      body: const StrongKidsSheetBody(),
+      actions: null,
+    );
+
+    if (gathered != null) {
+      await cubit.saveStrongKidsCalculation(
+        clinicalAppearanceOfMalnutrition:
+            gathered.clinicalAppearanceOfMalnutrition,
+        highRiskDiseasePresent: gathered.highRiskDiseasePresent,
+        reducedIntakeOrLosses: gathered.reducedIntakeOrLosses,
+        weightLossOrGrowthDeficit: gathered.weightLossOrGrowthDeficit,
+      );
+    }
+  }
+
   List<CalculatorDefinition> _buildDefinitions(
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
@@ -589,6 +675,27 @@ class PatientCalculatorsTab extends StatelessWidget {
         isRelevant: isWeightLossClassificationRelevant,
         onTap: (ctx) =>
             _openWeightLossClassificationBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "must",
+        type: CalculatorType.screening,
+        name: "MUST",
+        isRelevant: isMustRelevant,
+        onTap: (ctx) => _openMustBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "nrs_2002",
+        type: CalculatorType.screening,
+        name: "NRS-2002",
+        isRelevant: isNrs2002Relevant,
+        onTap: (ctx) => _openNrs2002BottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: "strong_kids",
+        type: CalculatorType.screening,
+        name: "STRONG-Kids",
+        isRelevant: isStrongKidsRelevant,
+        onTap: (ctx) => _openStrongKidsBottomSheet(ctx, cubit, state),
       ),
     ];
   }

@@ -20,14 +20,23 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/entities/glucose_infusion_rate_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/must/domain/entities/must_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/must/domain/use_cases/save_must_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/entities/nitrogen_balance_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/nrs_2002/domain/entities/nrs_2002_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/nrs_2002/domain/use_cases/save_nrs_2002_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/entities/protein_needs_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/strong_kids/domain/entities/strong_kids_calculation_entity.dart';
+import 'package:nutri_calc/features/calculators/strong_kids/domain/use_cases/save_strong_kids_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/entities/water_needs_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/entities/weight_loss_classification_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/use_cases/save_weight_loss_classification_calculation_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/nrs_2002/nrs_2002_step_2_classification.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/must/must_classification_result.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/strong_kids/strong_kids_score_classification.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss_classification.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
@@ -378,6 +387,89 @@ class _FakeSaveWeightLossClassificationCalculationUseCase
   }
 }
 
+class _FakeSaveMustCalculationUseCase implements SaveMustCalculationUseCase {
+  Result<MustCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<MustCalculationEntity, String>> call({
+    required String patientId,
+    required double bmi,
+    required double avgWeightLossIn3To6Months,
+    required bool severeIllnessPresent,
+    required bool reducedFoodIntakeForMoreThan5Days,
+    required bool willReduceFoodIntakeForMoreThan5Days,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          MustCalculationEntity(
+            id: 'must-1',
+            patientId: patientId,
+            score: 0,
+            scoreStep1: 0,
+            scoreStep2: 0,
+            scoreStep3: 0,
+            classification: MustClassificationResult.lowRisk,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
+class _FakeSaveNrs2002CalculationUseCase
+    implements SaveNrs2002CalculationUseCase {
+  Result<Nrs2002CalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<Nrs2002CalculationEntity, String>> call({
+    required String patientId,
+    required int age,
+    required bool isSeverelyIll,
+    required bool weightLossLast3Months,
+    required bool reducedFoodIntakeLastWeek,
+    required bool lowBmi,
+    required Nrs2002Step2Classification nutritionalStatusClassification,
+    required Nrs2002Step2Classification illnessSeverityClassification,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          Nrs2002CalculationEntity(
+            id: 'nrs-1',
+            patientId: patientId,
+            score: 0,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
+class _FakeSaveStrongKidsCalculationUseCase
+    implements SaveStrongKidsCalculationUseCase {
+  Result<StrongKidsCalculationEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<StrongKidsCalculationEntity, String>> call({
+    required String patientId,
+    required bool clinicalAppearanceOfMalnutrition,
+    required bool highRiskDiseasePresent,
+    required bool reducedIntakeOrLosses,
+    required bool weightLossOrGrowthDeficit,
+  }) async {
+    return resultToReturn ??
+        Ok(
+          StrongKidsCalculationEntity(
+            id: 'sk-1',
+            patientId: patientId,
+            score: 0,
+            classification: StrongKidsScoreClassification.low,
+            createdAt: DateTime.now(),
+            inputParams: const [],
+          ),
+        );
+  }
+}
+
 class _FakeCreateBodyMeasurementUseCase implements CreateBodyMeasurementUseCase {
   Result<BodyMeasurementEntity, String>? resultToReturn;
   BodyMeasurementEntity? lastCall;
@@ -419,6 +511,9 @@ void main() {
   fakeSaveGlucoseInfusionRateCalculation;
   late _FakeSaveWeightLossClassificationCalculationUseCase
   fakeSaveWeightLossClassificationCalculation;
+  late _FakeSaveMustCalculationUseCase fakeSaveMustCalculation;
+  late _FakeSaveNrs2002CalculationUseCase fakeSaveNrs2002Calculation;
+  late _FakeSaveStrongKidsCalculationUseCase fakeSaveStrongKidsCalculation;
   late PatientDetailsCubit cubit;
 
   setUp(() {
@@ -447,6 +542,9 @@ void main() {
         _FakeSaveGlucoseInfusionRateCalculationUseCase();
     fakeSaveWeightLossClassificationCalculation =
         _FakeSaveWeightLossClassificationCalculationUseCase();
+    fakeSaveMustCalculation = _FakeSaveMustCalculationUseCase();
+    fakeSaveNrs2002Calculation = _FakeSaveNrs2002CalculationUseCase();
+    fakeSaveStrongKidsCalculation = _FakeSaveStrongKidsCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -473,6 +571,9 @@ void main() {
           fakeSaveGlucoseInfusionRateCalculation,
       saveWeightLossClassificationCalculationUseCase:
           fakeSaveWeightLossClassificationCalculation,
+      saveMustCalculationUseCase: fakeSaveMustCalculation,
+      saveNrs2002CalculationUseCase: fakeSaveNrs2002Calculation,
+      saveStrongKidsCalculationUseCase: fakeSaveStrongKidsCalculation,
     );
   });
 
@@ -2066,6 +2167,344 @@ void main() {
 
         final state = cubit.state as PatientDetailsStateLoaded;
         expect(state.isWeightLossClassificationSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveMustCalculation', () {
+    test(
+      'on success: sets isMustSaved true and clears isSavingMust',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveMustCalculation(
+          bmi: 19,
+          avgWeightLossIn3To6Months: 3,
+          severeIllnessPresent: false,
+          reducedFoodIntakeForMoreThan5Days: false,
+          willReduceFoodIntakeForMoreThan5Days: false,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isMustSaved, isTrue);
+        expect(state.isSavingMust, isFalse);
+        expect(state.isMustSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isMustSaveError/mustSaveErrorMessage and clears '
+      'isSavingMust',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveMustCalculation.resultToReturn = Error("db failure");
+
+        await cubit.saveMustCalculation(
+          bmi: 19,
+          avgWeightLossIn3To6Months: 3,
+          severeIllnessPresent: false,
+          reducedFoodIntakeForMoreThan5Days: false,
+          willReduceFoodIntakeForMoreThan5Days: false,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isMustSaveError, isTrue);
+        expect(
+          state.mustSaveErrorMessage,
+          "Não foi possível salvar a triagem MUST. Tente novamente.",
+        );
+        expect(state.isSavingMust, isFalse);
+      },
+    );
+
+    test(
+      'closedMustErrorModal() resets isMustSaveError/mustSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveMustCalculation.resultToReturn = Error("db failure");
+        await cubit.saveMustCalculation(
+          bmi: 19,
+          avgWeightLossIn3To6Months: 3,
+          severeIllnessPresent: false,
+          reducedFoodIntakeForMoreThan5Days: false,
+          willReduceFoodIntakeForMoreThan5Days: false,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isMustSaveError,
+          isTrue,
+        );
+
+        cubit.closedMustErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isMustSaveError, isFalse);
+        expect(state.mustSaveErrorMessage, isNull);
+      },
+    );
+
+    test(
+      'on success: isMustSaved reverts to false after the auto-close delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveMustCalculation(
+          bmi: 19,
+          avgWeightLossIn3To6Months: 3,
+          severeIllnessPresent: false,
+          reducedFoodIntakeForMoreThan5Days: false,
+          willReduceFoodIntakeForMoreThan5Days: false,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isMustSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isMustSaved, isFalse);
+      },
+    );
+  });
+
+  group('saveNrs2002Calculation', () {
+    test(
+      'on success: sets isNrs2002Saved true and clears isSavingNrs2002',
+      () async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 45,
+        );
+        await cubit.init(patientId);
+
+        await cubit.saveNrs2002Calculation(
+          isSeverelyIll: false,
+          weightLossLast3Months: false,
+          reducedFoodIntakeLastWeek: false,
+          lowBmi: false,
+          nutritionalStatusClassification: Nrs2002Step2Classification.absent,
+          illnessSeverityClassification: Nrs2002Step2Classification.absent,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isNrs2002Saved, isTrue);
+        expect(state.isSavingNrs2002, isFalse);
+        expect(state.isNrs2002SaveError, isFalse);
+      },
+    );
+
+    test('no patient age: does nothing', () async {
+      await cubit.init(patientId);
+
+      await cubit.saveNrs2002Calculation(
+        isSeverelyIll: false,
+        weightLossLast3Months: false,
+        reducedFoodIntakeLastWeek: false,
+        lowBmi: false,
+        nutritionalStatusClassification: Nrs2002Step2Classification.absent,
+        illnessSeverityClassification: Nrs2002Step2Classification.absent,
+      );
+
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.isSavingNrs2002, isFalse);
+      expect(state.isNrs2002Saved, isFalse);
+      expect(state.isNrs2002SaveError, isFalse);
+    });
+
+    test(
+      'on error: sets isNrs2002SaveError/nrs2002SaveErrorMessage and clears '
+      'isSavingNrs2002',
+      () async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 45,
+        );
+        await cubit.init(patientId);
+        fakeSaveNrs2002Calculation.resultToReturn = Error("db failure");
+
+        await cubit.saveNrs2002Calculation(
+          isSeverelyIll: false,
+          weightLossLast3Months: false,
+          reducedFoodIntakeLastWeek: false,
+          lowBmi: false,
+          nutritionalStatusClassification: Nrs2002Step2Classification.absent,
+          illnessSeverityClassification: Nrs2002Step2Classification.absent,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isNrs2002SaveError, isTrue);
+        expect(
+          state.nrs2002SaveErrorMessage,
+          "Não foi possível salvar a triagem NRS-2002. Tente novamente.",
+        );
+        expect(state.isSavingNrs2002, isFalse);
+      },
+    );
+
+    test(
+      'closedNrs2002ErrorModal() resets isNrs2002SaveError/'
+      'nrs2002SaveErrorMessage',
+      () async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 45,
+        );
+        await cubit.init(patientId);
+        fakeSaveNrs2002Calculation.resultToReturn = Error("db failure");
+        await cubit.saveNrs2002Calculation(
+          isSeverelyIll: false,
+          weightLossLast3Months: false,
+          reducedFoodIntakeLastWeek: false,
+          lowBmi: false,
+          nutritionalStatusClassification: Nrs2002Step2Classification.absent,
+          illnessSeverityClassification: Nrs2002Step2Classification.absent,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isNrs2002SaveError,
+          isTrue,
+        );
+
+        cubit.closedNrs2002ErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isNrs2002SaveError, isFalse);
+        expect(state.nrs2002SaveErrorMessage, isNull);
+      },
+    );
+
+    test(
+      'on success: isNrs2002Saved reverts to false after the auto-close '
+      'delay',
+      () async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 45,
+        );
+        await cubit.init(patientId);
+
+        await cubit.saveNrs2002Calculation(
+          isSeverelyIll: false,
+          weightLossLast3Months: false,
+          reducedFoodIntakeLastWeek: false,
+          lowBmi: false,
+          nutritionalStatusClassification: Nrs2002Step2Classification.absent,
+          illnessSeverityClassification: Nrs2002Step2Classification.absent,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isNrs2002Saved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isNrs2002Saved, isFalse);
+      },
+    );
+  });
+
+  group('saveStrongKidsCalculation', () {
+    test(
+      'on success: sets isStrongKidsSaved true and clears '
+      'isSavingStrongKids',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveStrongKidsCalculation(
+          clinicalAppearanceOfMalnutrition: false,
+          highRiskDiseasePresent: false,
+          reducedIntakeOrLosses: false,
+          weightLossOrGrowthDeficit: false,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isStrongKidsSaved, isTrue);
+        expect(state.isSavingStrongKids, isFalse);
+        expect(state.isStrongKidsSaveError, isFalse);
+      },
+    );
+
+    test(
+      'on error: sets isStrongKidsSaveError/strongKidsSaveErrorMessage and '
+      'clears isSavingStrongKids',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveStrongKidsCalculation.resultToReturn = Error("db failure");
+
+        await cubit.saveStrongKidsCalculation(
+          clinicalAppearanceOfMalnutrition: false,
+          highRiskDiseasePresent: false,
+          reducedIntakeOrLosses: false,
+          weightLossOrGrowthDeficit: false,
+        );
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isStrongKidsSaveError, isTrue);
+        expect(
+          state.strongKidsSaveErrorMessage,
+          "Não foi possível salvar a triagem STRONG-Kids. Tente novamente.",
+        );
+        expect(state.isSavingStrongKids, isFalse);
+      },
+    );
+
+    test(
+      'closedStrongKidsErrorModal() resets isStrongKidsSaveError/'
+      'strongKidsSaveErrorMessage',
+      () async {
+        await cubit.init(patientId);
+        fakeSaveStrongKidsCalculation.resultToReturn = Error("db failure");
+        await cubit.saveStrongKidsCalculation(
+          clinicalAppearanceOfMalnutrition: false,
+          highRiskDiseasePresent: false,
+          reducedIntakeOrLosses: false,
+          weightLossOrGrowthDeficit: false,
+        );
+
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isStrongKidsSaveError,
+          isTrue,
+        );
+
+        cubit.closedStrongKidsErrorModal();
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isStrongKidsSaveError, isFalse);
+        expect(state.strongKidsSaveErrorMessage, isNull);
+      },
+    );
+
+    test(
+      'on success: isStrongKidsSaved reverts to false after the auto-close '
+      'delay',
+      () async {
+        await cubit.init(patientId);
+
+        await cubit.saveStrongKidsCalculation(
+          clinicalAppearanceOfMalnutrition: false,
+          highRiskDiseasePresent: false,
+          reducedIntakeOrLosses: false,
+          weightLossOrGrowthDeficit: false,
+        );
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).isStrongKidsSaved,
+          isTrue,
+        );
+
+        await Future.delayed(Duration(seconds: 2, milliseconds: 100));
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.isStrongKidsSaved, isFalse);
       },
     );
   });

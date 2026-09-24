@@ -28,14 +28,18 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domai
 import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/use_cases/save_enteral_nutrition_speed_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/must/domain/use_cases/save_must_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/nrs_2002/domain/use_cases/save_nrs_2002_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/strong_kids/domain/use_cases/save_strong_kids_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/use_cases/save_weight_loss_classification_calculation_use_case.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/injury_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/stress_level.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/temperature_factor.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/nrs_2002/nrs_2002_step_2_classification.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/gender.dart';
 import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
 
@@ -126,6 +130,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isWeightLossClassificationSaveError = false,
     this.weightLossClassificationSaveErrorMessage,
     this.isWeightLossClassificationSaved = false,
+    this.isSavingMust = false,
+    this.isMustSaveError = false,
+    this.mustSaveErrorMessage,
+    this.isMustSaved = false,
+    this.isSavingNrs2002 = false,
+    this.isNrs2002SaveError = false,
+    this.nrs2002SaveErrorMessage,
+    this.isNrs2002Saved = false,
+    this.isSavingStrongKids = false,
+    this.isStrongKidsSaveError = false,
+    this.strongKidsSaveErrorMessage,
+    this.isStrongKidsSaved = false,
   });
 
   final EditPatientFormEntity form;
@@ -198,6 +214,21 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final String? weightLossClassificationSaveErrorMessage;
   final bool isWeightLossClassificationSaved;
 
+  final bool isSavingMust;
+  final bool isMustSaveError;
+  final String? mustSaveErrorMessage;
+  final bool isMustSaved;
+
+  final bool isSavingNrs2002;
+  final bool isNrs2002SaveError;
+  final String? nrs2002SaveErrorMessage;
+  final bool isNrs2002Saved;
+
+  final bool isSavingStrongKids;
+  final bool isStrongKidsSaveError;
+  final String? strongKidsSaveErrorMessage;
+  final bool isStrongKidsSaved;
+
   PatientDetailsStateLoaded copyWith({
     EditPatientFormEntity? form,
     bool? isEditing,
@@ -256,6 +287,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     bool? isWeightLossClassificationSaveError,
     Object? weightLossClassificationSaveErrorMessage = _unset,
     bool? isWeightLossClassificationSaved,
+    bool? isSavingMust,
+    bool? isMustSaveError,
+    Object? mustSaveErrorMessage = _unset,
+    bool? isMustSaved,
+    bool? isSavingNrs2002,
+    bool? isNrs2002SaveError,
+    Object? nrs2002SaveErrorMessage = _unset,
+    bool? isNrs2002Saved,
+    bool? isSavingStrongKids,
+    bool? isStrongKidsSaveError,
+    Object? strongKidsSaveErrorMessage = _unset,
+    bool? isStrongKidsSaved,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
@@ -374,6 +417,24 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
         : weightLossClassificationSaveErrorMessage as String?,
     isWeightLossClassificationSaved:
         isWeightLossClassificationSaved ?? this.isWeightLossClassificationSaved,
+    isSavingMust: isSavingMust ?? this.isSavingMust,
+    isMustSaveError: isMustSaveError ?? this.isMustSaveError,
+    mustSaveErrorMessage: identical(mustSaveErrorMessage, _unset)
+        ? this.mustSaveErrorMessage
+        : mustSaveErrorMessage as String?,
+    isMustSaved: isMustSaved ?? this.isMustSaved,
+    isSavingNrs2002: isSavingNrs2002 ?? this.isSavingNrs2002,
+    isNrs2002SaveError: isNrs2002SaveError ?? this.isNrs2002SaveError,
+    nrs2002SaveErrorMessage: identical(nrs2002SaveErrorMessage, _unset)
+        ? this.nrs2002SaveErrorMessage
+        : nrs2002SaveErrorMessage as String?,
+    isNrs2002Saved: isNrs2002Saved ?? this.isNrs2002Saved,
+    isSavingStrongKids: isSavingStrongKids ?? this.isSavingStrongKids,
+    isStrongKidsSaveError: isStrongKidsSaveError ?? this.isStrongKidsSaveError,
+    strongKidsSaveErrorMessage: identical(strongKidsSaveErrorMessage, _unset)
+        ? this.strongKidsSaveErrorMessage
+        : strongKidsSaveErrorMessage as String?,
+    isStrongKidsSaved: isStrongKidsSaved ?? this.isStrongKidsSaved,
   );
 
   PatientDetailsStateLoaded clearForm(PatientDetailsFormOptions formOption) {
@@ -446,6 +507,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       weightLossClassificationSaveErrorMessage:
           weightLossClassificationSaveErrorMessage,
       isWeightLossClassificationSaved: isWeightLossClassificationSaved,
+      isSavingMust: isSavingMust,
+      isMustSaveError: isMustSaveError,
+      mustSaveErrorMessage: mustSaveErrorMessage,
+      isMustSaved: isMustSaved,
+      isSavingNrs2002: isSavingNrs2002,
+      isNrs2002SaveError: isNrs2002SaveError,
+      nrs2002SaveErrorMessage: nrs2002SaveErrorMessage,
+      isNrs2002Saved: isNrs2002Saved,
+      isSavingStrongKids: isSavingStrongKids,
+      isStrongKidsSaveError: isStrongKidsSaveError,
+      strongKidsSaveErrorMessage: strongKidsSaveErrorMessage,
+      isStrongKidsSaved: isStrongKidsSaved,
     );
   }
 
@@ -506,6 +579,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isWeightLossClassificationSaveError,
     weightLossClassificationSaveErrorMessage,
     isWeightLossClassificationSaved,
+    isSavingMust,
+    isMustSaveError,
+    mustSaveErrorMessage,
+    isMustSaved,
+    isSavingNrs2002,
+    isNrs2002SaveError,
+    nrs2002SaveErrorMessage,
+    isNrs2002Saved,
+    isSavingStrongKids,
+    isStrongKidsSaveError,
+    strongKidsSaveErrorMessage,
+    isStrongKidsSaved,
     measurements,
   ];
 }
