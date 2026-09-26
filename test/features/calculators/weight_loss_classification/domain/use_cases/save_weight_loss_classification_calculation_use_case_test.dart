@@ -4,6 +4,7 @@ import 'package:nutri_calc/features/calculators/weight_loss_classification/domai
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/repositories/weight_loss_classification_repository.dart';
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/use_cases/save_weight_loss_classification_calculation_use_case.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_loss_classification.enum.dart';
+import 'package:nutri_calc/features/calculators/weight_loss_classification/data/models/weight_loss_classification_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors the fake pattern used throughout this codebase.
@@ -19,6 +20,15 @@ class _FakeWeightLossClassificationRepository
   ) async {
     lastReceived = weightLossClassification;
     return nextResult ?? Ok(weightLossClassification);
+  }
+  @override
+  Future<Result<List<WeightLossClassificationModel>, String>> getWeightLossClassifications(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteWeightLossClassification(String id) async {
+    return const Ok(null);
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:nutri_calc/features/calculators/protein_needs/domain/entities/pr
 import 'package:nutri_calc/features/calculators/protein_needs/domain/repositories/protein_needs_repository.dart';
 import 'package:nutri_calc/features/calculators/protein_needs/domain/use_cases/save_protein_needs_calculation_use_case.dart';
 import 'package:nutri_calc/shared/utils/enums/patient_state.dart';
+import 'package:nutri_calc/features/calculators/protein_needs/data/models/protein_needs_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors the fake pattern used throughout this codebase.
@@ -17,6 +18,15 @@ class _FakeProteinNeedsRepository implements ProteinNeedsRepository {
   ) async {
     lastReceived = proteinNeeds;
     return nextResult ?? Ok(proteinNeeds);
+  }
+  @override
+  Future<Result<List<ProteinNeedsModel>, String>> getProteinNeeds(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteProteinNeeds(String id) async {
+    return const Ok(null);
   }
 }
 

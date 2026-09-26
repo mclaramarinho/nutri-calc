@@ -7,4 +7,5 @@ abstract class HeightRepository {
     required String patientId,
   });
   Future<Result<List<HeightModel>, String>> getHeights(String patientId);
+  Future<Result<void, String>> deleteHeight(String id);
 }

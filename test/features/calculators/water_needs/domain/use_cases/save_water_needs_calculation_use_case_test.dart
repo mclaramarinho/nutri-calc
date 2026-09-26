@@ -3,6 +3,7 @@ import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/entities/water_needs_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/repositories/water_needs_repository.dart';
 import 'package:nutri_calc/features/calculators/water_needs/domain/use_cases/save_water_needs_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/water_needs/data/models/water_needs_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors the fake pattern used throughout this codebase.
@@ -16,6 +17,15 @@ class _FakeWaterNeedsRepository implements WaterNeedsRepository {
   ) async {
     lastReceived = waterNeeds;
     return nextResult ?? Ok(waterNeeds);
+  }
+  @override
+  Future<Result<List<WaterNeedsModel>, String>> getWaterNeeds(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteWaterNeeds(String id) async {
+    return const Ok(null);
   }
 }
 

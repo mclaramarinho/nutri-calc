@@ -39,4 +39,40 @@ class NitrogenBalanceRepositoryImpl implements NitrogenBalanceRepository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<NitrogenBalanceModel>, String>> getNitrogenBalances(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .nitrogenBalances,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => NitrogenBalanceModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting nitrogen balance history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteNitrogenBalance(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .nitrogenBalances,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting nitrogen balance calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

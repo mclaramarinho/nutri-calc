@@ -3,6 +3,7 @@ import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/entities/glucose_infusion_rate_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/repositories/glucose_infusion_rate_repository.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/glucose_infusion_rate/data/models/glucose_infusion_rate_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors the fake pattern used throughout this codebase.
@@ -18,6 +19,15 @@ class _FakeGlucoseInfusionRateRepository
   ) async {
     lastReceived = glucoseInfusionRate;
     return nextResult ?? Ok(glucoseInfusionRate);
+  }
+  @override
+  Future<Result<List<GlucoseInfusionRateModel>, String>> getGlucoseInfusionRates(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteGlucoseInfusionRate(String id) async {
+    return const Ok(null);
   }
 }
 

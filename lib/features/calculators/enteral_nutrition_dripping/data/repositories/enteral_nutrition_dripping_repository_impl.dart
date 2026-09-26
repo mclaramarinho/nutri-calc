@@ -41,4 +41,40 @@ class EnteralNutritionDrippingRepositoryImpl
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<EnteralNutritionDrippingModel>, String>> getEnteralNutritionDrippings(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .enteralNutritionDripping,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => EnteralNutritionDrippingModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting enteral nutrition dripping history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteEnteralNutritionDripping(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .enteralNutritionDripping,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting enteral nutrition dripping calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

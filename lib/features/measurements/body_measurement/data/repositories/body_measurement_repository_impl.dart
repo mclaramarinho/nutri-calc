@@ -59,4 +59,21 @@ class BodyMeasurementRepositoryImpl implements BodyMeasurementRepository {
       return Error("Error creating measurement: ${ex.toString()}");
     }
   }
+
+  @override
+  Future<Result<void, String>> deleteMeasurement(String id) async {
+    try {
+      final res = await _database.delete(
+        .bodyMeasurements,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting measurement.");
+    } catch (ex) {
+      return Error("Error deleting measurement: ${ex.toString()}");
+    }
+  }
 }

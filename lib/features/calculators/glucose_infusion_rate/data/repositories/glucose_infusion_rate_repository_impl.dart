@@ -41,4 +41,40 @@ class GlucoseInfusionRateRepositoryImpl
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<GlucoseInfusionRateModel>, String>> getGlucoseInfusionRates(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .glucoseInfusionRates,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => GlucoseInfusionRateModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting glucose infusion rate history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteGlucoseInfusionRate(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .glucoseInfusionRates,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting glucose infusion rate calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

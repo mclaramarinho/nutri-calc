@@ -36,4 +36,40 @@ class StrongKidsRepositoryImpl implements StrongKidsRepository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<StrongKidsModel>, String>> getStrongKidsCalculations(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .screeningStrongKids,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => StrongKidsModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting strong kids history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteStrongKidsCalculation(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .screeningStrongKids,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting strong kids calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

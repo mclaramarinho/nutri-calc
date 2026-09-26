@@ -55,5 +55,22 @@ class HeightRepositoryImpl implements HeightRepository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<void, String>> deleteHeight(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .heights,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting height.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }
 

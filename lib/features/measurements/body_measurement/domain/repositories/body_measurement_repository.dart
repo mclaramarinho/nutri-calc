@@ -4,4 +4,5 @@ import 'package:nutri_calc/features/measurements/body_measurement/data/models/bo
 abstract class BodyMeasurementRepository {
   Future<Result<List<BodyMeasurementModel>, String>> getMeasurements(String patientId);
   Future<Result<BodyMeasurementModel, String>> createMeasurement(BodyMeasurementModel model);
+  Future<Result<void, String>> deleteMeasurement(String id);
 }

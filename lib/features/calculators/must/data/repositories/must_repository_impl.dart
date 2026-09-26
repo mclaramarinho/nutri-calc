@@ -34,4 +34,40 @@ class MustRepositoryImpl implements MustRepository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<MustModel>, String>> getMustCalculations(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .screeningMust,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => MustModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting must history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteMustCalculation(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .screeningMust,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting must calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

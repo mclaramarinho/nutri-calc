@@ -26,6 +26,11 @@ class _FakeWeightRepository implements WeightRepository {
   ) async {
     return Ok(weightsToReturn);
   }
+
+  @override
+  Future<Result<void, String>> deleteWeight(String id) async {
+    return const Ok(null);
+  }
 }
 
 void main() {

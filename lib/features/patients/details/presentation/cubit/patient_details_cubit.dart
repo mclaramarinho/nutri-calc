@@ -29,10 +29,21 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._saveAdjustedObesityCalculationUseCase,
     required this._saveAdjustedDryWeightCalculationUseCase,
     required this._saveEstimatedWeightCalculationUseCase,
+    required this._getPatientCalculatorHistoryUseCase,
+    required this._deleteCalculatorHistoryEntryUseCase,
+    required this._deleteWeightUseCase,
+    required this._deleteHeightUseCase,
+    required this._deleteBodyMeasurementUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
   final UpdatePatientUseCase _updatePatientUseCase;
+
+  final GetPatientCalculatorHistoryUseCase _getPatientCalculatorHistoryUseCase;
+  final DeleteCalculatorHistoryEntryUseCase _deleteCalculatorHistoryEntryUseCase;
+  final DeleteWeightUseCase _deleteWeightUseCase;
+  final DeleteHeightUseCase _deleteHeightUseCase;
+  final DeleteBodyMeasurementUseCase _deleteBodyMeasurementUseCase;
 
   final CreateWeightUseCase _createWeightUseCase;
   final GetWeightsUseCase _getWeightsUseCase;
@@ -79,6 +90,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
       _getWeightsUseCase(patientId),
       _getHeightsUseCase(patientId),
       _getBodyMeasurementUseCase(patientId),
+      _getPatientCalculatorHistoryUseCase(patientId),
     ]);
     if (result[0] is Error) {
       emit(
@@ -96,6 +108,9 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     final measurements =
         result[3].getOrElse(() => <BodyMeasurementEntity>[])
             as List<BodyMeasurementEntity>;
+    final historyEntries =
+        result[4].getOrElse(() => <HistoryEntryEntity>[])
+            as List<HistoryEntryEntity>;
 
     final form = (result[0] as Ok<EditPatientFormEntity, String>).value;
 
@@ -105,6 +120,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
         weights: weights,
         heights: heights,
         measurements: measurements.reversed.toList(),
+        historyEntries: historyEntries,
         bmi: _computeBmi(weights, heights, form.age),
       ),
     );
@@ -1011,6 +1027,139 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
+  // DELETE (Weights/Heights/Body Measurements/History) ====================
+  // ADR 0010: one canonical delete-and-refresh path per data owner.
+  // `MeasurementsList`'s Weights tab instance and `PatientHistoryTab` both
+  // call this exact method for a Weight-type row - never two independent
+  // call sites - so the two tabs never disagree about which weights exist.
+  Future<Result<void, String>> deleteWeight(String id) async {
+    final res = await _deleteWeightUseCase(id);
+    if (res.isOk) await _refreshWeightsAndHistory();
+    return res;
+  }
+
+  Future<Result<void, String>> deleteHeight(String id) async {
+    final res = await _deleteHeightUseCase(id);
+    if (res.isOk) await _refreshHeightsAndHistory();
+    return res;
+  }
+
+  Future<Result<void, String>> deleteBodyMeasurement(String id) async {
+    final res = await _deleteBodyMeasurementUseCase(id);
+    if (res.isOk) await _refreshBodyMeasurementsAndHistory();
+    return res;
+  }
+
+  Future<Result<void, String>> deleteHistoryEntry(
+    HistoryEntryEntity entry,
+  ) async {
+    final res = await _deleteCalculatorHistoryEntryUseCase(entry);
+    if (res.isOk) {
+      if (entry.sourceType == HistorySourceType.weight) {
+        await _refreshWeightsAndHistory();
+      } else {
+        await _refreshHistoryOnly();
+      }
+    }
+    return res;
+  }
+
+  // These four helpers used to wrap their whole body in
+  // `_executeOnStateLoaded`, which only accepts a synchronous callback -
+  // so the `async` callback's returned Future was never awaited and the
+  // outer `Future<void> _refreshXAndHistory()` resolved before the actual
+  // refetch+emit happened (ADR 0010 violation: callers like `deleteWeight`
+  // awaiting these need the real refresh to be done by the time they
+  // resolve). Fixed by doing the genuine `await`s directly in the outer
+  // async method body - mirroring the pattern already used successfully in
+  // e.g. `saveIdealWeightCalculation`'s `onSuccess` callback - and only
+  // using `_executeOnStateLoaded` for the final synchronous emit.
+  Future<void> _refreshWeightsAndHistory() async {
+    if (state is! PatientDetailsStateLoaded) return;
+    final current = state as PatientDetailsStateLoaded;
+
+    final weightsRes = await _getWeightsUseCase(current.form.patientLocalId);
+    final weights = weightsRes.getOrElse(() => current.weights);
+    final historyRes = await _getPatientCalculatorHistoryUseCase(
+      current.form.patientLocalId,
+    );
+
+    _executeOnStateLoaded((latest) {
+      emit(
+        latest.copyWith(
+          weights: weights,
+          bmi: _computeBmi(weights, latest.heights, latest.form.age),
+          historyEntries: historyRes.getOrElse(() => latest.historyEntries),
+        ),
+      );
+    });
+  }
+
+  Future<void> _refreshHeightsAndHistory() async {
+    if (state is! PatientDetailsStateLoaded) return;
+    final current = state as PatientDetailsStateLoaded;
+
+    final heightsRes = await _getHeightsUseCase(current.form.patientLocalId);
+    final heights = heightsRes.getOrElse(() => current.heights);
+    final historyRes = await _getPatientCalculatorHistoryUseCase(
+      current.form.patientLocalId,
+    );
+
+    _executeOnStateLoaded((latest) {
+      emit(
+        latest.copyWith(
+          heights: heights,
+          bmi: _computeBmi(latest.weights, heights, latest.form.age),
+          historyEntries: historyRes.getOrElse(() => latest.historyEntries),
+        ),
+      );
+    });
+  }
+
+  Future<void> _refreshBodyMeasurementsAndHistory() async {
+    if (state is! PatientDetailsStateLoaded) return;
+    final current = state as PatientDetailsStateLoaded;
+
+    final measurementsRes = await _getBodyMeasurementUseCase(
+      current.form.patientLocalId,
+    );
+    final measurements = measurementsRes.isOk
+        ? measurementsRes
+              .getOrElse(() => <BodyMeasurementEntity>[])
+              .reversed
+              .toList()
+        : current.measurements;
+    final historyRes = await _getPatientCalculatorHistoryUseCase(
+      current.form.patientLocalId,
+    );
+
+    _executeOnStateLoaded((latest) {
+      emit(
+        latest.copyWith(
+          measurements: measurements,
+          historyEntries: historyRes.getOrElse(() => latest.historyEntries),
+        ),
+      );
+    });
+  }
+
+  Future<void> _refreshHistoryOnly() async {
+    if (state is! PatientDetailsStateLoaded) return;
+    final current = state as PatientDetailsStateLoaded;
+
+    final historyRes = await _getPatientCalculatorHistoryUseCase(
+      current.form.patientLocalId,
+    );
+
+    _executeOnStateLoaded((latest) {
+      emit(
+        latest.copyWith(
+          historyEntries: historyRes.getOrElse(() => latest.historyEntries),
+        ),
+      );
+    });
+  }
+
   // PRIVATE METHODS =======================================================
   Future<void> _handleSaveResult(
     PatientDetailsStateLoaded current,
@@ -1080,6 +1229,32 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
 
       if (onSuccess != null) {
         await onSuccess(state as PatientDetailsStateLoaded);
+      }
+
+      // Recommended shortcut (ADR 0009): refresh `historyEntries` here, once,
+      // so every calculator's freshly-saved result shows up in History
+      // immediately without per-calculator wiring at each of the 18 call
+      // sites above. Deliberately NOT awaited - the existing `isSaved`
+      // true-transition timing (relied on by every calculator's save tests)
+      // must not shift by an extra microtask hop; this refresh races
+      // harmlessly in the background and only touches `historyEntries`.
+      if (state is PatientDetailsStateLoaded) {
+        final loaded = state as PatientDetailsStateLoaded;
+        // ignore: discarded_futures
+        _getPatientCalculatorHistoryUseCase(loaded.form.patientLocalId).then((
+          historyRes,
+        ) {
+          if (isClosed) return;
+          _executeOnStateLoaded((latest) {
+            emit(
+              latest.copyWith(
+                historyEntries: historyRes.getOrElse(
+                  () => latest.historyEntries,
+                ),
+              ),
+            );
+          });
+        });
       }
 
       _executeOnStateLoaded((latest) {

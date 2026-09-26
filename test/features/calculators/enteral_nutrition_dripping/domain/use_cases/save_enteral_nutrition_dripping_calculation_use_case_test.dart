@@ -3,6 +3,7 @@ import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domain/entities/enteral_nutrition_dripping_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domain/repositories/enteral_nutrition_dripping_repository.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/domain/use_cases/save_enteral_nutrition_dripping_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_dripping/data/models/enteral_nutrition_dripping_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors the fake pattern used throughout this codebase.
@@ -18,6 +19,15 @@ class _FakeEnteralNutritionDrippingRepository
   ) async {
     lastReceived = enteralNutritionDripping;
     return nextResult ?? Ok(enteralNutritionDripping);
+  }
+  @override
+  Future<Result<List<EnteralNutritionDrippingModel>, String>> getEnteralNutritionDrippings(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteEnteralNutritionDripping(String id) async {
+    return const Ok(null);
   }
 }
 

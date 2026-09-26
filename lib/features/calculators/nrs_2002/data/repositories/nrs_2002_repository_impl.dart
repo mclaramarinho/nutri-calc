@@ -37,4 +37,40 @@ class Nrs2002RepositoryImpl implements Nrs2002Repository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<Nrs2002Model>, String>> getNrs2002Calculations(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .screeningNrs2002,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => Nrs2002Model.fromJson(json)).toList());
+      }
+
+      return Error("Error getting nrs 2002 history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteNrs2002Calculation(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .screeningNrs2002,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting nrs 2002 calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

@@ -3,6 +3,7 @@ import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/entities/nitrogen_balance_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/repositories/nitrogen_balance_repository.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/nitrogen_balance/data/models/nitrogen_balance_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors the fake pattern used throughout this codebase.
@@ -16,6 +17,15 @@ class _FakeNitrogenBalanceRepository implements NitrogenBalanceRepository {
   ) async {
     lastReceived = nitrogenBalance;
     return nextResult ?? Ok(nitrogenBalance);
+  }
+  @override
+  Future<Result<List<NitrogenBalanceModel>, String>> getNitrogenBalances(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteNitrogenBalance(String id) async {
+    return const Ok(null);
   }
 }
 

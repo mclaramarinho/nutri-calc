@@ -21,6 +21,11 @@ class _FakeHeightRepository implements HeightRepository {
   ) async {
     return Ok(heightsToReturn);
   }
+
+  @override
+  Future<Result<void, String>> deleteHeight(String id) async {
+    return const Ok(null);
+  }
 }
 
 void main() {

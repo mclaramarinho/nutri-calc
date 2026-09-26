@@ -36,4 +36,40 @@ class ProteinNeedsRepositoryImpl implements ProteinNeedsRepository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<ProteinNeedsModel>, String>> getProteinNeeds(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .proteinNeeds,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => ProteinNeedsModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting protein needs history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteProteinNeeds(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .proteinNeeds,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting protein needs calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

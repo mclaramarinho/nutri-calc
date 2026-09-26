@@ -299,3 +299,86 @@ The calculator's own relevance rule means it typically only surfaces because the
 ### Persistence
 
 `Confirmar` calls a new `cubit.saveIdealWeightCalculation(gender: ..., considerForCalculations: ...)`, which computes the value, then persists a `WEIGHTS` row via the existing weight-creation path with `weightType: WeightTypeEnum.ideal` and `considerForCalculations` set from the checkbox — plus `inputParams` referencing `height` and `gender` (per the roadmap's "every data saved should reference the parameters used" rule, same `{key, label, value}` shape every other calculator table already uses). Action-pattern (`Cancelar`/`Confirmar` via `AppRouter.pop<bool>`, ADR 0002) is unchanged from every prior calculator — no new interaction pattern introduced here beyond the checkbox itself.
+
+---
+
+## Swipe-to-delete + confirmation-dialog pattern (first codified spec — Roadmap Slice 11, History tab)
+
+**Important context found while speccing this:** the roadmap already *describes* swipe-to-delete for Weights/Heights/Body Measurements (2.1.4), but no code implements it yet — `lib/features/patients/details/presentation/widgets/measurements_list.dart` has the `Dismissible` commented out as a `// TODO - use when delete weight record is available`, and no confirmation-dialog copy exists anywhere in the codebase for a delete flow. This entry is therefore the **canonical spec**, not a description of existing code — `mobile-dev` should wire it into `MeasurementsList` (Weights/Heights/Body Measurements) and the new History tab identically, so the two never diverge in copy or gesture.
+
+### Gesture
+
+`Dismissible`, `direction: DismissDirection.endToStart` (swipe/drag right-to-left — matches the roadmap's existing "tile dragged to the left" wording). Background revealed behind the tile: full-bleed `DsColors.error` fill, a white trash icon (`Icons.delete_outline`) end-aligned with `DsSpacing.md` padding — no new token needed, `DsColors.error` (`Colors.red`) is unused elsewhere today and is the obvious "destructive" association.
+
+### Flow (identical for every deletable list: Weights, Heights, Body Measurements, History)
+
+1. Drag triggers `confirmDismiss` (not `onDismissed` — deletion must be confirmed *before* Flutter animates the tile away, so a cancel doesn't need to un-delete anything).
+2. `confirmDismiss` awaits a `DsDialog.show` confirmation (title + message below), actions `Cancelar` (returns `false`) / `Excluir` (proceeds to delete).
+3. On `Excluir`: call the delete use case. On success, `confirmDismiss` resolves `true` (tile animates out, list also naturally reflects the new state via `BlocBuilder`) and an auto-closing success `DsDialog` is shown (existing "Feedback dialogs" convention above — `duration` set, no user action). On failure, `confirmDismiss` resolves `false` (tile snaps back) and an error `DsDialog` is shown (close button, no `duration`, per the existing convention).
+
+### Copy (final, template + per-context fill-ins)
+
+Generic template: title **"Excluir {item}"**, message **"Tem certeza que deseja excluir {esse/essa} {item}? Essa ação não pode ser desfeita.{extra}"**, buttons **"Cancelar"** / **"Excluir"**.
+
+| Context | `{item}` | `{extra}` sentence | Success dialog message | Error dialog message |
+|---|---|---|---|---|
+| Weights tab, and any Weight-type row in History | "peso" | " Os pesos registrados após este serão recalculados." | "Peso excluído com sucesso." | "Não foi possível excluir o peso. Tente novamente." |
+| Heights tab | "altura" | " As alturas registradas após esta serão recalculadas." | "Altura excluída com sucesso." | "Não foi possível excluir a altura. Tente novamente." |
+| Body Measurements tab | "medida" | " As medidas registradas após esta serão recalculadas." | "Medida excluída com sucesso." | "Não foi possível excluir a medida. Tente novamente." |
+| History — any non-Weight calculator result | "cálculo" | (omitted — no curve/recompute concept) | "Cálculo excluído com sucesso." | "Não foi possível excluir o cálculo. Tente novamente." |
+
+The `{extra}` sentence exists specifically so a dietitian isn't surprised by the curve-recompute side effect (same reasoning as the roadmap's own "curves...should be updated" line) — it's the plain-language explanation of that side effect, not new business logic.
+
+**Weight-type row deleted from History is the exact `WEIGHTS` row the Weights tab reads** (Slice 11 acceptance criterion): its confirmation dialog uses the "peso" row above verbatim (not a generic "cálculo" row) — same title, same message, same recompute sentence a dietitian would see deleting that row from the Weights tab directly — precisely so the two entry points never read as two different actions.
+
+### Non-weight/height/measurement calculator deletes only touch their own table
+
+Deleting a BMI/Energy Expenditure/Screening/etc. row from History has no curve/recompute concept (only Weights/Heights/Body Measurements do) — plain single-row delete, generic "cálculo" copy above.
+
+---
+
+## History tab (`PatientHistoryTab`) — Roadmap Slice 11
+
+Location: `lib/features/patients/details/presentation/widgets/tabs/patient_history_tab.dart` (new, replaces `DsPlaceholder()`), structurally a sibling of `patient_calculators_tab.dart` and `patient_measurements_tab.dart` — reuses the same `BlocBuilder<PatientDetailsCubit, PatientDetailsState>` shell.
+
+### Grouping and ordering
+
+- Iterate `CalculatorType.values` (same enum, same order `CalculatorList._buildAllView` already uses for the Calculators tab's "See All" view — do not reinvent a second ordering) as section headers, `type.label` styled identically to that view's group header (`fontWeight: FontWeight.bold`, `DsSpacing.sm` gap to its list).
+- Within a group, entries ordered latest-first by `createdAt` (same direction already used everywhere else — Weights/Heights/Body Measurements all show latest-first).
+- A `CalculatorType` with zero persisted results for the patient is skipped entirely (no header, no empty-list placeholder) — same precedent as the Calculators tab's See All view and Body Measurements' accordion group suppression.
+- All 5 Weight sub-type rows are merged into one flat, `createdAt`-sorted list under the single `CalculatorType.weight` group — not 5 separate sub-groups, not a nested accordion (an accordion-per-subtype would be a new pattern for a group that Body Measurements' accordion-per-type doesn't need, since Weight's "sub-type" distinction is small enough to carry on the tile itself, see below).
+
+### Tile layout (`DsListTile`, no new DS widget needed)
+
+- **Single-member groups** (BMI, Energy Expenditure, Nitrogen Balance, Protein Needs, Water Needs, Weight Loss Classification, and Glucose Infusion Rate under Parenteral Nutrition while it's still the group's only member): no `overline` (the section header already names the calculator) — `title` = that entry's one-line result summary (see below), `subtitle` = `createdAt.formattedDateTime()` (reuse `ext_datetime.dart`'s existing formatter, same one `MeasurementsList` uses).
+- **Multi-member groups** (Enteral Nutrition's 3, Screening's 3, Weight's 5): `overline` = the specific sub-calculator's existing display name — the same string already defined as that tile's `name` in `patient_calculators_tab.dart`'s `_buildDefinitions` (e.g. "Gotejamento", "MUST") for Enteral Nutrition/Screening, and `WeightTypeEnum.label` for Weight (e.g. "Peso Ideal", "Adequação") — per Slice 11's explicit requirement. `title`/`subtitle` same as above.
+- No `trailing` (no chevron, no curve icon) — tap and swipe are the only two interactions and neither needs a persistent visual cue beyond the default `InkWell` ripple `DsListTile` already provides on tap; a curve icon (as the Weights tab shows) is deliberately **not** replicated here since History isn't a trend view and the 5 Weight sub-types don't share one comparable curve.
+- Separator: reuse `MeasurementsList`'s existing hairline `Container(color: DsColors.gray)` `ListView.separated` convention verbatim (documented DS-wide under `DsListTile`'s entry above) — don't invent a second separator style for one more list.
+
+### Per-type result-summary line (tile `title`, and the bold line in the detail sheet)
+
+No shared formatter exists today — reuse the exact result-line string each calculator's own sheet body already computes (single source of truth per calculator, not re-derived here):
+
+- BMI: `"IMC: ${value.toStringAsFixed(2)} (${classificationLabel})"` (`patient_calculators_tab.dart`'s own `_classificationLabel`).
+- Energy Expenditure: `"Gasto Energético: "` + the existing min/max formatter in `energy_expenditure_sheet_body.dart` (`"${min}–${max} kcal/dia"`, or just `"${min} kcal/dia"` if `min == max`).
+- Enteral Nutrition (Dripping/Speed/Volume), Glucose Infusion Rate, Protein Needs, MUST: reuse each one's own already-shipped result `Text` string verbatim (`"Gotejamento: X gotas/min"`, `"Velocidade de Infusão: X mL/h"`, `"Volume Total: X mL/dia"`, `"Taxa de Infusão de Glicose (TIG): X mg/kg/min"`, `"Necessidade Proteica: X – Y g/dia"`, `"MUST: {score} ({classificationLabel})"` — all confirmed present in their respective `*_sheet_body.dart` files).
+- NRS-2002, STRONG-Kids, Nitrogen Balance, Water Needs, Weight Loss Classification: same rule — pull the exact result string already coded in that calculator's own `*_sheet_body.dart` (or, for Weight Loss Classification, `patient_calculators_tab.dart`'s own result `Text`) rather than re-deriving new copy here; `mobile-dev`/`senior-analyst` should grep each file at implementation time rather than trust a re-typed copy in this doc going stale.
+- Weight (all 5 sub-types): reuse `patient_measurements_tab.dart`'s existing `_formatWeightValue` logic verbatim (handles Adequation's `%` + classification and Adjusted Dry Weight's min–max range specially, plain `"{value} kg"` otherwise) — prefixed with the sub-type's `WeightTypeEnum.label` on the `overline` (not repeated in the value string itself, to avoid "Peso Ideal — Peso Ideal: 70 kg" redundancy).
+
+### Detail bottom sheet (tap-to-view, read-only)
+
+`DsBottomSheet.show<void>`:
+- `title`: the same name used as the tile's primary identifier — group `type.label` for single-member groups, the sub-calculator name (or `WeightTypeEnum.label`) for multi-member groups. Matches the existing convention where every calculator's bottom sheet title is that calculator's own name.
+- `body`: a plain `Column` (`crossAxisAlignment: start`, `spacing: DsSpacing.sm`, same shape every calculator confirm-sheet already uses) of:
+  1. One `Text("${p.label}: ${p.value}")` per persisted `InputParamEntity` in `inputParams`, in stored order — this is generic/reusable across all 18 types precisely because `inputParams` already normalizes to `{key, label, value}` (ADR 0005), so no per-type branching is needed here (unlike the result line, which does need per-type branching since the "what is the result" shape differs).
+  2. `SizedBox(height: DsSpacing.sm)` then the bold result-summary line (same string as the tile `title`, `fontWeight: FontWeight.w700` — matches every existing calculator sheet's result-line styling, e.g. BMI's/Weight Loss Classification's).
+- `actions`: a single `Expanded(DsButton(label: "Fechar", onTap: () => getIt.get<AppRouter>().pop()))` — matches the existing "insufficient data" single-button convention already used throughout `patient_calculators_tab.dart`. No `Cancelar`/`Confirmar` pair (nothing to confirm — this view is read-only, no edit action, per Slice 11's explicit scope).
+
+### Empty states
+
+- **Per-group suppression**: covered above (no header/list rendered for a `CalculatorType` with 0 results).
+- **All-empty** (every group empty): render `NoDataFoundForPatient(message: "Sem histórico de cálculos para esse paciente")` — reuses the exact widget (and therefore exact visual treatment: `Expanded(DsPlaceholder(...))`) already used by the Weights/Heights/Body Measurements tabs for their own empty states, rather than introducing a new empty-state look for the 4th tab that needs one. Exact copy is PO-confirmed, verbatim, no changes.
+
+### Open item for `senior-analyst` (data availability, not a UX decision)
+
+`PatientDetailsStateLoaded` (`patient_details_state.dart`) today only exposes `weights`/`heights`/`measurements` lists plus a single latest `bmi` value — there is no existing state slice that reads *all* persisted rows across the other 17 calculator tables (BMI history, Energy Expenditure history, etc.) for a patient. Populating History will need new repository/use-case reads per calculator table (or one aggregating use case) wired into `PatientDetailsCubit`/state — flagging since it's a real gap the architecture plan needs to size, not something this design pass can resolve.

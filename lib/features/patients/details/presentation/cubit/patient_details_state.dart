@@ -4,6 +4,13 @@ import 'package:injectable/injectable.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_ids.dart';
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_save_status.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/history_entry_entity.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/history_source_type_enum.dart';
+import 'package:nutri_calc/features/calculators/domain/use_cases/get_patient_calculator_history_use_case.dart';
+import 'package:nutri_calc/features/calculators/domain/use_cases/delete_calculator_history_entry_use_case.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/use_cases/delete_weight_use_case.dart';
+import 'package:nutri_calc/features/measurements/height/domain/use_cases/delete_height_use_case.dart';
+import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cases/delete_body_measurement_use_case.dart';
 import 'package:nutri_calc/features/measurements/body_measurement/domain/entities/body_measurement_entity.dart';
 import 'package:nutri_calc/features/measurements/body_measurement/domain/entities/body_measurement_type_enum.dart';
 import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cases/create_body_measurement_use_case.dart';
@@ -102,6 +109,7 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.measurements = const [],
     this.bmi,
     this.calculatorStatuses = const {},
+    this.historyEntries = const [],
   });
 
   final EditPatientFormEntity form;
@@ -125,6 +133,7 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final List<BodyMeasurementEntity> measurements;
 
   final Map<String, CalculatorSaveStatus> calculatorStatuses;
+  final List<HistoryEntryEntity> historyEntries;
 
   CalculatorSaveStatus calculatorStatus(String id) =>
       calculatorStatuses[id] ?? const CalculatorSaveStatusIdle();
@@ -153,6 +162,7 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     bool? isSavingNewBodyMeasurement,
     List<BodyMeasurementEntity>? measurements,
     Map<String, CalculatorSaveStatus>? calculatorStatuses,
+    List<HistoryEntryEntity>? historyEntries,
   }) => PatientDetailsStateLoaded(
     form: form ?? this.form,
     isEditing: isEditing ?? this.isEditing,
@@ -175,6 +185,7 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
         isSavingNewBodyMeasurement ?? this.isSavingNewBodyMeasurement,
     measurements: measurements ?? this.measurements,
     calculatorStatuses: calculatorStatuses ?? this.calculatorStatuses,
+    historyEntries: historyEntries ?? this.historyEntries,
   );
 
   PatientDetailsStateLoaded clearForm(PatientDetailsFormOptions formOption) {
@@ -203,6 +214,7 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
           : isSavingNewBodyMeasurement,
       measurements: measurements,
       calculatorStatuses: calculatorStatuses,
+      historyEntries: historyEntries,
     );
   }
 
@@ -225,5 +237,6 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     isSavingNewBodyMeasurement,
     calculatorStatuses,
     measurements,
+    historyEntries,
   ];
 }

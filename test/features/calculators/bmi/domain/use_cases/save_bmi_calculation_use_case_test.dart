@@ -4,6 +4,7 @@ import 'package:nutri_calc/features/calculators/bmi/domain/entities/bmi_calculat
 import 'package:nutri_calc/features/calculators/bmi/domain/repositories/bmi_repository.dart';
 import 'package:nutri_calc/features/calculators/bmi/domain/use_cases/save_bmi_calculation_use_case.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi_classification.enum.dart';
+import 'package:nutri_calc/features/calculators/bmi/data/models/bmi_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors the fake pattern used throughout this codebase
@@ -18,6 +19,15 @@ class _FakeBmiRepository implements BmiRepository {
   ) async {
     lastReceived = bmi;
     return nextResult ?? Ok(bmi);
+  }
+  @override
+  Future<Result<List<BmiModel>, String>> getBmis(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteBmi(String id) async {
+    return const Ok(null);
   }
 }
 

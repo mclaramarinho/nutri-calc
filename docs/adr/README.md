@@ -48,3 +48,5 @@ Keep this list current — one line per ADR — so an agent can decide relevance
 | [0006](0006-calculator-registry-static-list-not-di-multibinding.md) | Calculator registry is a plain static list assembled by the consuming tab, not an `injectable`/`get_it` multi-binding | Accepted |
 | [0007](0007-weight-producing-calculators-and-resolve-weight-for-calculations.md) | Weight-producing calculators persist into `WEIGHTS`; `resolveWeightForCalculations` contract and retrofit scope; dedicated state quadruple per calculator | Accepted |
 | [0008](0008-calculator-save-status-value-object.md) | `CalculatorSaveStatus` value object replaces the 14 per-calculator state quadruples with `Map<String, CalculatorSaveStatus>` | Accepted |
+| [0009](0009-history-aggregation-across-heterogeneous-calculator-tables.md) | History aggregation across 14 heterogeneous calculator sources via per-source use cases + a thin orchestrator | Accepted |
+| [0010](0010-generic-cross-table-delete-and-shared-swipe-to-delete-widget.md) | Generic cross-table delete dispatch + one shared swipe-to-delete DS widget, closing the pre-existing `MeasurementsList` gap | Accepted |

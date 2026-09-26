@@ -41,4 +41,40 @@ class EnteralNutritionSpeedRepositoryImpl
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<EnteralNutritionSpeedModel>, String>> getEnteralNutritionSpeeds(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .enteralNutritionSpeed,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => EnteralNutritionSpeedModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting enteral nutrition speed history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteEnteralNutritionSpeed(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .enteralNutritionSpeed,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting enteral nutrition speed calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

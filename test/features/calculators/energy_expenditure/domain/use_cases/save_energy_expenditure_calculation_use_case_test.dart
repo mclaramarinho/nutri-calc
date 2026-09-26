@@ -7,6 +7,7 @@ import 'package:nutri_calc/features/calculators/energy_expenditure/domain/use_ca
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/stress_level.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/gender.dart';
+import 'package:nutri_calc/features/calculators/energy_expenditure/data/models/energy_expenditure_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors `save_bmi_calculation_use_case_test.dart`'s
@@ -22,6 +23,15 @@ class _FakeEnergyExpenditureRepository implements EnergyExpenditureRepository {
   ) async {
     lastReceived = energyExpenditure;
     return nextResult ?? Ok(energyExpenditure);
+  }
+  @override
+  Future<Result<List<EnergyExpenditureModel>, String>> getEnergyExpenditures(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteEnergyExpenditure(String id) async {
+    return const Ok(null);
   }
 }
 

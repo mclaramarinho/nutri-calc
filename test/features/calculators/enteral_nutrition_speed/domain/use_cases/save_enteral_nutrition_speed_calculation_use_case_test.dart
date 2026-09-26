@@ -3,6 +3,7 @@ import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/entities/enteral_nutrition_speed_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/repositories/enteral_nutrition_speed_repository.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/use_cases/save_enteral_nutrition_speed_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/data/models/enteral_nutrition_speed_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors the fake pattern used throughout this codebase.
@@ -18,6 +19,15 @@ class _FakeEnteralNutritionSpeedRepository
   ) async {
     lastReceived = enteralNutritionSpeed;
     return nextResult ?? Ok(enteralNutritionSpeed);
+  }
+  @override
+  Future<Result<List<EnteralNutritionSpeedModel>, String>> getEnteralNutritionSpeeds(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteEnteralNutritionSpeed(String id) async {
+    return const Ok(null);
   }
 }
 

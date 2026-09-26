@@ -33,4 +33,40 @@ class WaterNeedsRepositoryImpl implements WaterNeedsRepository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<WaterNeedsModel>, String>> getWaterNeeds(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .waterNeeds,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => WaterNeedsModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting water needs history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteWaterNeeds(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .waterNeeds,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting water needs calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

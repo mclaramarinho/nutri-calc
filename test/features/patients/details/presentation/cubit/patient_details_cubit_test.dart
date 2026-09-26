@@ -63,6 +63,14 @@ import 'package:nutri_calc/features/patients/details/domain/entities/edit_patien
 import 'package:nutri_calc/features/patients/details/domain/use_cases/load_patient_details_use_case.dart';
 import 'package:nutri_calc/features/patients/details/domain/use_cases/update_patient_use_case.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/calculator_type_enum.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/history_entry_entity.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/history_source_type_enum.dart';
+import 'package:nutri_calc/features/calculators/domain/use_cases/get_patient_calculator_history_use_case.dart';
+import 'package:nutri_calc/features/calculators/domain/use_cases/delete_calculator_history_entry_use_case.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/use_cases/delete_weight_use_case.dart';
+import 'package:nutri_calc/features/measurements/height/domain/use_cases/delete_height_use_case.dart';
+import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cases/delete_body_measurement_use_case.dart';
 
 /// Fakes implementing the abstract use-case interfaces directly - no mocking
 /// package is set up in this project, matching new_patient_cubit_test.dart's
@@ -638,6 +646,71 @@ class _FakeCreateBodyMeasurementUseCase implements CreateBodyMeasurementUseCase 
   }
 }
 
+class _FakeGetPatientCalculatorHistoryUseCase
+    implements GetPatientCalculatorHistoryUseCase {
+  List<HistoryEntryEntity> historyToReturn = [];
+
+  @override
+  Future<Result<List<HistoryEntryEntity>, String>> call(
+    String patientId,
+  ) async {
+    return Ok(historyToReturn);
+  }
+}
+
+class _FakeDeleteCalculatorHistoryEntryUseCase
+    implements DeleteCalculatorHistoryEntryUseCase {
+  Result<void, String> resultToReturn = const Ok(null);
+  HistoryEntryEntity? lastEntry;
+  int callCount = 0;
+
+  @override
+  Future<Result<void, String>> call(HistoryEntryEntity entry) async {
+    lastEntry = entry;
+    callCount++;
+    return resultToReturn;
+  }
+}
+
+// Shared by both `PatientDetailsCubit.deleteWeight` (called by
+// `MeasurementsList`'s Weights tab instance) and
+// `DeleteCalculatorHistoryEntryUseCaseImpl` (called by `PatientHistoryTab`
+// via `PatientDetailsCubit.deleteHistoryEntry`, per ADR 0010's "same leaf
+// use case, not a second call site" guarantee) - tracking `callCount`/
+// `lastId` here lets a single fake instance prove both call sites funnel
+// through it identically.
+class _FakeDeleteWeightUseCase implements DeleteWeightUseCase {
+  Result<void, String> resultToReturn = const Ok(null);
+  String? lastId;
+  int callCount = 0;
+
+  @override
+  Future<Result<void, String>> call(String id) async {
+    lastId = id;
+    callCount++;
+    return resultToReturn;
+  }
+}
+
+class _FakeDeleteHeightUseCase implements DeleteHeightUseCase {
+  Result<void, String> resultToReturn = const Ok(null);
+
+  @override
+  Future<Result<void, String>> call(String id) async {
+    return resultToReturn;
+  }
+}
+
+class _FakeDeleteBodyMeasurementUseCase
+    implements DeleteBodyMeasurementUseCase {
+  Result<void, String> resultToReturn = const Ok(null);
+
+  @override
+  Future<Result<void, String>> call(String id) async {
+    return resultToReturn;
+  }
+}
+
 void main() {
   const patientId = "local-id-1";
 
@@ -677,6 +750,11 @@ void main() {
   fakeSaveAdjustedDryWeightCalculation;
   late _FakeSaveEstimatedWeightCalculationUseCase
   fakeSaveEstimatedWeightCalculation;
+  late _FakeGetPatientCalculatorHistoryUseCase fakeGetHistory;
+  late _FakeDeleteCalculatorHistoryEntryUseCase fakeDeleteHistoryEntry;
+  late _FakeDeleteWeightUseCase fakeDeleteWeight;
+  late _FakeDeleteHeightUseCase fakeDeleteHeight;
+  late _FakeDeleteBodyMeasurementUseCase fakeDeleteBodyMeasurement;
   late PatientDetailsCubit cubit;
 
   setUp(() {
@@ -716,8 +794,18 @@ void main() {
         _FakeSaveAdjustedDryWeightCalculationUseCase();
     fakeSaveEstimatedWeightCalculation =
         _FakeSaveEstimatedWeightCalculationUseCase();
+    fakeGetHistory = _FakeGetPatientCalculatorHistoryUseCase();
+    fakeDeleteHistoryEntry = _FakeDeleteCalculatorHistoryEntryUseCase();
+    fakeDeleteWeight = _FakeDeleteWeightUseCase();
+    fakeDeleteHeight = _FakeDeleteHeightUseCase();
+    fakeDeleteBodyMeasurement = _FakeDeleteBodyMeasurementUseCase();
 
     cubit = PatientDetailsCubit(
+      getPatientCalculatorHistoryUseCase: fakeGetHistory,
+      deleteCalculatorHistoryEntryUseCase: fakeDeleteHistoryEntry,
+      deleteWeightUseCase: fakeDeleteWeight,
+      deleteHeightUseCase: fakeDeleteHeight,
+      deleteBodyMeasurementUseCase: fakeDeleteBodyMeasurement,
       loadPatientDetailsUseCase: fakeLoad,
       updatePatientUseCase: fakeUpdate,
       createWeightUseCase: fakeCreateWeight,
@@ -3332,6 +3420,203 @@ void main() {
 
         final state = cubit.state as PatientDetailsStateLoaded;
         expect(state.calculatorStatus(CalculatorIds.estimatedWeight).isSaved, isTrue);
+      },
+    );
+  });
+
+  group('History tab (Slice 11) - cross-tab delete path guarantee (ADR 0010)', () {
+    HistoryEntryEntity weightHistoryEntry(String id) => HistoryEntryEntity(
+      id: id,
+      patientId: patientId,
+      type: CalculatorType.weight,
+      sourceType: HistorySourceType.weight,
+      label: 'Peso Ideal',
+      resultSummary: '70.0 kg',
+      inputParams: const [],
+      createdAt: DateTime(2026, 1, 1),
+    );
+
+    HistoryEntryEntity bmiHistoryEntry(String id) => HistoryEntryEntity(
+      id: id,
+      patientId: patientId,
+      type: CalculatorType.bmi,
+      sourceType: HistorySourceType.bmi,
+      label: 'IMC',
+      resultSummary: 'IMC: 22.0',
+      inputParams: const [],
+      createdAt: DateTime(2026, 1, 1),
+    );
+
+    test(
+      'deleteWeight (Weights tab / MeasurementsList call site) calls '
+      'DeleteWeightUseCase and refreshes both weights and historyEntries',
+      () async {
+        await cubit.init(patientId);
+        final newWeights = [
+          WeightEntity(
+            id: 'w2',
+            createdAt: DateTime.now(),
+            value: 65,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        final newHistory = [weightHistoryEntry('w2')];
+        fakeGetWeights.weightsToReturn = newWeights;
+        fakeGetHistory.historyToReturn = newHistory;
+
+        final result = await cubit.deleteWeight('w1');
+
+        expect(result.isOk, isTrue);
+        expect(fakeDeleteWeight.callCount, 1);
+        expect(fakeDeleteWeight.lastId, 'w1');
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.weights, newWeights);
+        expect(state.historyEntries, newHistory);
+      },
+    );
+
+    test(
+      'deleteHistoryEntry for a Weight-type row (History tab call site) '
+      'goes through the same refresh path (weights AND historyEntries '
+      'both refetched) as deleteWeight, not a History-only refresh',
+      () async {
+        await cubit.init(patientId);
+        final newWeights = [
+          WeightEntity(
+            id: 'w3',
+            createdAt: DateTime.now(),
+            value: 60,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        final newHistory = <HistoryEntryEntity>[];
+        fakeGetWeights.weightsToReturn = newWeights;
+        fakeGetHistory.historyToReturn = newHistory;
+
+        final entry = weightHistoryEntry('w1');
+        final result = await cubit.deleteHistoryEntry(entry);
+
+        expect(result.isOk, isTrue);
+        // The orchestrator (`DeleteCalculatorHistoryEntryUseCase`) is what
+        // dispatches to the real `DeleteWeightUseCase` for a weight-type
+        // entry per ADR 0010 - covered independently in
+        // delete_calculator_history_entry_use_case_test.dart. Here we
+        // assert the *cubit*-level contract: deleting a weight-type history
+        // entry re-fetches weights too (not just history), matching
+        // deleteWeight's own refresh shape exactly.
+        expect(fakeDeleteHistoryEntry.callCount, 1);
+        expect(fakeDeleteHistoryEntry.lastEntry, entry);
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.weights, newWeights, reason:
+            'a Weight-type History delete must refresh weights (and thus '
+            'recompute curves for the Weights tab), not just historyEntries');
+        expect(state.historyEntries, newHistory);
+      },
+    );
+
+    test(
+      'deleteHistoryEntry for a non-Weight row (e.g. BMI) only refreshes '
+      'historyEntries, leaving weights/heights/measurements untouched',
+      () async {
+        await cubit.init(patientId);
+        final initialWeights = (cubit.state as PatientDetailsStateLoaded).weights;
+        // Non-empty and distinct from the initial (empty) `historyEntries`
+        // so a no-op refresh can't accidentally satisfy the assertion below.
+        final newHistory = [bmiHistoryEntry('bmi-refreshed')];
+        fakeGetHistory.historyToReturn = newHistory;
+        // If a weights refetch were incorrectly triggered, this would be
+        // picked up by the state below instead of `initialWeights`.
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            id: 'unexpected',
+            createdAt: DateTime.now(),
+            value: 999,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+
+        final entry = bmiHistoryEntry('bmi1');
+        await cubit.deleteHistoryEntry(entry);
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.weights, initialWeights);
+        expect(state.historyEntries, newHistory);
+      },
+    );
+
+    test('deleteWeight on error does not refresh weights/history', () async {
+      await cubit.init(patientId);
+      final initialWeights = (cubit.state as PatientDetailsStateLoaded).weights;
+      final initialHistory = (cubit.state as PatientDetailsStateLoaded).historyEntries;
+      fakeDeleteWeight.resultToReturn = Error('db failure');
+      fakeGetWeights.weightsToReturn = [
+        WeightEntity(
+          id: 'should-not-appear',
+          createdAt: DateTime.now(),
+          value: 999,
+          patientId: patientId,
+          considerForCalculations: true,
+          weightType: WeightTypeEnum.measuredByScale,
+        ),
+      ];
+
+      final result = await cubit.deleteWeight('w1');
+
+      expect(result.isError, isTrue);
+      final state = cubit.state as PatientDetailsStateLoaded;
+      expect(state.weights, initialWeights);
+      expect(state.historyEntries, initialHistory);
+    });
+
+    test(
+      'saveBmiCalculation (fire-and-forget history refresh) - historyEntries '
+      'reflects the newly-saved entry after the save microtask settles, '
+      'without delaying the isSaved true-transition',
+      () async {
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        fakeGetHeights.heightsToReturn = [
+          HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
+        ];
+        await cubit.init(patientId);
+        expect(
+          (cubit.state as PatientDetailsStateLoaded).historyEntries,
+          isEmpty,
+        );
+
+        fakeGetHistory.historyToReturn = [bmiHistoryEntry('new-bmi')];
+
+        await cubit.saveBmiCalculation();
+
+        // isSaved must already be true synchronously after the save
+        // resolves (the fire-and-forget history refresh must not delay
+        // this transition - see ADR 0009's `_saveCalculation` note).
+        expect(
+          (cubit.state as PatientDetailsStateLoaded)
+              .calculatorStatus(CalculatorIds.bmi)
+              .isSaved,
+          isTrue,
+        );
+
+        // Let the un-awaited `_getPatientCalculatorHistoryUseCase(...).then`
+        // microtask/future resolve.
+        await Future.delayed(Duration.zero);
+
+        final state = cubit.state as PatientDetailsStateLoaded;
+        expect(state.historyEntries, [bmiHistoryEntry('new-bmi')]);
       },
     );
   });

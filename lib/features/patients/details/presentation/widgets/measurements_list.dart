@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/core/utils/extensions/ext_datetime.dart';
 import 'package:nutri_calc/core/utils/extensions/ext_widget.dart';
+import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_dismissible_tile/ds_dismissible_tile.dart';
 
 class MeasurementsList extends StatelessWidget {
   final List<MeasurementsListItem> dataList;
   final bool displayAccordion;
   final String? accordionHeader;
+  // ADR 0010: closes the pre-existing commented-out `Dismissible` TODO for
+  // Weights/Heights/Body Measurements. `null` keeps this list read-only
+  // (e.g. for call sites that don't yet want delete-on-swipe).
+  final Future<Result<void, String>> Function(String id)? onDelete;
 
   const MeasurementsList({
     required this.dataList,
     this.displayAccordion = false,
     this.accordionHeader,
+    this.onDelete,
     super.key,
   }) : assert(
          !displayAccordion || accordionHeader != null,
@@ -29,20 +36,21 @@ class MeasurementsList extends StatelessWidget {
       itemBuilder: ((context, index) {
         final item = dataList[index];
         final curve = item.curve?.icon;
-        return ListTile(
+        final tile = ListTile(
           title: Text(item.value),
           subtitle: Text(item.createdAt.formattedDateTime()),
           trailing: curve != null ? Icon(curve) : null,
         );
-        // TODO - use when delete weight record is available
-        // return Dismissible(
-        //   key: Key(weight.id!),
-        //   behavior: .opaque,
-        //   child: ListTile(
-        //     title: Text("${weight.value} kg"),
-        //     subtitle: Text(weight.createdAt.formattedDateTime()),
-        //   ),
-        // );
+
+        if (onDelete == null) return tile;
+
+        return DsDismissibleTile(
+          itemKey: Key(item.id),
+          confirmTitle: "Excluir",
+          confirmMessage: "Deseja realmente excluir esta medida?",
+          onDelete: () => onDelete!(item.id),
+          child: tile,
+        );
       }),
       separatorBuilder: (context, index) {
         return SizedBox(

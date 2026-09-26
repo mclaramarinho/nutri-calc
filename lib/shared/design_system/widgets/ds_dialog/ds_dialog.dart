@@ -8,7 +8,12 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 
 class DsDialog {
-  static Future<void> show(
+  /// Generic boolean/value-return confirm API (ADR 0002 precedent, mirrors
+  /// `DsBottomSheet.show<T>`): callers pop through `AppRouter.pop<T>(result)`
+  /// from within [actions] and get the popped value back here. Still invokes
+  /// [onClose] as a side-effect once the dialog is dismissed, same as the
+  /// original non-generic behaviour.
+  static Future<T?> show<T>(
     BuildContext context, {
     bool? showCloseButton,
     String? title,
@@ -19,7 +24,7 @@ class DsDialog {
     bool? isDismissible,
     Duration? duration,
   }) async {
-    showAdaptiveDialog(
+    final result = await showAdaptiveDialog<T>(
       context: context,
       useSafeArea: true,
       barrierDismissible: isDismissible ?? true,
@@ -35,7 +40,9 @@ class DsDialog {
           duration: duration,
         );
       },
-    ).then((_) => onClose?.call());
+    );
+    onClose?.call();
+    return result;
   }
 }
 

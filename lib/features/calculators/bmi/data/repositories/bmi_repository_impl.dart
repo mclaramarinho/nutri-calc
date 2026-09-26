@@ -34,4 +34,40 @@ class BmiRepositoryImpl implements BmiRepository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<BmiModel>, String>> getBmis(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .bmi,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => BmiModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting bmi history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteBmi(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .bmi,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting bmi calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

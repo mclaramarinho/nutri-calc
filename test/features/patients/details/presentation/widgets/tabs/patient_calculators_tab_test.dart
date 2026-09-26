@@ -77,6 +77,12 @@ import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi.en
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/ascitis_level.enum.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/oedema_level.enum.dart';
 import 'package:nutri_calc/shared/utils/enums/ethnicity.dart';
+import 'package:nutri_calc/features/calculators/domain/entities/history_entry_entity.dart';
+import 'package:nutri_calc/features/calculators/domain/use_cases/get_patient_calculator_history_use_case.dart';
+import 'package:nutri_calc/features/calculators/domain/use_cases/delete_calculator_history_entry_use_case.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/use_cases/delete_weight_use_case.dart';
+import 'package:nutri_calc/features/measurements/height/domain/use_cases/delete_height_use_case.dart';
+import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cases/delete_body_measurement_use_case.dart';
 
 /// Fakes implementing the abstract use-case interfaces directly - no mocking
 /// package is set up in this project, matching patient_details_cubit_test.dart.
@@ -639,6 +645,56 @@ class _FakeAppRouter implements AppRouter {
   GoRouter get router => throw UnimplementedError();
 }
 
+class _FakeGetPatientCalculatorHistoryUseCase
+    implements GetPatientCalculatorHistoryUseCase {
+  List<HistoryEntryEntity> historyToReturn = [];
+
+  @override
+  Future<Result<List<HistoryEntryEntity>, String>> call(
+    String patientId,
+  ) async {
+    return Ok(historyToReturn);
+  }
+}
+
+class _FakeDeleteCalculatorHistoryEntryUseCase
+    implements DeleteCalculatorHistoryEntryUseCase {
+  Result<void, String> resultToReturn = const Ok(null);
+
+  @override
+  Future<Result<void, String>> call(HistoryEntryEntity entry) async {
+    return resultToReturn;
+  }
+}
+
+class _FakeDeleteWeightUseCase implements DeleteWeightUseCase {
+  Result<void, String> resultToReturn = const Ok(null);
+
+  @override
+  Future<Result<void, String>> call(String id) async {
+    return resultToReturn;
+  }
+}
+
+class _FakeDeleteHeightUseCase implements DeleteHeightUseCase {
+  Result<void, String> resultToReturn = const Ok(null);
+
+  @override
+  Future<Result<void, String>> call(String id) async {
+    return resultToReturn;
+  }
+}
+
+class _FakeDeleteBodyMeasurementUseCase
+    implements DeleteBodyMeasurementUseCase {
+  Result<void, String> resultToReturn = const Ok(null);
+
+  @override
+  Future<Result<void, String>> call(String id) async {
+    return resultToReturn;
+  }
+}
+
 void main() {
   const patientId = "local-id-1";
 
@@ -710,6 +766,11 @@ void main() {
         _FakeSaveEstimatedWeightCalculationUseCase();
 
     cubit = PatientDetailsCubit(
+      getPatientCalculatorHistoryUseCase: _FakeGetPatientCalculatorHistoryUseCase(),
+      deleteCalculatorHistoryEntryUseCase: _FakeDeleteCalculatorHistoryEntryUseCase(),
+      deleteWeightUseCase: _FakeDeleteWeightUseCase(),
+      deleteHeightUseCase: _FakeDeleteHeightUseCase(),
+      deleteBodyMeasurementUseCase: _FakeDeleteBodyMeasurementUseCase(),
       loadPatientDetailsUseCase: fakeLoad,
       updatePatientUseCase: _FakeUpdatePatientUseCase(),
       createWeightUseCase: _FakeCreateWeightUseCase(),

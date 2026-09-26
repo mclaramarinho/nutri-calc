@@ -41,4 +41,40 @@ class WeightLossClassificationRepositoryImpl
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<WeightLossClassificationModel>, String>> getWeightLossClassifications(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .weightLossClassifications,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => WeightLossClassificationModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting weight loss classification history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteWeightLossClassification(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .weightLossClassifications,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting weight loss classification calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

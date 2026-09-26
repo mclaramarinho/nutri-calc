@@ -68,4 +68,21 @@ class WeightRepositoryImpl implements WeightRepository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<void, String>> deleteWeight(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .weights,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting weight.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

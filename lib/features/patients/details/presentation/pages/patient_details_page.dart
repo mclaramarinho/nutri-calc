@@ -8,6 +8,7 @@ import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_
 import 'package:nutri_calc/features/patients/details/presentation/widgets/patient_details_form.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_body_measurements_tab.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_calculators_tab.dart';
+import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_history_tab.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_measurements_tab.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
@@ -149,7 +150,7 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
                   PatientMeasurementsTab(type: .weight),
                   PatientMeasurementsTab(type: .height),
                   PatientBodyMeasurementsTab(),
-                  DsPlaceholder(),
+                  PatientHistoryTab(),
                 ],
                 header: Column(
                   spacing: 10.h,

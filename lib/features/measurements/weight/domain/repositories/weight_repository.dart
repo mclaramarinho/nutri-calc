@@ -12,4 +12,5 @@ abstract class WeightRepository {
     List<InputParamEntity> inputParams = const [],
   });
   Future<Result<List<WeightModel>, String>> getWeights(String patientId);
+  Future<Result<void, String>> deleteWeight(String id);
 }

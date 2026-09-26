@@ -40,4 +40,40 @@ class EnergyExpenditureRepositoryImpl implements EnergyExpenditureRepository {
       return Error(ex.toString());
     }
   }
+
+  @override
+  Future<Result<List<EnergyExpenditureModel>, String>> getEnergyExpenditures(String patientId) async {
+    try {
+      final res = await _databaseService.read(
+        .energyExpenditures,
+        where: 'patientId = ?',
+        whereArgs: [patientId],
+      );
+      if (res.isOk) {
+        final val = res as Ok<List<Map<String, dynamic>>, String>;
+        return Ok(val.value.map((json) => EnergyExpenditureModel.fromJson(json)).toList());
+      }
+
+      return Error("Error getting energy expenditure history for patient $patientId");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
+
+  @override
+  Future<Result<void, String>> deleteEnergyExpenditure(String id) async {
+    try {
+      final res = await _databaseService.delete(
+        .energyExpenditures,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (res.isOk) {
+        return const Ok(null);
+      }
+      return Error("Error deleting energy expenditure calculation.");
+    } catch (ex) {
+      return Error(ex.toString());
+    }
+  }
 }

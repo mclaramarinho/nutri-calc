@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/features/measurements/domain/entities/measurement_entity.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_entity.dart';
-import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/use_cases/format_weight_value.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/measurement_input_field.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/measurements_list.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/no_data_found_for_patient.dart';
-import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/weight_adequation_classification.enum.dart';
 import 'package:nutri_calc/shared/utils/formatters/only_numbers_formatter.dart';
 
 enum MeasurementType { weight, height }
@@ -16,50 +15,6 @@ class PatientMeasurementsTab extends StatelessWidget {
   final MeasurementType type;
 
   const PatientMeasurementsTab({required this.type, super.key});
-
-  String _classificationLabel(WeightAdequationClassification classification) {
-    switch (classification) {
-      case .severeMalnutrition:
-        return "Desnutrição grave";
-      case .moderateMalnutrition:
-        return "Desnutrição moderada";
-      case .mildMalnutrition:
-        return "Desnutrição leve";
-      case .eutrophy:
-        return "Eutrofia";
-      case .overweight:
-        return "Sobrepeso";
-      case .obesity:
-        return "Obesidade";
-    }
-  }
-
-  // Product decisions (po pass, 2026-09-26): Adequation's persisted `value`
-  // is a percentage, not kg - rendered here with its recomputed
-  // classification instead of appending "kg". Adjusted Dry Weight's
-  // persisted `value` is a midpoint, not the calculator's actual result -
-  // rendered here as the min/max range read back out of `inputParams`
-  // instead.
-  String _formatWeightValue(WeightEntity weight) {
-    if (weight.weightType == WeightTypeEnum.adequation) {
-      final classification = WeightAdequationClassification.getByValue(
-        weight.value,
-      );
-      return '${weight.value.toStringAsFixed(2)}% (${_classificationLabel(classification)})';
-    }
-
-    if (weight.weightType == WeightTypeEnum.adjustedDryWeight) {
-      final min = weight.inputParams
-          .firstWhere((p) => p.key == "dry_weight_min_kg")
-          .value;
-      final max = weight.inputParams
-          .firstWhere((p) => p.key == "dry_weight_max_kg")
-          .value;
-      return '$min – $max kg';
-    }
-
-    return '${weight.value} kg';
-  }
 
   List<MeasurementsListItem> castToListItem(List<MeasurementEntity> listData) {
     List<MeasurementsListItem> itemList = [];
@@ -76,7 +31,7 @@ class PatientMeasurementsTab extends StatelessWidget {
           : .nochange;
 
       final value = type == .weight
-          ? _formatWeightValue(current as WeightEntity)
+          ? const FormatWeightValue()(current as WeightEntity)
           : '${current.value} cm';
 
       itemList.add(
@@ -126,7 +81,10 @@ class PatientMeasurementsTab extends StatelessWidget {
             ],
 
             if (listData.isNotEmpty) ...[
-              MeasurementsList(dataList: castToListItem(listData)),
+              MeasurementsList(
+                dataList: castToListItem(listData),
+                onDelete: isWeight ? cubit.deleteWeight : cubit.deleteHeight,
+              ),
             ],
           ],
         );

@@ -3,6 +3,7 @@ import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/entities/enteral_nutrition_volume_calculation_entity.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/repositories/enteral_nutrition_volume_repository.dart';
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/data/models/enteral_nutrition_volume_model.dart';
 
 /// Fake implementing the abstract repository interface directly - no
 /// mocking library, mirrors the fake pattern used throughout this codebase.
@@ -18,6 +19,15 @@ class _FakeEnteralNutritionVolumeRepository
   ) async {
     lastReceived = enteralNutritionVolume;
     return nextResult ?? Ok(enteralNutritionVolume);
+  }
+  @override
+  Future<Result<List<EnteralNutritionVolumeModel>, String>> getEnteralNutritionVolumes(String patientId) async {
+    return const Ok([]);
+  }
+
+  @override
+  Future<Result<void, String>> deleteEnteralNutritionVolume(String id) async {
+    return const Ok(null);
   }
 }
 

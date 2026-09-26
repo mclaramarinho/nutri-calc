@@ -55,7 +55,10 @@ class PatientBodyMeasurementsTab extends StatelessWidget {
     return items;
   }
 
-  List<Widget> getLists(List<BodyMeasurementEntity> listData) {
+  List<Widget> getLists(
+    List<BodyMeasurementEntity> listData,
+    PatientDetailsCubit cubit,
+  ) {
     final grouped = groupByMeasurementType(listData);
     List<Widget> widgets = [];
     for (final key in grouped.keys) {
@@ -65,6 +68,7 @@ class PatientBodyMeasurementsTab extends StatelessWidget {
           dataList: data,
           displayAccordion: true,
           accordionHeader: BodyMeasurementTypeEnum.fromJson(key).label,
+          onDelete: cubit.deleteBodyMeasurement,
         ),
       );
       widgets.add(SizedBox(height: DsSpacing.vLg));
@@ -108,7 +112,7 @@ class PatientBodyMeasurementsTab extends StatelessWidget {
               ],
 
               if (state.measurements.isNotEmpty)
-                ...getLists(state.measurements),
+                ...getLists(state.measurements, cubit),
             ],
           ),
         );
