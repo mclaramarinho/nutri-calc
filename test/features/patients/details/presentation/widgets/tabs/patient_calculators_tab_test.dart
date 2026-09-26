@@ -65,6 +65,18 @@ import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart
 import 'package:nutri_calc/shared/design_system/widgets/ds_list_tile/ds_list_tile.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi_classification.enum.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nutri_calc/features/calculators/adequation/domain/use_cases/save_adequation_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/adequation/presentation/widgets/adequation_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/adjusted_obesity/domain/use_cases/save_adjusted_obesity_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/adjusted_obesity/presentation/widgets/adjusted_obesity_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/adjusted_dry_weight/domain/use_cases/save_adjusted_dry_weight_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/adjusted_dry_weight/presentation/widgets/adjusted_dry_weight_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/estimated_weight/domain/use_cases/save_estimated_weight_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/estimated_weight/presentation/widgets/estimated_weight_sheet_body.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi.entity.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/ascitis_level.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/oedema_level.enum.dart';
+import 'package:nutri_calc/shared/utils/enums/ethnicity.dart';
 
 /// Fakes implementing the abstract use-case interfaces directly - no mocking
 /// package is set up in this project, matching patient_details_cubit_test.dart.
@@ -490,6 +502,111 @@ class _FakeSaveIdealWeightCalculationUseCase
   }
 }
 
+class _FakeSaveAdequationCalculationUseCase
+    implements SaveAdequationCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double currentWeight,
+    required double idealWeight,
+    required bool considerForCalculations,
+  }) async {
+    callCount++;
+    return Ok(
+      WeightEntity(
+        id: 'adeq-1',
+        createdAt: DateTime.now(),
+        value: 100.0,
+        patientId: patientId,
+        considerForCalculations: considerForCalculations,
+        weightType: WeightTypeEnum.adequation,
+      ),
+    );
+  }
+}
+
+class _FakeSaveAdjustedObesityCalculationUseCase
+    implements SaveAdjustedObesityCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double currentWeight,
+    required double idealWeight,
+    required bool considerForCalculations,
+  }) async {
+    callCount++;
+    return Ok(
+      WeightEntity(
+        id: 'adjobes-1',
+        createdAt: DateTime.now(),
+        value: 70.0,
+        patientId: patientId,
+        considerForCalculations: considerForCalculations,
+        weightType: WeightTypeEnum.adjustedObesity,
+      ),
+    );
+  }
+}
+
+class _FakeSaveAdjustedDryWeightCalculationUseCase
+    implements SaveAdjustedDryWeightCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double currentWeight,
+    required Bmi imc,
+    AscitisLevel? ascitis,
+    OedemaLevel? oedema,
+    required bool considerForCalculations,
+  }) async {
+    callCount++;
+    return Ok(
+      WeightEntity(
+        id: 'adjdry-1',
+        createdAt: DateTime.now(),
+        value: 70.0,
+        patientId: patientId,
+        considerForCalculations: considerForCalculations,
+        weightType: WeightTypeEnum.adjustedDryWeight,
+      ),
+    );
+  }
+}
+
+class _FakeSaveEstimatedWeightCalculationUseCase
+    implements SaveEstimatedWeightCalculationUseCase {
+  int callCount = 0;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double kneeHeight,
+    required double armCircumference,
+    required Gender gender,
+    required int age,
+    required Ethnicity ethnicity,
+    required bool considerForCalculations,
+  }) async {
+    callCount++;
+    return Ok(
+      WeightEntity(
+        id: 'est-1',
+        createdAt: DateTime.now(),
+        value: 70.0,
+        patientId: patientId,
+        considerForCalculations: considerForCalculations,
+        weightType: WeightTypeEnum.estimated,
+      ),
+    );
+  }
+}
+
 /// Pops via the Navigator wired to [navigatorKey], mirroring how a real
 /// GoRouter-backed AppRouter.pop() closes the DsBottomSheet's modal route -
 /// needed so DsBottomSheet.show's returned Future actually resolves in tests.
@@ -549,6 +666,13 @@ void main() {
   late _FakeSaveNrs2002CalculationUseCase fakeSaveNrs2002Calculation;
   late _FakeSaveStrongKidsCalculationUseCase fakeSaveStrongKidsCalculation;
   late _FakeSaveIdealWeightCalculationUseCase fakeSaveIdealWeightCalculation;
+  late _FakeSaveAdequationCalculationUseCase fakeSaveAdequationCalculation;
+  late _FakeSaveAdjustedObesityCalculationUseCase
+  fakeSaveAdjustedObesityCalculation;
+  late _FakeSaveAdjustedDryWeightCalculationUseCase
+  fakeSaveAdjustedDryWeightCalculation;
+  late _FakeSaveEstimatedWeightCalculationUseCase
+  fakeSaveEstimatedWeightCalculation;
   late PatientDetailsCubit cubit;
   final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -577,6 +701,13 @@ void main() {
     fakeSaveNrs2002Calculation = _FakeSaveNrs2002CalculationUseCase();
     fakeSaveStrongKidsCalculation = _FakeSaveStrongKidsCalculationUseCase();
     fakeSaveIdealWeightCalculation = _FakeSaveIdealWeightCalculationUseCase();
+    fakeSaveAdequationCalculation = _FakeSaveAdequationCalculationUseCase();
+    fakeSaveAdjustedObesityCalculation =
+        _FakeSaveAdjustedObesityCalculationUseCase();
+    fakeSaveAdjustedDryWeightCalculation =
+        _FakeSaveAdjustedDryWeightCalculationUseCase();
+    fakeSaveEstimatedWeightCalculation =
+        _FakeSaveEstimatedWeightCalculationUseCase();
 
     cubit = PatientDetailsCubit(
       loadPatientDetailsUseCase: fakeLoad,
@@ -607,6 +738,13 @@ void main() {
       saveNrs2002CalculationUseCase: fakeSaveNrs2002Calculation,
       saveStrongKidsCalculationUseCase: fakeSaveStrongKidsCalculation,
       saveIdealWeightCalculationUseCase: fakeSaveIdealWeightCalculation,
+      saveAdequationCalculationUseCase: fakeSaveAdequationCalculation,
+      saveAdjustedObesityCalculationUseCase:
+          fakeSaveAdjustedObesityCalculation,
+      saveAdjustedDryWeightCalculationUseCase:
+          fakeSaveAdjustedDryWeightCalculation,
+      saveEstimatedWeightCalculationUseCase:
+          fakeSaveEstimatedWeightCalculation,
     );
 
     getIt.registerSingleton<AppRouter>(_FakeAppRouter(navigatorKey));
@@ -754,10 +892,12 @@ void main() {
         // patient (not on enteral/parenteral nutrition); Slice 6 added
         // Weight Loss Classification (not relevant - no weights registered);
         // Slice 7 added MUST/NRS-2002/STRONG-Kids (3 more); Slice 8 added
-        // Ideal Weight (not relevant - no BMI computed). All still shown
-        // by "See All": 5 pre-slice-5 tiles + 4 slice-5 + 1 slice-6 + 3
-        // slice-7 + 1 slice-8.
-        expect(find.byType(DsListTile), findsNWidgets(14));
+        // Ideal Weight (not relevant - no BMI computed); Slice 10 added
+        // Adequation/Adjusted Obesity/Adjusted Dry Weight/Estimated (4 more,
+        // none relevant - no BMI computed and not hospitalized/confined to
+        // bed). All still shown by "See All": 5 pre-slice-5 tiles + 4
+        // slice-5 + 1 slice-6 + 3 slice-7 + 1 slice-8 + 4 slice-10.
+        expect(find.byType(DsListTile), findsNWidgets(18));
       },
     );
 
@@ -2043,6 +2183,527 @@ void main() {
           ).weightKg,
           65,
         );
+      },
+    );
+
+    testWidgets(
+      'Slice 10 relevance: obese/low-BMI patient (not hospitalized/confined) '
+      'shows Adequation and Adjusted Obesity directly, but not Adjusted Dry '
+      'Weight/Estimated Weight (those two are hospitalized/confinedToBed-'
+      'gated, not BMI-gated)',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 100,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        fakeGetHeights.heightsToReturn = [
+          HeightEntity(createdAt: DateTime.now(), value: 170, patientId: patientId),
+        ];
+        await cubit.init(patientId);
+        // BMI = 100 / 1.70^2 ≈ 34.6 -> obesity, which gates Adequation/
+        // Adjusted Obesity relevant, per isAdequationRelevant/
+        // isAdjustedObesityRelevant.
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        expect(find.text(WeightTypeEnum.adequation.label), findsOneWidget);
+        expect(find.text(WeightTypeEnum.adjustedObesity.label), findsOneWidget);
+        expect(find.text(WeightTypeEnum.adjustedDryWeight.label), findsNothing);
+        expect(find.text(WeightTypeEnum.estimated.label), findsNothing);
+
+        // Both remain reachable via "See All", just not relevant.
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(WeightTypeEnum.adjustedDryWeight.label),
+          findsOneWidget,
+        );
+        expect(find.text(WeightTypeEnum.estimated.label), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Slice 10 relevance: hospitalized patient with a eutrophic BMI shows '
+      'Adjusted Dry Weight and Estimated Weight directly, but not '
+      'Adequation/Adjusted Obesity (those two are BMI-gated, not '
+      'hospitalized/confinedToBed-gated)',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          hospitalized: true,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 65,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        fakeGetHeights.heightsToReturn = [
+          HeightEntity(createdAt: DateTime.now(), value: 170, patientId: patientId),
+        ];
+        await cubit.init(patientId);
+        // BMI = 65 / 1.70^2 ≈ 22.5 -> eutrophy, not in Adequation/Adjusted
+        // Obesity's relevant classification set.
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(WeightTypeEnum.adjustedDryWeight.label),
+          findsOneWidget,
+        );
+        expect(find.text(WeightTypeEnum.estimated.label), findsOneWidget);
+        expect(find.text(WeightTypeEnum.adequation.label), findsNothing);
+        expect(find.text(WeightTypeEnum.adjustedObesity.label), findsNothing);
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        expect(find.text(WeightTypeEnum.adequation.label), findsOneWidget);
+        expect(find.text(WeightTypeEnum.adjustedObesity.label), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Adequation pre-gate: no weight data shows the insufficient-data '
+      'message and Fechar closes it without calling '
+      'saveAdequationCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(find.text(WeightTypeEnum.adequation.label).last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(WeightTypeEnum.adequation.label).last);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Não há dados suficientes para calcular a Adequação de Peso. "
+            "Cadastre ao menos um peso para esse paciente.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveAdequationCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Adequation pre-gate: weight present but no Ideal Weight on file shows '
+      'the "Calcule o Peso Ideal..." message and Fechar closes it without '
+      'calling saveAdequationCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(find.text(WeightTypeEnum.adequation.label).last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(WeightTypeEnum.adequation.label).last);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Calcule o Peso Ideal deste paciente antes de usar esta calculadora.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveAdequationCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Adequation tap-flow: with a weight and an Ideal Weight row on file, '
+      'tapping opens AdequationSheetBody with the resolved current/ideal '
+      'weights',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+          WeightEntity(
+            createdAt: DateTime.now().subtract(Duration(days: 1)),
+            value: 60,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.ideal,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(find.text(WeightTypeEnum.adequation.label).last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(WeightTypeEnum.adequation.label).last);
+        await tester.pumpAndSettle();
+
+        final sheetBody = tester.widget<AdequationSheetBody>(
+          find.byType(AdequationSheetBody),
+        );
+        expect(sheetBody.currentWeight, 70);
+        expect(sheetBody.idealWeight, 60);
+      },
+    );
+
+    testWidgets(
+      'Adjusted Obesity pre-gate: no weight data shows the '
+      'insufficient-data message and Fechar closes it without calling '
+      'saveAdjustedObesityCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(
+          find.text(WeightTypeEnum.adjustedObesity.label).last,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(WeightTypeEnum.adjustedObesity.label).last);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Não há dados suficientes para calcular o Peso Ajustado. "
+            "Cadastre ao menos um peso para esse paciente.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveAdjustedObesityCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Adjusted Obesity pre-gate: weight present but no Ideal Weight on '
+      'file shows the "Calcule o Peso Ideal..." message and Fechar closes '
+      'it without calling saveAdjustedObesityCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(
+          find.text(WeightTypeEnum.adjustedObesity.label).last,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(WeightTypeEnum.adjustedObesity.label).last);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Calcule o Peso Ideal deste paciente antes de usar esta calculadora.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveAdjustedObesityCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Adjusted Obesity tap-flow: with a weight and an Ideal Weight row on '
+      'file, tapping opens AdjustedObesitySheetBody with the resolved '
+      'current/ideal weights',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+          WeightEntity(
+            createdAt: DateTime.now().subtract(Duration(days: 1)),
+            value: 60,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.ideal,
+          ),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(
+          find.text(WeightTypeEnum.adjustedObesity.label).last,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(WeightTypeEnum.adjustedObesity.label).last);
+        await tester.pumpAndSettle();
+
+        final sheetBody = tester.widget<AdjustedObesitySheetBody>(
+          find.byType(AdjustedObesitySheetBody),
+        );
+        expect(sheetBody.currentWeight, 70);
+        expect(sheetBody.idealWeight, 60);
+      },
+    );
+
+    testWidgets(
+      'Adjusted Dry Weight pre-gate: no weight/height (no BMI) shows the '
+      'insufficient-data message and Fechar closes it without calling '
+      'saveAdjustedDryWeightCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          hospitalized: true,
+        );
+        fakeGetWeights.weightsToReturn = [];
+        fakeGetHeights.heightsToReturn = [];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(
+          find.text(WeightTypeEnum.adjustedDryWeight.label).last,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.text(WeightTypeEnum.adjustedDryWeight.label).last,
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            "Não há dados suficientes para calcular o Peso Seco Ajustado. "
+            "Cadastre ao menos um peso e uma altura para esse paciente.",
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveAdjustedDryWeightCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Adjusted Dry Weight tap-flow: hospitalized patient with weight/BMI '
+      'on file opens AdjustedDryWeightSheetBody with the resolved current '
+      'weight and BMI',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 25,
+          hospitalized: true,
+        );
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        fakeGetHeights.heightsToReturn = [
+          HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
+        ];
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text(WeightTypeEnum.adjustedDryWeight.label));
+        await tester.pumpAndSettle();
+
+        final sheetBody = tester.widget<AdjustedDryWeightSheetBody>(
+          find.byType(AdjustedDryWeightSheetBody),
+        );
+        expect(sheetBody.currentWeight, 70);
+        expect(sheetBody.imc.value, closeTo(70 / (1.75 * 1.75), 0.001));
+      },
+    );
+
+    testWidgets(
+      'Estimated Weight pre-gate: no age on file shows the age-required '
+      'message and Fechar closes it without calling '
+      'saveEstimatedWeightCalculation',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          hospitalized: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ver todas as calculadoras'));
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(find.text(WeightTypeEnum.estimated.label).last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(WeightTypeEnum.estimated.label).last);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text("Cadastre a idade do paciente para calcular o Peso Estimado."),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Fechar'));
+        await tester.pumpAndSettle();
+
+        expect(fakeSaveEstimatedWeightCalculation.callCount, 0);
+      },
+    );
+
+    testWidgets(
+      'Estimated Weight tap-flow: hospitalized patient with age on file '
+      'opens EstimatedWeightSheetBody with the patient age',
+      (tester) async {
+        fakeLoad.formToReturn = EditPatientFormEntity(
+          firstName: "Ana",
+          lastName: "Silva",
+          patientLocalId: patientId,
+          age: 70,
+          hospitalized: true,
+        );
+        await cubit.init(patientId);
+
+        await tester.pumpWidget(wrap());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text(WeightTypeEnum.estimated.label));
+        await tester.pumpAndSettle();
+
+        final sheetBody = tester.widget<EstimatedWeightSheetBody>(
+          find.byType(EstimatedWeightSheetBody),
+        );
+        expect(sheetBody.age, 70);
       },
     );
   });

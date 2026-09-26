@@ -20,4 +20,8 @@ class CalculatorIds {
   static const String nrs2002 = "nrs_2002";
   static const String strongKids = "strong_kids";
   static const String idealWeight = "ideal_weight";
+  static const String adequation = "adequation";
+  static const String adjustedObesity = "adjusted_obesity";
+  static const String adjustedDryWeight = "adjusted_dry_weight";
+  static const String estimatedWeight = "estimated_weight";
 }

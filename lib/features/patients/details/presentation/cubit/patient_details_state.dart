@@ -31,6 +31,13 @@ import 'package:nutri_calc/features/calculators/enteral_nutrition_speed/domain/u
 import 'package:nutri_calc/features/calculators/enteral_nutrition_volume/domain/use_cases/save_enteral_nutrition_volume_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/use_cases/save_glucose_infusion_rate_calculation_use_case.dart';
 import 'package:nutri_calc/features/calculators/ideal_weight/domain/use_cases/save_ideal_weight_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/adequation/domain/use_cases/save_adequation_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/adjusted_obesity/domain/use_cases/save_adjusted_obesity_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/adjusted_dry_weight/domain/use_cases/save_adjusted_dry_weight_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/estimated_weight/domain/use_cases/save_estimated_weight_calculation_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/ascitis_level.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/oedema_level.enum.dart';
+import 'package:nutri_calc/shared/utils/enums/ethnicity.dart';
 import 'package:nutri_calc/features/calculators/must/domain/use_cases/save_must_calculation_use_case.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/resolve_weight_for_calculations.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/use_cases/save_nitrogen_balance_calculation_use_case.dart';

@@ -42,6 +42,14 @@ import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/strong_kids/strong_kids_score_classification.enum.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 import 'package:nutri_calc/shared/utils/enums/gender.dart';
+import 'package:nutri_calc/features/calculators/adequation/domain/use_cases/save_adequation_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/adjusted_obesity/domain/use_cases/save_adjusted_obesity_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/adjusted_dry_weight/domain/use_cases/save_adjusted_dry_weight_calculation_use_case.dart';
+import 'package:nutri_calc/features/calculators/estimated_weight/domain/use_cases/save_estimated_weight_calculation_use_case.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi.entity.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/ascitis_level.enum.dart';
+import 'package:nutri_calc/shared/services/calculator/domain/entities/weight/oedema_level.enum.dart';
+import 'package:nutri_calc/shared/utils/enums/ethnicity.dart';
 
 /// Full-page test exercising `PatientDetailsPage`'s real `BlocConsumer`
 /// (`listenWhen`/`listener`), not just the cubit or an isolated tab widget.
@@ -287,6 +295,107 @@ class _FakeSaveIdealWeightCalculationUseCase
       );
 }
 
+class _FakeSaveAdequationCalculationUseCase
+    implements SaveAdequationCalculationUseCase {
+  Result<WeightEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double currentWeight,
+    required double idealWeight,
+    required bool considerForCalculations,
+  }) async =>
+      resultToReturn ??
+      Ok(
+        WeightEntity(
+          id: 'adeq-1',
+          createdAt: DateTime.now(),
+          value: 100.0,
+          patientId: patientId,
+          considerForCalculations: considerForCalculations,
+          weightType: WeightTypeEnum.adequation,
+        ),
+      );
+}
+
+class _FakeSaveAdjustedObesityCalculationUseCase
+    implements SaveAdjustedObesityCalculationUseCase {
+  Result<WeightEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double currentWeight,
+    required double idealWeight,
+    required bool considerForCalculations,
+  }) async =>
+      resultToReturn ??
+      Ok(
+        WeightEntity(
+          id: 'adjobes-1',
+          createdAt: DateTime.now(),
+          value: 70.0,
+          patientId: patientId,
+          considerForCalculations: considerForCalculations,
+          weightType: WeightTypeEnum.adjustedObesity,
+        ),
+      );
+}
+
+class _FakeSaveAdjustedDryWeightCalculationUseCase
+    implements SaveAdjustedDryWeightCalculationUseCase {
+  Result<WeightEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double currentWeight,
+    required Bmi imc,
+    AscitisLevel? ascitis,
+    OedemaLevel? oedema,
+    required bool considerForCalculations,
+  }) async =>
+      resultToReturn ??
+      Ok(
+        WeightEntity(
+          id: 'adjdry-1',
+          createdAt: DateTime.now(),
+          value: 70.0,
+          patientId: patientId,
+          considerForCalculations: considerForCalculations,
+          weightType: WeightTypeEnum.adjustedDryWeight,
+        ),
+      );
+}
+
+class _FakeSaveEstimatedWeightCalculationUseCase
+    implements SaveEstimatedWeightCalculationUseCase {
+  Result<WeightEntity, String>? resultToReturn;
+
+  @override
+  Future<Result<WeightEntity, String>> call({
+    required String patientId,
+    required double kneeHeight,
+    required double armCircumference,
+    required Gender gender,
+    required int age,
+    required Ethnicity ethnicity,
+    required bool considerForCalculations,
+  }) async =>
+      resultToReturn ??
+      Ok(
+        WeightEntity(
+          id: 'est-1',
+          createdAt: DateTime.now(),
+          value: 70.0,
+          patientId: patientId,
+          considerForCalculations: considerForCalculations,
+          weightType: WeightTypeEnum.estimated,
+        ),
+      );
+}
+
 class _FakeAppRouter implements AppRouter {
   _FakeAppRouter(this._params);
 
@@ -321,6 +430,13 @@ void main() {
   late _FakeSaveNrs2002CalculationUseCase fakeSaveNrs2002Calculation;
   late _FakeSaveStrongKidsCalculationUseCase fakeSaveStrongKidsCalculation;
   late _FakeSaveIdealWeightCalculationUseCase fakeSaveIdealWeightCalculation;
+  late _FakeSaveAdequationCalculationUseCase fakeSaveAdequationCalculation;
+  late _FakeSaveAdjustedObesityCalculationUseCase
+  fakeSaveAdjustedObesityCalculation;
+  late _FakeSaveAdjustedDryWeightCalculationUseCase
+  fakeSaveAdjustedDryWeightCalculation;
+  late _FakeSaveEstimatedWeightCalculationUseCase
+  fakeSaveEstimatedWeightCalculation;
   late _FakeGetWeightsUseCase fakeGetWeights;
   late _FakeGetHeightsUseCase fakeGetHeights;
   late PatientDetailsCubit cubit;
@@ -330,6 +446,13 @@ void main() {
     fakeSaveNrs2002Calculation = _FakeSaveNrs2002CalculationUseCase();
     fakeSaveStrongKidsCalculation = _FakeSaveStrongKidsCalculationUseCase();
     fakeSaveIdealWeightCalculation = _FakeSaveIdealWeightCalculationUseCase();
+    fakeSaveAdequationCalculation = _FakeSaveAdequationCalculationUseCase();
+    fakeSaveAdjustedObesityCalculation =
+        _FakeSaveAdjustedObesityCalculationUseCase();
+    fakeSaveAdjustedDryWeightCalculation =
+        _FakeSaveAdjustedDryWeightCalculationUseCase();
+    fakeSaveEstimatedWeightCalculation =
+        _FakeSaveEstimatedWeightCalculationUseCase();
     fakeGetWeights = _FakeGetWeightsUseCase();
     fakeGetHeights = _FakeGetHeightsUseCase();
 
@@ -372,6 +495,13 @@ void main() {
       saveNrs2002CalculationUseCase: fakeSaveNrs2002Calculation,
       saveStrongKidsCalculationUseCase: fakeSaveStrongKidsCalculation,
       saveIdealWeightCalculationUseCase: fakeSaveIdealWeightCalculation,
+      saveAdequationCalculationUseCase: fakeSaveAdequationCalculation,
+      saveAdjustedObesityCalculationUseCase:
+          fakeSaveAdjustedObesityCalculation,
+      saveAdjustedDryWeightCalculationUseCase:
+          fakeSaveAdjustedDryWeightCalculation,
+      saveEstimatedWeightCalculationUseCase:
+          fakeSaveEstimatedWeightCalculation,
     );
 
     getIt.registerFactory<PatientDetailsCubit>(() => cubit);

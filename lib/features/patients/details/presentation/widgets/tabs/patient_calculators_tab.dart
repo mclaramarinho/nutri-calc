@@ -17,6 +17,16 @@ import 'package:nutri_calc/features/calculators/glucose_infusion_rate/domain/glu
 import 'package:nutri_calc/features/calculators/glucose_infusion_rate/presentation/widgets/glucose_infusion_rate_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/ideal_weight/domain/ideal_weight_relevance.dart';
 import 'package:nutri_calc/features/calculators/ideal_weight/presentation/widgets/ideal_weight_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/adequation/domain/adequation_relevance.dart';
+import 'package:nutri_calc/features/calculators/adequation/presentation/widgets/adequation_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/adjusted_obesity/domain/adjusted_obesity_relevance.dart';
+import 'package:nutri_calc/features/calculators/adjusted_obesity/presentation/widgets/adjusted_obesity_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/adjusted_dry_weight/domain/adjusted_dry_weight_relevance.dart';
+import 'package:nutri_calc/features/calculators/adjusted_dry_weight/presentation/widgets/adjusted_dry_weight_sheet_body.dart';
+import 'package:nutri_calc/features/calculators/estimated_weight/domain/estimated_weight_relevance.dart';
+import 'package:nutri_calc/features/calculators/estimated_weight/presentation/widgets/estimated_weight_sheet_body.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_entity.dart';
+import 'package:nutri_calc/features/measurements/weight/domain/entities/weight_type_enum.dart';
 import 'package:nutri_calc/features/calculators/must/domain/must_relevance.dart';
 import 'package:nutri_calc/features/calculators/must/presentation/widgets/must_sheet_body.dart';
 import 'package:nutri_calc/features/calculators/nitrogen_balance/domain/nitrogen_balance_relevance.dart';
@@ -596,6 +606,244 @@ class PatientCalculatorsTab extends StatelessWidget {
     }
   }
 
+  // Adequation and Adjusted Obesity share the same soft dependency on an
+  // existing Ideal Weight row (Slice 10 po decision, 2026-09-26) - resolved
+  // here as the most recent WEIGHTS row with `weightType == .ideal`.
+  WeightEntity? _resolveLatestIdealWeight(PatientDetailsStateLoaded state) {
+    for (final w in state.weights) {
+      if (w.weightType == WeightTypeEnum.ideal) return w;
+    }
+    return null;
+  }
+
+  Future<void> _openAdequationBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    if (state.weights.isEmpty) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Adequação de Peso",
+        body: Text(
+          "Não há dados suficientes para calcular a Adequação de Peso. Cadastre ao menos um peso para esse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final idealWeight = _resolveLatestIdealWeight(state);
+    if (idealWeight == null) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Adequação de Peso",
+        body: Text(
+          "Calcule o Peso Ideal deste paciente antes de usar esta calculadora.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final currentWeight =
+        const ResolveWeightForCalculations()(state.weights) ??
+        state.weights.first;
+
+    final gathered = await DsBottomSheet.show<GatheredAdequationInputs?>(
+      context,
+      title: "Adequação de Peso",
+      body: AdequationSheetBody(
+        currentWeight: currentWeight.value,
+        idealWeight: idealWeight.value,
+      ),
+      actions: null,
+    );
+
+    if (gathered != null) {
+      await cubit.saveAdequationCalculation(
+        considerForCalculations: gathered.considerForCalculations,
+      );
+    }
+  }
+
+  Future<void> _openAdjustedObesityBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    if (state.weights.isEmpty) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Peso Ajustado - Obesidade",
+        body: Text(
+          "Não há dados suficientes para calcular o Peso Ajustado. Cadastre ao menos um peso para esse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final idealWeight = _resolveLatestIdealWeight(state);
+    if (idealWeight == null) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Peso Ajustado - Obesidade",
+        body: Text(
+          "Calcule o Peso Ideal deste paciente antes de usar esta calculadora.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final currentWeight =
+        const ResolveWeightForCalculations()(state.weights) ??
+        state.weights.first;
+
+    final gathered = await DsBottomSheet.show<GatheredAdjustedObesityInputs?>(
+      context,
+      title: "Peso Ajustado - Obesidade",
+      body: AdjustedObesitySheetBody(
+        currentWeight: currentWeight.value,
+        idealWeight: idealWeight.value,
+      ),
+      actions: null,
+    );
+
+    if (gathered != null) {
+      await cubit.saveAdjustedObesityCalculation(
+        considerForCalculations: gathered.considerForCalculations,
+      );
+    }
+  }
+
+  Future<void> _openAdjustedDryWeightBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    if (state.weights.isEmpty || state.bmi == null) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Peso Seco Ajustado",
+        body: Text(
+          "Não há dados suficientes para calcular o Peso Seco Ajustado. Cadastre ao menos um peso e uma altura para esse paciente.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final currentWeight =
+        const ResolveWeightForCalculations()(state.weights) ??
+        state.weights.first;
+
+    final gathered =
+        await DsBottomSheet.show<GatheredAdjustedDryWeightInputs?>(
+          context,
+          title: "Peso Seco Ajustado",
+          body: AdjustedDryWeightSheetBody(
+            currentWeight: currentWeight.value,
+            imc: state.bmi!,
+          ),
+          actions: null,
+        );
+
+    if (gathered != null) {
+      await cubit.saveAdjustedDryWeightCalculation(
+        ascitis: gathered.ascitis,
+        oedema: gathered.oedema,
+        considerForCalculations: gathered.considerForCalculations,
+      );
+    }
+  }
+
+  Future<void> _openEstimatedWeightBottomSheet(
+    BuildContext context,
+    PatientDetailsCubit cubit,
+    PatientDetailsStateLoaded state,
+  ) async {
+    final age = state.form.age;
+
+    if (age == null) {
+      await DsBottomSheet.show<void>(
+        context,
+        title: "Peso Estimado",
+        body: Text(
+          "Cadastre a idade do paciente para calcular o Peso Estimado.",
+        ),
+        actions: [
+          Expanded(
+            child: DsButton(
+              label: "Fechar",
+              isLoading: false,
+              onTap: () => getIt.get<AppRouter>().pop(),
+            ),
+          ),
+        ],
+      );
+      return;
+    }
+
+    final gathered = await DsBottomSheet.show<GatheredEstimatedWeightInputs?>(
+      context,
+      title: "Peso Estimado",
+      body: EstimatedWeightSheetBody(age: age),
+      actions: null,
+    );
+
+    if (gathered != null) {
+      await cubit.saveEstimatedWeightCalculation(
+        kneeHeight: gathered.kneeHeight,
+        armCircumference: gathered.armCircumference,
+        gender: gathered.gender,
+        ethnicity: gathered.ethnicity,
+        considerForCalculations: gathered.considerForCalculations,
+      );
+    }
+  }
+
   Future<void> _openMustBottomSheet(
     BuildContext context,
     PatientDetailsCubit cubit,
@@ -782,6 +1030,34 @@ class PatientCalculatorsTab extends StatelessWidget {
         name: "Peso Ideal",
         isRelevant: isIdealWeightRelevant,
         onTap: (ctx) => _openIdealWeightBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: CalculatorIds.adequation,
+        type: CalculatorType.weight,
+        name: WeightTypeEnum.adequation.label,
+        isRelevant: isAdequationRelevant,
+        onTap: (ctx) => _openAdequationBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: CalculatorIds.adjustedObesity,
+        type: CalculatorType.weight,
+        name: WeightTypeEnum.adjustedObesity.label,
+        isRelevant: isAdjustedObesityRelevant,
+        onTap: (ctx) => _openAdjustedObesityBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: CalculatorIds.adjustedDryWeight,
+        type: CalculatorType.weight,
+        name: WeightTypeEnum.adjustedDryWeight.label,
+        isRelevant: isAdjustedDryWeightRelevant,
+        onTap: (ctx) => _openAdjustedDryWeightBottomSheet(ctx, cubit, state),
+      ),
+      CalculatorDefinition(
+        id: CalculatorIds.estimatedWeight,
+        type: CalculatorType.weight,
+        name: WeightTypeEnum.estimated.label,
+        isRelevant: isEstimatedWeightRelevant,
+        onTap: (ctx) => _openEstimatedWeightBottomSheet(ctx, cubit, state),
       ),
     ];
   }

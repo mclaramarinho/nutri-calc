@@ -25,6 +25,10 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     required this._saveNrs2002CalculationUseCase,
     required this._saveStrongKidsCalculationUseCase,
     required this._saveIdealWeightCalculationUseCase,
+    required this._saveAdequationCalculationUseCase,
+    required this._saveAdjustedObesityCalculationUseCase,
+    required this._saveAdjustedDryWeightCalculationUseCase,
+    required this._saveEstimatedWeightCalculationUseCase,
   }) : super(PatientDetailsStateInitial());
 
   final LoadPatientDetailsUseCase _loadPatientDetailsUseCase;
@@ -60,6 +64,13 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
   final SaveNrs2002CalculationUseCase _saveNrs2002CalculationUseCase;
   final SaveStrongKidsCalculationUseCase _saveStrongKidsCalculationUseCase;
   final SaveIdealWeightCalculationUseCase _saveIdealWeightCalculationUseCase;
+  final SaveAdequationCalculationUseCase _saveAdequationCalculationUseCase;
+  final SaveAdjustedObesityCalculationUseCase
+  _saveAdjustedObesityCalculationUseCase;
+  final SaveAdjustedDryWeightCalculationUseCase
+  _saveAdjustedDryWeightCalculationUseCase;
+  final SaveEstimatedWeightCalculationUseCase
+  _saveEstimatedWeightCalculationUseCase;
 
   // INITIALIZER ===========================================================
   Future<void> init(String patientId) async {
@@ -788,6 +799,199 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
           // exactly like `saveWeight`'s success branch. Re-read `state`
           // (rather than relying on a possibly-stale captured `current`)
           // to avoid clobbering a status set concurrently by something else.
+          final latest = state as PatientDetailsStateLoaded;
+          final weightsRes = await _getWeightsUseCase(
+            latest.form.patientLocalId,
+          );
+          final weights = weightsRes.getOrElse(() => latest.weights);
+
+          _executeOnStateLoaded((latest2) {
+            emit(
+              latest2.copyWith(
+                weights: weights,
+                bmi: _computeBmi(weights, latest2.heights, latest2.form.age),
+              ),
+            );
+          });
+        },
+      );
+    });
+  }
+
+  Future<void> saveAdequationCalculation({
+    required bool considerForCalculations,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      if (current.weights.isEmpty) return;
+
+      // Most recent WEIGHTS row of type `.ideal` (Slice 10 po decision,
+      // 2026-09-26) - `current.weights` is already newest-first (§0's
+      // sort), so `firstWhere` is enough.
+      WeightEntity? idealWeightRow;
+      for (final w in current.weights) {
+        if (w.weightType == WeightTypeEnum.ideal) {
+          idealWeightRow = w;
+          break;
+        }
+      }
+      if (idealWeightRow == null) return;
+
+      final resolvedWeight =
+          const ResolveWeightForCalculations()(current.weights) ??
+          current.weights.first;
+
+      await _saveCalculation(
+        id: CalculatorIds.adequation,
+        action: () => _saveAdequationCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          currentWeight: resolvedWeight.value,
+          idealWeight: idealWeightRow!.value,
+          considerForCalculations: considerForCalculations,
+        ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de Adequação de Peso. Tente novamente.",
+        successMessage: "Cálculo de Adequação de Peso salvo com sucesso.",
+        onSuccess: (_) async {
+          final latest = state as PatientDetailsStateLoaded;
+          final weightsRes = await _getWeightsUseCase(
+            latest.form.patientLocalId,
+          );
+          final weights = weightsRes.getOrElse(() => latest.weights);
+
+          _executeOnStateLoaded((latest2) {
+            emit(
+              latest2.copyWith(
+                weights: weights,
+                bmi: _computeBmi(weights, latest2.heights, latest2.form.age),
+              ),
+            );
+          });
+        },
+      );
+    });
+  }
+
+  Future<void> saveAdjustedObesityCalculation({
+    required bool considerForCalculations,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      if (current.weights.isEmpty) return;
+
+      WeightEntity? idealWeightRow;
+      for (final w in current.weights) {
+        if (w.weightType == WeightTypeEnum.ideal) {
+          idealWeightRow = w;
+          break;
+        }
+      }
+      if (idealWeightRow == null) return;
+
+      final resolvedWeight =
+          const ResolveWeightForCalculations()(current.weights) ??
+          current.weights.first;
+
+      await _saveCalculation(
+        id: CalculatorIds.adjustedObesity,
+        action: () => _saveAdjustedObesityCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          currentWeight: resolvedWeight.value,
+          idealWeight: idealWeightRow!.value,
+          considerForCalculations: considerForCalculations,
+        ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de Peso Ajustado. Tente novamente.",
+        successMessage: "Cálculo de Peso Ajustado salvo com sucesso.",
+        onSuccess: (_) async {
+          final latest = state as PatientDetailsStateLoaded;
+          final weightsRes = await _getWeightsUseCase(
+            latest.form.patientLocalId,
+          );
+          final weights = weightsRes.getOrElse(() => latest.weights);
+
+          _executeOnStateLoaded((latest2) {
+            emit(
+              latest2.copyWith(
+                weights: weights,
+                bmi: _computeBmi(weights, latest2.heights, latest2.form.age),
+              ),
+            );
+          });
+        },
+      );
+    });
+  }
+
+  Future<void> saveAdjustedDryWeightCalculation({
+    AscitisLevel? ascitis,
+    OedemaLevel? oedema,
+    required bool considerForCalculations,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      if (current.weights.isEmpty || current.bmi == null) return;
+
+      final resolvedWeight =
+          const ResolveWeightForCalculations()(current.weights) ??
+          current.weights.first;
+
+      await _saveCalculation(
+        id: CalculatorIds.adjustedDryWeight,
+        action: () => _saveAdjustedDryWeightCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          currentWeight: resolvedWeight.value,
+          imc: current.bmi!,
+          ascitis: ascitis,
+          oedema: oedema,
+          considerForCalculations: considerForCalculations,
+        ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de Peso Seco Ajustado. Tente novamente.",
+        successMessage: "Cálculo de Peso Seco Ajustado salvo com sucesso.",
+        onSuccess: (_) async {
+          final latest = state as PatientDetailsStateLoaded;
+          final weightsRes = await _getWeightsUseCase(
+            latest.form.patientLocalId,
+          );
+          final weights = weightsRes.getOrElse(() => latest.weights);
+
+          _executeOnStateLoaded((latest2) {
+            emit(
+              latest2.copyWith(
+                weights: weights,
+                bmi: _computeBmi(weights, latest2.heights, latest2.form.age),
+              ),
+            );
+          });
+        },
+      );
+    });
+  }
+
+  Future<void> saveEstimatedWeightCalculation({
+    required double kneeHeight,
+    required double armCircumference,
+    required Gender gender,
+    required Ethnicity ethnicity,
+    required bool considerForCalculations,
+  }) async {
+    _executeOnStateLoaded((current) async {
+      final age = current.form.age;
+      if (age == null) return;
+
+      await _saveCalculation(
+        id: CalculatorIds.estimatedWeight,
+        action: () => _saveEstimatedWeightCalculationUseCase(
+          patientId: current.form.patientLocalId,
+          kneeHeight: kneeHeight,
+          armCircumference: armCircumference,
+          gender: gender,
+          age: age,
+          ethnicity: ethnicity,
+          considerForCalculations: considerForCalculations,
+        ),
+        errorFallbackMessage:
+            "Não foi possível salvar o cálculo de Peso Estimado. Tente novamente.",
+        successMessage: "Cálculo de Peso Estimado salvo com sucesso.",
+        onSuccess: (_) async {
           final latest = state as PatientDetailsStateLoaded;
           final weightsRes = await _getWeightsUseCase(
             latest.form.patientLocalId,
