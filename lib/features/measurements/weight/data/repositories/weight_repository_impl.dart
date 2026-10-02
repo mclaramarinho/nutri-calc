@@ -38,6 +38,7 @@ class WeightRepositoryImpl implements WeightRepository {
     required String patientId,
     required bool considerForCalculations,
     required WeightTypeEnum weightType,
+    required DateTime createdAt,
     List<InputParamEntity> inputParams = const [],
   }) async {
     try {
@@ -50,7 +51,7 @@ class WeightRepositoryImpl implements WeightRepository {
       // bogus round-trip through `fromJson(rowid)`.
       final model = WeightModel(
         value: value,
-        createdAt: DateTime.now(),
+        createdAt: createdAt,
         patientId: patientId,
         id: Uuid().v4(),
         considerForCalculations: considerForCalculations,

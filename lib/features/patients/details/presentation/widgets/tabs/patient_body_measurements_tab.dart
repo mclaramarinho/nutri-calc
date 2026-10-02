@@ -93,6 +93,9 @@ class PatientBodyMeasurementsTab extends StatelessWidget {
                 label: 'Medida',
                 hint: 'XXX',
                 isSaving: state.isSavingNewBodyMeasurement,
+                disabled:
+                    state.newBodyMeasurementType == null ||
+                    state.newBodyMeasurementValue == null,
                 saveCallback: cubit.saveNewBodyMeasurement,
                 inputFormatters: [OnlyNumbersFormatter()],
                 onChange: cubit.updateBodyMeasurementForm,
@@ -103,6 +106,8 @@ class PatientBodyMeasurementsTab extends StatelessWidget {
                     )
                     .toList(),
                 onDropdownSelect: (val) => cubit.updateBodyMeasurementForm(val),
+                dateTime: state.newBodyMeasurementDateTime,
+                onDateTimeChange: cubit.updateBodyMeasurementDateTime,
               ),
 
               if (state.measurements.isEmpty) ...[

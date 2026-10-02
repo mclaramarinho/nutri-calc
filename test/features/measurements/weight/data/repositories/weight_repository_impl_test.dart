@@ -77,12 +77,14 @@ void main() {
       await service.init(dbPath: path);
 
       final repository = WeightRepositoryImpl(databaseService: service);
+      final createdAt = DateTime(2024, 3, 10, 9, 30);
 
       final res = await repository.createWeight(
         value: 82.5,
         patientId: 'patient-c',
         considerForCalculations: true,
         weightType: WeightTypeEnum.measuredByScale,
+        createdAt: createdAt,
       );
 
       expect(res.isOk, isTrue);
@@ -93,12 +95,14 @@ void main() {
       expect(model.patientId, 'patient-c');
       expect(model.considerForCalculations, isTrue);
       expect(model.weightType, WeightTypeEnum.measuredByScale);
+      expect(model.createdAt, createdAt);
 
       final readBack = await repository.getWeights('patient-c');
       expect(readBack.isOk, isTrue);
       final persisted = readBack.getOrElse(() => <WeightModel>[]);
       expect(persisted, hasLength(1));
       expect(persisted.single.id, model.id);
+      expect(persisted.single.createdAt, createdAt);
     },
   );
 }

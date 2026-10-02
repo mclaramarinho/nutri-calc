@@ -50,3 +50,4 @@ Keep this list current — one line per ADR — so an agent can decide relevance
 | [0008](0008-calculator-save-status-value-object.md) | `CalculatorSaveStatus` value object replaces the 14 per-calculator state quadruples with `Map<String, CalculatorSaveStatus>` | Accepted |
 | [0009](0009-history-aggregation-across-heterogeneous-calculator-tables.md) | History aggregation across 14 heterogeneous calculator sources via per-source use cases + a thin orchestrator | Accepted |
 | [0010](0010-generic-cross-table-delete-and-shared-swipe-to-delete-widget.md) | Generic cross-table delete dispatch + one shared swipe-to-delete DS widget, closing the pre-existing `MeasurementsList` gap | Accepted |
+| [0011](0011-date-time-input-chained-native-pickers.md) | Date+time input (`DsDateTimePicker`) uses chained native pickers behind a single DS field, prevention-first with transient error for the time-of-day gap | Accepted |

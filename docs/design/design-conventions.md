@@ -379,6 +379,64 @@ No shared formatter exists today — reuse the exact result-line string each cal
 - **Per-group suppression**: covered above (no header/list rendered for a `CalculatorType` with 0 results).
 - **All-empty** (every group empty): render `NoDataFoundForPatient(message: "Sem histórico de cálculos para esse paciente")` — reuses the exact widget (and therefore exact visual treatment: `Expanded(DsPlaceholder(...))`) already used by the Weights/Heights/Body Measurements tabs for their own empty states, rather than introducing a new empty-state look for the 4th tab that needs one. Exact copy is PO-confirmed, verbatim, no changes.
 
+## `DsDateTimePicker` (new, Roadmap priority 5 — Weights/Heights/Body Measurements Gap 3)
+
+Location (to be created by `mobile-dev`): `lib/shared/design_system/widgets/ds_date_time_picker/ds_date_time_picker.dart`. First DS widget to capture a combined date+time value; resolves 2.1.4's "Date and time: Optional. Defaults to now. Cannot be future datetime." for Weights, Heights, and Body Measurements (all three via the shared `MeasurementInputField`, `lib/features/patients/details/presentation/widgets/measurement_input_field.dart`).
+
+**Important context found while speccing this:** a date-only picker already exists, embedded inside `DsTextfield` as `type: .datetime` (`lib/shared/design_system/widgets/ds_textfield/ds_textfield.dart`'s `openDatePicker`, used verbatim for Patient Birthdate in `new_patient_page.dart`/`patient_details_form.dart`). It wraps Flutter's native `showDatePicker` with `lastDate: DateTime.now()` and has **no inline error text for the future-date rule** — future days are simply greyed out/unselectable in the calendar widget itself. There is no time component and no `showTimePicker` use anywhere. `DsDateTimePicker` is a new, separate widget (not a `DsTextfield` variant) because it needs a second native picker step (time) that `DsTextfield` has no slot for, and because `MeasurementInputField`'s optional/nullable/clearable semantics don't apply to Birthdate.
+
+### Precedent followed: prevent, don't correct
+
+Birthdate's pattern is "disable silently" (option (a) from the PO's open question), achieved by the native date picker's own `lastDate` truncation — there is never an invalid state to show an error for. `DsDateTimePicker` follows the same philosophy as far as the platform allows it:
+
+- **Date step**: `showDatePicker(firstDate: minDateTime ?? DateTime(1900), lastDate: maxDateTime ?? DateTime.now())` — identical mechanism to Birthdate, future days are unselectable, no error text needed for this half of the rule.
+- **Time step** (only reachable when the chosen date is today): Flutter's `showTimePicker` has no min/max-time parameter, so a future time-of-day *can* be picked in the dial/input. This is a genuine platform gap Birthdate never had to handle (day-granularity only). Resolution: after the user picks a time, if the combined `DateTime` exceeds `maxDateTime`, **reject the pick** (keep the previous value, don't call `onChanged`) and show a transient inline error via `errorText` ("Não é possível selecionar um horário futuro.") that clears the next time the user successfully reopens and repicks. This is option (b) but scoped to only the one case the platform can't prevent outright — not a general-purpose validation message for the whole field.
+- Save button gating: wire `MeasurementInputField`'s `DsButton(disabled: ...)` to the new `onValidityChanged` callback below, so Save is unavailable for the ~1-2 seconds a rejected time leaves the error showing, consistent with the DS-wide "disabled while invalid" gating pattern (Ideal Weight's "Calcular" button, `DsButton`'s disabled spec above).
+
+### API
+
+```dart
+const DsDateTimePicker({
+  this.label,
+  this.value,                 // DateTime?, null = "not chosen, defaults to now at save time"
+  required this.onChanged,    // ValueChanged<DateTime?>
+  this.maxDateTime,           // DateTime?, defaults to DateTime.now() read at picker-open time
+  this.minDateTime,           // DateTime?, defaults to DateTime(1900) (matches DsTextfield's datetime firstDate)
+  this.disabled = false,      // DS-wide convention, never `enabled`
+  this.helperText,            // String?, same slot/styling as DsCheckbox.helperText
+  this.onValidityChanged,     // ValueChanged<bool>?, true while a future-time pick is being rejected
+  super.key,
+});
+```
+
+- `value`/`onChanged` are the controlled-component contract (same shape as `DsCheckbox`) — the field never owns "the" value, the caller's cubit state does.
+- `onChanged(null)` fires when the user clears the field (see clear affordance below) — callers persist `null` and resolve it to `DateTime.now()` at save time, per the roadmap rule; the widget itself never substitutes "now" into the displayed value.
+- `onValidityChanged` is optional specifically so a caller that doesn't need extra Save-gating (there isn't one today, but keeping it non-required avoids a breaking change later) doesn't have to wire it.
+
+### Interaction flow
+
+1. **One combined field**, not two separate date/time controls — visually a `DsTextfield`-styled read-only input (reuses the same border/label treatment so it sits visually consistent next to the weight/height `DsTextfield` in `MeasurementInputField`'s `Row`), not a second new input style.
+2. **Empty/at-rest state**: no value is pre-filled (never silently shows "now" as if the user picked it) — `hintText: "Selecionar data e hora"`, plus `helperText: "Se não selecionado, será usado o momento do registro."` so the "defaults to now" rule is visible without a prefilled value creating false confidence about what's actually been chosen.
+3. **Tap** (anywhere on the field, or the trailing calendar icon — same dual-trigger `DsTextfield` already does) opens `showDatePicker` first, then immediately chains to `showTimePicker` (`initialTime` from the existing value, or `TimeOfDay.now()` if empty) on a successful date pick. Cancelling either native picker leaves the value unchanged.
+4. **Filled state**: text shows `value.formattedDateTime()` (reuses `ext_datetime.dart`'s existing `"dd/mm/aaaa - hh:mm"` formatter, already used by `MeasurementsList`/History — no new formatter needed) plus a small trailing "clear" (`Icons.close`) icon button next to the calendar icon, which calls `onChanged(null)` and returns the field to its empty/at-rest state. The clear icon is the only way back to "defaults to now" once a value has been explicitly picked.
+5. **Error state** (future-time rejection only, see above): `errorText` renders in the same slot `DsTextfield`'s `errorText` already uses (`InputDecoration.errorText`), styled with `DsColors.error` (first real use of this token on text, previously only used for the swipe-to-delete background) rather than Flutter's default error red, for DS-token consistency. `onValidityChanged(true)` fires at the same time; `onValidityChanged(false)` fires once the user successfully repicks or clears.
+6. **Disabled state**: mirrors `DsTextfield`'s/`DsButton`'s established disabled treatment (not tappable, dimmed) — no new visual needed.
+
+### Copy (final)
+
+- Label: `"Data e Hora"`.
+- Hint (empty state): `"Selecionar data e hora"`.
+- Helper text (empty state only, cleared once a value is set): `"Se não selecionado, será usado o momento do registro."`
+- Error text (future-time rejection only): `"Não é possível selecionar um horário futuro."`
+
+### Why no new DsDialog/DsBottomSheet wrapper
+
+Native `showDatePicker`/`showTimePicker` are used directly (same as `DsTextfield` already does for Birthdate), not re-implemented inside a `DsDialog`/`DsBottomSheet` shell — introducing a custom calendar/clock widget from scratch would be a much larger, unjustified scope increase for a gap the native pickers already close, and would break visual consistency with Birthdate's existing date-picking affordance. The only new surface is the thin `DsDateTimePicker` wrapper that chains the two native calls and adds the time-rejection check Birthdate never needed.
+
+**ADR warranted**: yes — this introduces a new DS widget with a new interaction pattern (two chained native pickers behind one field, plus the "reject and show transient error" rule for the one sub-case prevention can't cover). Flagging for `senior-analyst` to write up as a short ADR (suggested title: "Date+time input uses chained native pickers behind a single DS field, prevention-first with transient error for the time-of-day gap"), same treatment given to `DsBottomSheet`'s `AppRouter.pop` signature change and `DsButton`'s disabled-state spec above.
+
+---
+
 ### Open item for `senior-analyst` (data availability, not a UX decision)
 
 `PatientDetailsStateLoaded` (`patient_details_state.dart`) today only exposes `weights`/`heights`/`measurements` lists plus a single latest `bmi` value — there is no existing state slice that reads *all* persisted rows across the other 17 calculator tables (BMI history, Energy Expenditure history, etc.) for a patient. Populating History will need new repository/use-case reads per calculator table (or one aggregating use case) wired into `PatientDetailsCubit`/state — flagging since it's a real gap the architecture plan needs to size, not something this design pass can resolve.

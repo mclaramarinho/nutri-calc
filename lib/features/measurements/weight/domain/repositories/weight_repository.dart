@@ -9,6 +9,7 @@ abstract class WeightRepository {
     required String patientId,
     required bool considerForCalculations,
     required WeightTypeEnum weightType,
+    required DateTime createdAt,
     List<InputParamEntity> inputParams = const [],
   });
   Future<Result<List<WeightModel>, String>> getWeights(String patientId);

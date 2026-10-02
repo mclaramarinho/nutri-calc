@@ -66,11 +66,20 @@ class PatientMeasurementsTab extends StatelessWidget {
               label: isWeight ? "Peso" : "Altura",
               hint: isWeight ? "XX.X" : "XXX",
               isSaving: isWeight ? state.isSavingWeight : state.isSavingHeight,
+              disabled: isWeight
+                  ? state.newWeight == null
+                  : state.newHeight == null,
               saveCallback: isWeight ? cubit.saveWeight : cubit.saveHeight,
               onChange: isWeight
                   ? cubit.updateWeightValue
                   : cubit.updateHeightValue,
               inputFormatters: isWeight ? null : [OnlyNumbersFormatter()],
+              dateTime: isWeight
+                  ? state.newWeightDateTime
+                  : state.newHeightDateTime,
+              onDateTimeChange: isWeight
+                  ? cubit.updateWeightDateTime
+                  : cubit.updateHeightDateTime,
             ),
 
             if (listData.isEmpty) ...[

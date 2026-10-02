@@ -16,6 +16,7 @@ class _FakeWeightRepository implements WeightRepository {
     required String patientId,
     required bool considerForCalculations,
     required WeightTypeEnum weightType,
+    required DateTime createdAt,
     List<InputParamEntity> inputParams = const [],
   }) async {
     return resultToReturn!;

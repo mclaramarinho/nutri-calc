@@ -296,6 +296,12 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
+  void updateWeightDateTime(DateTime? value) {
+    _executeOnStateLoaded((current) {
+      emit(current.copyWith(newWeightDateTime: value));
+    });
+  }
+
   Future<void> saveWeight() async {
     _executeOnStateLoaded((current) async {
       if (current.newWeight == null) return;
@@ -304,7 +310,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
 
       final res = await _createWeightUseCase(
         weight: WeightEntity(
-          createdAt: DateTime.now(),
+          createdAt: current.newWeightDateTime ?? DateTime.now(),
           value: current.newWeight!,
           patientId: current.form.patientLocalId,
           considerForCalculations: true,
@@ -349,6 +355,12 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
+  void updateHeightDateTime(DateTime? value) {
+    _executeOnStateLoaded((current) {
+      emit(current.copyWith(newHeightDateTime: value));
+    });
+  }
+
   Future<void> saveHeight() async {
     _executeOnStateLoaded((current) async {
       if (current.newHeight == null) return;
@@ -357,7 +369,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
 
       final res = await _createHeightUseCase(
         height: HeightEntity(
-          createdAt: DateTime.now(),
+          createdAt: current.newHeightDateTime ?? DateTime.now(),
           value: current.newHeight!,
           patientId: current.form.patientLocalId,
         ),
@@ -427,6 +439,12 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
     });
   }
 
+  void updateBodyMeasurementDateTime(DateTime? value) {
+    _executeOnStateLoaded((current) {
+      emit(current.copyWith(newBodyMeasurementDateTime: value));
+    });
+  }
+
   Future<void> saveNewBodyMeasurement() async {
     _executeOnStateLoaded((current) async {
       if (current.newBodyMeasurementValue == null ||
@@ -440,7 +458,7 @@ class PatientDetailsCubit extends Cubit<PatientDetailsState> {
 
       final res = await _createBodyMeasurementUseCase(
         BodyMeasurementEntity(
-          createdAt: DateTime.now(),
+          createdAt: current.newBodyMeasurementDateTime ?? DateTime.now(),
           patientId: current.form.patientLocalId,
           value: current.newBodyMeasurementValue!,
           measurementType: current.newBodyMeasurementType!,
