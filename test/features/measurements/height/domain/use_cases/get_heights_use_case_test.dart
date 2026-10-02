@@ -11,6 +11,7 @@ class _FakeHeightRepository implements HeightRepository {
   Future<Result<HeightModel, String>> createHeight({
     required double value,
     required String patientId,
+    required DateTime createdAt,
   }) async {
     throw UnimplementedError();
   }

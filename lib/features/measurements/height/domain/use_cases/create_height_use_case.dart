@@ -22,9 +22,11 @@ class CreateHeightUseCaseImpl implements CreateHeightUseCase {
       final res = await _repository.createHeight(
         value: height.value,
         patientId: height.patientId,
+        createdAt: height.createdAt,
       );
-      if (res.isOk && (res as Ok).value >= 1) {
-        return Ok(height.copyWith(id: ((res as Ok).value as HeightModel).id));
+      if (res.isOk) {
+        final id = (res as Ok<HeightModel, String>).value.id;
+        return Ok(height.copyWith(id: id));
       }
       return Error("Could not create height");
     } catch (ex) {

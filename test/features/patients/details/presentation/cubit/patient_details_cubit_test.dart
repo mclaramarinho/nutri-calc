@@ -3550,6 +3550,70 @@ void main() {
       },
     );
 
+    test(
+      // Regression test for the `bmi` sentinel bug: `copyWith`'s old
+      // `bmi ?? this.bmi` pattern could never explicitly null `bmi` back out
+      // once set, so deleting a patient's only weight/height left a stale
+      // non-null `bmi` in state. Fixed via the `_unset` sentinel pattern
+      // (mirroring `saveErrorMessage`).
+      'deleting a patient\'s only weight clears bmi back to null',
+      () async {
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            id: 'w1',
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        fakeGetHeights.heightsToReturn = [
+          HeightEntity(createdAt: DateTime.now(), value: 175, patientId: patientId),
+        ];
+        await cubit.init(patientId);
+        expect((cubit.state as PatientDetailsStateLoaded).bmi, isNotNull);
+
+        fakeGetWeights.weightsToReturn = [];
+
+        await cubit.deleteWeight('w1');
+
+        expect((cubit.state as PatientDetailsStateLoaded).bmi, isNull);
+      },
+    );
+
+    test(
+      'deleting a patient\'s only height clears bmi back to null',
+      () async {
+        fakeGetWeights.weightsToReturn = [
+          WeightEntity(
+            id: 'w1',
+            createdAt: DateTime.now(),
+            value: 70,
+            patientId: patientId,
+            considerForCalculations: true,
+            weightType: WeightTypeEnum.measuredByScale,
+          ),
+        ];
+        fakeGetHeights.heightsToReturn = [
+          HeightEntity(
+            id: 'h1',
+            createdAt: DateTime.now(),
+            value: 175,
+            patientId: patientId,
+          ),
+        ];
+        await cubit.init(patientId);
+        expect((cubit.state as PatientDetailsStateLoaded).bmi, isNotNull);
+
+        fakeGetHeights.heightsToReturn = [];
+
+        await cubit.deleteHeight('h1');
+
+        expect((cubit.state as PatientDetailsStateLoaded).bmi, isNull);
+      },
+    );
+
     test('deleteWeight on error does not refresh weights/history', () async {
       await cubit.init(patientId);
       final initialWeights = (cubit.state as PatientDetailsStateLoaded).weights;

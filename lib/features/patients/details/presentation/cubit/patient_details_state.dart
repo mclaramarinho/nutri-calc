@@ -100,11 +100,14 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     this.isSavingWeight = false,
     this.weights = const [],
     this.newWeight,
+    this.newWeightDateTime,
     this.isSavingHeight = false,
     this.heights = const [],
     this.newHeight,
+    this.newHeightDateTime,
     this.newBodyMeasurementType,
     this.newBodyMeasurementValue,
+    this.newBodyMeasurementDateTime,
     this.isSavingNewBodyMeasurement = false,
     this.measurements = const [],
     this.bmi,
@@ -120,15 +123,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
   final String? saveErrorMessage;
   final Bmi? bmi;
   final double? newWeight;
+  final DateTime? newWeightDateTime;
   final bool isSavingWeight;
   final List<WeightEntity> weights;
 
   final double? newHeight;
+  final DateTime? newHeightDateTime;
   final bool isSavingHeight;
   final List<HeightEntity> heights;
 
   final BodyMeasurementTypeEnum? newBodyMeasurementType;
   final double? newBodyMeasurementValue;
+  final DateTime? newBodyMeasurementDateTime;
   final bool isSavingNewBodyMeasurement;
   final List<BodyMeasurementEntity> measurements;
 
@@ -150,15 +156,18 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     bool? isSaving,
     bool? isSaveError,
     Object? saveErrorMessage = _unset,
-    Bmi? bmi,
+    Object? bmi = _unset,
     double? newWeight,
+    Object? newWeightDateTime = _unset,
     bool? isSavingWeight,
     List<WeightEntity>? weights,
     double? newHeight,
+    Object? newHeightDateTime = _unset,
     bool? isSavingHeight,
     List<HeightEntity>? heights,
     BodyMeasurementTypeEnum? newBodyMeasurementType,
     double? newBodyMeasurementValue,
+    Object? newBodyMeasurementDateTime = _unset,
     bool? isSavingNewBodyMeasurement,
     List<BodyMeasurementEntity>? measurements,
     Map<String, CalculatorSaveStatus>? calculatorStatuses,
@@ -172,15 +181,24 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     saveErrorMessage: identical(saveErrorMessage, _unset)
         ? this.saveErrorMessage
         : saveErrorMessage as String?,
-    bmi: bmi ?? this.bmi,
+    bmi: identical(bmi, _unset) ? this.bmi : bmi as Bmi?,
     newWeight: newWeight ?? this.newWeight,
+    newWeightDateTime: identical(newWeightDateTime, _unset)
+        ? this.newWeightDateTime
+        : newWeightDateTime as DateTime?,
     isSavingWeight: isSavingWeight ?? this.isSavingWeight,
     weights: weights ?? this.weights,
     newHeight: newHeight ?? this.newHeight,
+    newHeightDateTime: identical(newHeightDateTime, _unset)
+        ? this.newHeightDateTime
+        : newHeightDateTime as DateTime?,
     isSavingHeight: isSavingHeight ?? this.isSavingHeight,
     heights: heights ?? this.heights,
     newBodyMeasurementType: newBodyMeasurementType ?? this.newBodyMeasurementType,
     newBodyMeasurementValue: newBodyMeasurementValue ?? this.newBodyMeasurementValue,
+    newBodyMeasurementDateTime: identical(newBodyMeasurementDateTime, _unset)
+        ? this.newBodyMeasurementDateTime
+        : newBodyMeasurementDateTime as DateTime?,
     isSavingNewBodyMeasurement:
         isSavingNewBodyMeasurement ?? this.isSavingNewBodyMeasurement,
     measurements: measurements ?? this.measurements,
@@ -198,9 +216,11 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       saveErrorMessage: saveErrorMessage,
       bmi: bmi,
       newWeight: formOption == .weights ? null : newWeight,
+      newWeightDateTime: formOption == .weights ? null : newWeightDateTime,
       isSavingWeight: formOption == .weights ? false : isSavingWeight,
       weights: weights,
       newHeight: formOption == .heights ? null : newHeight,
+      newHeightDateTime: formOption == .heights ? null : newHeightDateTime,
       isSavingHeight: formOption == .heights ? false : isSavingHeight,
       heights: heights,
       newBodyMeasurementType: formOption == .bodyMeasurements
@@ -209,6 +229,9 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
       newBodyMeasurementValue: formOption == .bodyMeasurements
           ? null
           : newBodyMeasurementValue,
+      newBodyMeasurementDateTime: formOption == .bodyMeasurements
+          ? null
+          : newBodyMeasurementDateTime,
       isSavingNewBodyMeasurement: formOption == .bodyMeasurements
           ? false
           : isSavingNewBodyMeasurement,
@@ -227,13 +250,16 @@ class PatientDetailsStateLoaded extends PatientDetailsState {
     saveErrorMessage,
     bmi,
     newWeight,
+    newWeightDateTime,
     isSavingWeight,
     weights,
     newHeight,
+    newHeightDateTime,
     isSavingHeight,
     heights,
     newBodyMeasurementType,
     newBodyMeasurementValue,
+    newBodyMeasurementDateTime,
     isSavingNewBodyMeasurement,
     calculatorStatuses,
     measurements,

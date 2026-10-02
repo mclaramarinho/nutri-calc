@@ -7,7 +7,7 @@ import 'package:nutri_calc/features/measurements/height/data/models/height_model
 import 'package:nutri_calc/features/measurements/height/data/repositories/height_repository_impl.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-/// Mirrors `test/core/services/database/app_database_service_test.dart`'s
+/// Mirrors `test/features/measurements/weight/data/repositories/weight_repository_impl_test.dart`'s
 /// harness (real AppDatabaseServiceImpl backed by sqflite_ffi against a
 /// fresh temp-file DB per test).
 String _newTempDbPath(String testName) {
@@ -55,6 +55,45 @@ void main() {
       final values = res.getOrElse(() => <HeightModel>[]);
       expect(values, hasLength(1));
       expect(values.single.patientId, 'patient-a');
+    },
+  );
+
+  test(
+    // Regression test for the createHeight bug: `HeightModel.fromJson(rowid)`
+    // (rowid is a raw int, not a JSON map) used to throw, get swallowed by
+    // the method's own try/catch, and return `Error` on every real DB
+    // round-trip — so a real (non-mocked) insert had never been exercised
+    // before. This asserts a successful, correctly-shaped `Ok` result
+    // against a real sqflite ffi DB.
+    'createHeight persists a real row and returns Ok with the generated id and fields',
+    () async {
+      final path = _newTempDbPath('create_height');
+      final service = AppDatabaseServiceImpl();
+      await service.init(dbPath: path);
+
+      final repository = HeightRepositoryImpl(databaseService: service);
+      final createdAt = DateTime(2024, 3, 10, 9, 30);
+
+      final res = await repository.createHeight(
+        value: 175.5,
+        patientId: 'patient-c',
+        createdAt: createdAt,
+      );
+
+      expect(res.isOk, isTrue);
+      final model = res.getOrElse(() => throw StateError('expected Ok'));
+      expect(model.id, isNotNull);
+      expect(model.id, isNotEmpty);
+      expect(model.value, 175.5);
+      expect(model.patientId, 'patient-c');
+      expect(model.createdAt, createdAt);
+
+      final readBack = await repository.getHeights('patient-c');
+      expect(readBack.isOk, isTrue);
+      final persisted = readBack.getOrElse(() => <HeightModel>[]);
+      expect(persisted, hasLength(1));
+      expect(persisted.single.id, model.id);
+      expect(persisted.single.createdAt, createdAt);
     },
   );
 }

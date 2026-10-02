@@ -34,21 +34,27 @@ class HeightRepositoryImpl implements HeightRepository {
   Future<Result<HeightModel, String>> createHeight({
     required double value,
     required String patientId,
+    required DateTime createdAt,
   }) async {
     try {
-      final res = await _databaseService.insert(
-        .heights,
-        HeightModel(
-          value: value,
-          createdAt: DateTime.now(),
-          patientId: patientId,
-          id: Uuid().v4(),
-        ).toJson(),
+      // Build the model locally (with a generated id) BEFORE inserting.
+      // `AppDatabaseService.insert` returns the sqflite rowid (an int), not
+      // the inserted row's data — calling `HeightModel.fromJson` on that raw
+      // int used to throw here, get swallowed by this method's own
+      // try/catch, and silently return `Error` on every real height
+      // creation. Returning the locally-built model on success avoids the
+      // bogus round-trip through `fromJson(rowid)`.
+      final model = HeightModel(
+        value: value,
+        createdAt: createdAt,
+        patientId: patientId,
+        id: Uuid().v4(),
       );
 
+      final res = await _databaseService.insert(.heights, model.toJson());
+
       if (res.isOk) {
-        final val = (res as Ok).value;
-        return Ok(HeightModel.fromJson(val));
+        return Ok(model);
       }
       return Error("Error creating height.");
     } catch (ex) {
