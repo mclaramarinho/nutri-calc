@@ -440,3 +440,112 @@ Native `showDatePicker`/`showTimePicker` are used directly (same as `DsTextfield
 ### Open item for `senior-analyst` (data availability, not a UX decision)
 
 `PatientDetailsStateLoaded` (`patient_details_state.dart`) today only exposes `weights`/`heights`/`measurements` lists plus a single latest `bmi` value — there is no existing state slice that reads *all* persisted rows across the other 17 calculator tables (BMI history, Energy Expenditure history, etc.) for a patient. Populating History will need new repository/use-case reads per calculator table (or one aggregating use case) wired into `PatientDetailsCubit`/state — flagging since it's a real gap the architecture plan needs to size, not something this design pass can resolve.
+
+---
+
+## Priority 8 — Design System audit & expansion
+
+User-profile analysis backing this pass lives in `docs/design/user-personas.md` (new file) — read it alongside this section; it documents which parts are confirmed-from-code vs. reasonable inference, per the PO's explicit requirement not to invent new user research.
+
+### `DsColors.textDisabled` / `DsColors.textMuted` — new tokens, closes the 3x-flagged alpha-on-black duplication
+
+**This resolves the "flagging for priority-8 token audit" notes left in `DsButton`'s, `DsCheckbox`'s, and `DsListTile`'s own entries above** — same computed values, no retrofit is visually different.
+
+```dart
+// lib/shared/design_system/tokens/ds_colors.dart
+class DsColors {
+  static Color get white => Colors.white;
+  static Color get blue => Colors.blue;
+  static Color get black => Colors.black;
+  static Color get gray => Colors.grey.shade200;
+  static Color get error => Colors.red;
+
+  /// Foreground for a disabled-state label/icon (38% black — approximates
+  /// Material's own disabled-content-opacity convention). Was duplicated as
+  /// `DsColors.black.withValues(alpha: 0.38)` in `DsButton`'s disabled label,
+  /// `DsCheckbox`'s disabled label/helper text, and `DsListTile`'s trailing
+  /// chevron de-emphasis.
+  static Color get textDisabled => DsColors.black.withValues(alpha: 0.38);
+
+  /// Foreground for muted-but-not-disabled secondary copy — helper text,
+  /// subtitles, overlines (54% black). Was duplicated as
+  /// `DsColors.black.withValues(alpha: 0.54)` in `DsCheckbox.helperText`,
+  /// `DsListTile.overline`/`.subtitle`.
+  static Color get textMuted => DsColors.black.withValues(alpha: 0.54);
+}
+```
+
+Retrofit scope for `mobile-dev`/`senior-analyst`: swap the inline `DsColors.black.withValues(alpha: 0.38)` → `DsColors.textDisabled` and `DsColors.black.withValues(alpha: 0.54)` → `DsColors.textMuted` at the known call sites (`DsButton`'s disabled label, `DsCheckbox`'s disabled label/helper text, `DsListTile`'s trailing-chevron de-emphasis and `overline`/`subtitle`). This is a pure rename — same `Color` value, zero visual change. Any new DS widget/screen needing a disabled or muted foreground going forward should reach for these two tokens directly rather than re-deriving the alpha-on-black pattern a 4th time.
+
+Not addressed here (explicitly out of scope, already logged separately): the clinical risk/classification color-coding system (BMI bands, MUST/NRS-2002/STRONG-Kids levels, TIG threshold) — needs its own dedicated slice/ADR, unrelated to this disabled/muted-text gap.
+
+### `DsTextStyles` — new semantic text-style presets (representative retrofit only)
+
+**Problem confirmed:** `lib/shared/design_system/tokens/ds_typography.dart` is bare font-size doubles (`xxs`/`xs`/`small`/`medium`/`large`/`xl`/`xxl`) with no weight/color pairing. This is the root cause of 62 raw Material `TextStyle`/`Text` occurrences across the 16 calculator sheet-body files, each hand-rolling e.g. `TextStyle(fontWeight: FontWeight.w700)` for its own section header / bold result line instead of sharing one preset.
+
+**Structural choice (flagging for `senior-analyst` to confirm fits the architecture):** new companion file, not an edit to `ds_typography.dart` itself —
+
+```dart
+// lib/shared/design_system/tokens/ds_text_styles.dart
+import 'package:flutter/material.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
+
+/// Composed, semantic `TextStyle` presets built on top of `DsTypography`'s
+/// raw font-size scale. `DsTypography` stays bare doubles (still consumed
+/// directly where only a size is needed, e.g. `DsCheckbox`/`DsListTile`
+/// building their own `TextStyle(fontSize: DsTypography.xxs, ...)`) — this
+/// is the next layer up for call sites that want a ready-made, named style
+/// instead of assembling one inline. Same separation-of-concerns reasoning
+/// already used for `ds_colors`/`ds_spacing`/`ds_sizing` being distinct
+/// single-purpose token files rather than one mega-token class.
+class DsTextStyles {
+  /// Group/section header above a list of related items, or a calculator
+  /// sheet's own intro label (e.g. `CalculatorList`'s `CalculatorType.label`
+  /// header, `NitrogenBalanceSheetBody`'s "Balanço Nitrogenado" heading).
+  static TextStyle get sectionHeader =>
+      TextStyle(fontWeight: FontWeight.w700, color: DsColors.black);
+
+  /// A calculator's final computed answer line (every calculator's bold
+  /// result `Text`, e.g. BMI's `"IMC: X (classificação)"`, Nitrogen
+  /// Balance's `"Balanço Nitrogenado: X g/dia"`).
+  static TextStyle get resultBold =>
+      TextStyle(fontWeight: FontWeight.w700, color: DsColors.black);
+}
+```
+
+Both presets are intentionally visually identical to each other today (both are exactly what the ad hoc `TextStyle(fontWeight: FontWeight.w700)`/`FontWeight.bold` call sites already render, no `fontSize` override — none of the retrofit targets set one explicitly today, so adding one now would be a visible change this pass isn't supposed to make). The naming is about *intent*, not current visual divergence — e.g. the deferred clinical risk-color-coding slice would only need to touch `resultBold`'s definition once, instead of hunting down every inline result `Text` across 16 files.
+
+**Retrofit scope — representative sample only, do not touch all 16 sheet-body files in this slice:**
+
+1. `lib/features/calculators/presentation/widgets/calculator_list.dart` — `_buildAllView`'s group header: `Text(type.label, style: TextStyle(fontWeight: FontWeight.bold))` → `Text(type.label, style: DsTextStyles.sectionHeader)`.
+2. `lib/features/calculators/nitrogen_balance/presentation/widgets/nitrogen_balance_sheet_body.dart` — its own `"Balanço Nitrogenado"` intro `Text` → `DsTextStyles.sectionHeader`; its result `Text` (`"Balanço Nitrogenado: ${value} g/dia"`) → `DsTextStyles.resultBold`. Picked as the "simple single-step calculator" representative.
+3. `lib/features/patients/details/presentation/widgets/tabs/patient_calculators_tab.dart` — BMI's result `Text` (`"IMC: ${value} (${classification})"`, inside `_openBmiBottomSheet`) → `DsTextStyles.resultBold`. Picked as the "calculator with a bold result line" representative (also demonstrates the preset works for a non-sheet-body call site, since BMI's bottom sheet body is inline in the tab file, not its own `*SheetBody` widget).
+
+**Explicitly deferred:** the other ~13 calculator sheet-body files (Energy Expenditure, Enteral Nutrition x3, Protein Needs, Water Needs, Glucose Infusion Rate, Weight Loss Classification, MUST, NRS-2002, STRONG-Kids, and the 5 Weight sub-types' bodies) keep their inline `TextStyle`s as-is — tracked as remaining tech debt for a future slice, not attempted here. Don't expand this retrofit's scope without a new PO ask.
+
+### Duplicate group-header fix — decision: **(a) suppress the type-label header for single-`CalculatorDefinition` groups**
+
+Confirmed site: `CalculatorList._buildAllView` (`lib/features/calculators/presentation/widgets/calculator_list.dart`). Enumerated every `CalculatorType` group against the tile `name`s defined in `patient_calculators_tab.dart` (`_buildDefinitions`):
+
+| `CalculatorType` | `.label` (group header) | Member count | Tile `name`(s) | Collides? |
+|---|---|---|---|---|
+| `bmi` | "IMC" | 1 | "IMC" | **yes, exact** |
+| `energyExpenditure` | "Gasto Energético" | 1 | "Gasto Energético" | **yes, exact** |
+| `nitrogenBalance` | "Balanço Nitrogenado" | 1 | "Balanço Nitrogenado" | **yes, exact** |
+| `parenteralNutrition` | "Nutrição Parenteral" | 1 | "TIG" | no (already distinct, per Slice 5's deliberate naming) |
+| `proteinNeeds` | "Necessidades Proteicas" | 1 | "Necessidade Proteica" | **yes, near (singular/plural)** |
+| `waterNeeds` | "Necessidades Hídricas" | 1 | "Necessidade Hídrica" | **yes, near (singular/plural)** |
+| `weightLossClassification` | "Classificação de Perda de Peso" | 1 | "Classificação de Perda de Peso" | **yes, exact** |
+| `enteralNutrition` | "Nutrição Enteral" | 3 | "Gotejamento", "Velocidade de Infusão", "Volume Total" | n/a (multi-member) |
+| `screening` | "Triagem" | 3 | "MUST", "NRS-2002", "STRONG-Kids" | n/a (multi-member) |
+| `weight` | "Peso" | 5 | "Peso Ideal", "Adequação", + 3 more `WeightTypeEnum.label`s | n/a (multi-member) |
+
+6 of 7 single-member groups collide (5 exact, 2 near/singular-plural). Decision: **option (a)** — suppress `type.label` as a header when `definitionsForType.length == 1`, rendering just that one tile directly (no header, no spacer above it).
+
+**Reasoning:**
+- Matches the precedent the History tab (`patient_history_tab.dart`) already set for its own single-member groups (omits the `overline` when a group has exactly one member) — same underlying rule ("don't show a label that duplicates the one thing under it"), applied consistently across the two screens that both group by `CalculatorType`. Using one rule in two places is lower-risk than inventing a second one.
+- Zero copy changes, zero risk of breaking the established "short clinical shorthand" naming convention (option (b) would force renaming "IMC," which has no shorter form a dietitian would recognize, since the roadmap/codebase confirms no "full name (abbreviation)" pattern exists anywhere).
+- `parenteralNutrition`/"TIG" already proves the group-header-plus-distinct-tile-name shape works fine when the tile has a genuinely distinct short name (Slice 5's deliberate choice) — option (a) doesn't regress that case, since it only fires when there's exactly one member, and the header is harmless there precisely because there's no collision to hide. No change needed for `parenteralNutrition`.
+- Option (b) would have required renaming 6 groups' worth of tile names (or 6 group labels) with no obvious shorter alternative for terms like "IMC" or "Balanço Nitrogenado" that are already at their shortest clinically-recognized form — inventing new shorthand purely to avoid a header felt riskier (confusing a dietitian who already knows "IMC") than simply not showing a redundant header.
+
+**Implementation note for `senior-analyst`/`mobile-dev`:** in `_buildAllView`, guard the three lines that currently always render (`groups.add(Text(type.label, ...))`, the `SizedBox(height: DsSpacing.sm)` immediately after it) behind `if (definitionsForType.length > 1)` — the trailing `SizedBox(height: DsSpacing.vLg)` group-spacer still renders unconditionally (same as `PatientHistoryTab`'s own suppression, which still separates groups vertically, it just omits the label itself).

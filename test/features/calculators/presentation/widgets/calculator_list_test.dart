@@ -113,12 +113,79 @@ void main() {
       (tester) async {
         final definitions = [
           CalculatorDefinition(
-            id: 'weight-loss',
-            type: CalculatorType.weightLossClassification,
-            name: 'Calculadora de Perda de Peso',
+            id: 'screening-1',
+            type: CalculatorType.screening,
+            name: 'Calculadora de Triagem 1',
             isRelevant: (_) => false,
             onTap: (_) {},
           ),
+          CalculatorDefinition(
+            id: 'screening-2',
+            type: CalculatorType.screening,
+            name: 'Calculadora de Triagem 2',
+            isRelevant: (_) => false,
+            onTap: (_) {},
+          ),
+          CalculatorDefinition(
+            id: 'enteral-1',
+            type: CalculatorType.enteralNutrition,
+            name: 'Calculadora de Nutrição Enteral 1',
+            isRelevant: (_) => false,
+            onTap: (_) {},
+          ),
+          CalculatorDefinition(
+            id: 'enteral-2',
+            type: CalculatorType.enteralNutrition,
+            name: 'Calculadora de Nutrição Enteral 2',
+            isRelevant: (_) => false,
+            onTap: (_) {},
+          ),
+        ];
+
+        await tester.pumpWidget(
+          wrap(
+            CalculatorList(
+              definitions: definitions,
+              relevanceContext: const CalculatorRelevanceContext(),
+            ),
+          ),
+        );
+
+        await tester.tap(find.byType(DsButton));
+        await tester.pumpAndSettle();
+
+        // enteralNutrition.label appears before screening.label in the
+        // widget tree, matching CalculatorType.values canonical order.
+        final enteralHeaderFinder = find.text(
+          CalculatorType.enteralNutrition.label,
+        );
+        final screeningHeaderFinder = find.text(CalculatorType.screening.label);
+        expect(enteralHeaderFinder, findsOneWidget);
+        expect(screeningHeaderFinder, findsOneWidget);
+
+        final enteralHeaderPos = tester.getTopLeft(enteralHeaderFinder).dy;
+        final screeningHeaderPos = tester
+            .getTopLeft(screeningHeaderFinder)
+            .dy;
+        expect(enteralHeaderPos, lessThan(screeningHeaderPos));
+
+        // No header rendered for empty-type groups: only 2 headers total
+        // (enteralNutrition + screening), no header text for any other
+        // CalculatorType label.
+        for (final type in CalculatorType.values) {
+          if (type == CalculatorType.enteralNutrition ||
+              type == CalculatorType.screening) {
+            continue;
+          }
+          expect(find.text(type.label), findsNothing);
+        }
+      },
+    );
+
+    testWidgets(
+      'single-member CalculatorType group renders its tile with no header',
+      (tester) async {
+        final definitions = [
           CalculatorDefinition(
             id: 'bmi',
             type: CalculatorType.bmi,
@@ -140,31 +207,8 @@ void main() {
         await tester.tap(find.byType(DsButton));
         await tester.pumpAndSettle();
 
-        // bmi.label appears before weightLossClassification.label in the
-        // widget tree, matching CalculatorType.values canonical order.
-        final bmiHeaderFinder = find.text(CalculatorType.bmi.label);
-        final weightLossHeaderFinder = find.text(
-          CalculatorType.weightLossClassification.label,
-        );
-        expect(bmiHeaderFinder, findsOneWidget);
-        expect(weightLossHeaderFinder, findsOneWidget);
-
-        final bmiHeaderPos = tester.getTopLeft(bmiHeaderFinder).dy;
-        final weightLossHeaderPos = tester
-            .getTopLeft(weightLossHeaderFinder)
-            .dy;
-        expect(bmiHeaderPos, lessThan(weightLossHeaderPos));
-
-        // No header rendered for empty-type groups: only 2 headers total
-        // (bmi + weightLossClassification), no header text for any other
-        // CalculatorType label.
-        for (final type in CalculatorType.values) {
-          if (type == CalculatorType.bmi ||
-              type == CalculatorType.weightLossClassification) {
-            continue;
-          }
-          expect(find.text(type.label), findsNothing);
-        }
+        expect(find.text('Calculadora de IMC'), findsOneWidget);
+        expect(find.text(CalculatorType.bmi.label), findsNothing);
       },
     );
 

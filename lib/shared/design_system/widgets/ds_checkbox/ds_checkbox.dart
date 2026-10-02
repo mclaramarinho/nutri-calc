@@ -24,7 +24,7 @@ class DsCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = disabled
-        ? DsColors.black.withValues(alpha: 0.38)
+        ? DsColors.textDisabled
         : DsColors.black;
 
     return InkWell(
@@ -61,8 +61,8 @@ class DsCheckbox extends StatelessWidget {
                     style: TextStyle(
                       fontSize: DsTypography.xxs,
                       color: disabled
-                          ? DsColors.black.withValues(alpha: 0.38)
-                          : DsColors.black.withValues(alpha: 0.54),
+                          ? DsColors.textDisabled
+                          : DsColors.textMuted,
                     ),
                   ),
               ],

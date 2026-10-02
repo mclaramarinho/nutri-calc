@@ -40,7 +40,7 @@ class DsListTile extends StatelessWidget {
                     overline!,
                     style: TextStyle(
                       fontSize: DsTypography.xxs,
-                      color: DsColors.black.withValues(alpha: 0.54),
+                      color: DsColors.textMuted,
                     ),
                   ),
                   SizedBox(height: DsSpacing.xxs),
@@ -59,7 +59,7 @@ class DsListTile extends StatelessWidget {
                     subtitle!,
                     style: TextStyle(
                       fontSize: DsTypography.xxs,
-                      color: DsColors.black.withValues(alpha: 0.54),
+                      color: DsColors.textMuted,
                     ),
                   ),
                 ],

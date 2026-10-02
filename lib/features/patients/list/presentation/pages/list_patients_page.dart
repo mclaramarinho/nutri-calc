@@ -55,7 +55,7 @@ class _ListPatientsPageContent extends StatelessWidget {
                       : "${patient.age} ${patient.ageUnit!.value.toLowerCase()}",
                   trailing: Icon(
                     Icons.chevron_right_outlined,
-                    color: DsColors.black.withValues(alpha: 0.38),
+                    color: DsColors.textDisabled,
                   ),
                   onTap: () => getIt.get<AppRouter>().push(
                     AppRoutes.patientDetails,

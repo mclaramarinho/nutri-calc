@@ -938,16 +938,13 @@ void main() {
         await tester.tap(find.byType(DsButton));
         await tester.pumpAndSettle();
 
-        // "IMC" is both the group header (CalculatorType.bmi.label) and the
-        // tile title (the definition's name) - genuine collision, not a
-        // test bug. Likewise for "Gasto Energético" (Energy Expenditure) and
-        // "Balanço Nitrogenado" (Nitrogen Balance). "Necessidade Proteica"/
-        // "Necessidade Hídrica" tile titles don't collide with their group
-        // headers ("Necessidades Proteicas"/"Necessidades Hídricas" -
-        // singular vs plural, the known Slice 2/3 cosmetic mismatch).
-        expect(find.text('IMC'), findsNWidgets(2));
-        expect(find.text('Gasto Energético'), findsNWidgets(2));
-        expect(find.text('Balanço Nitrogenado'), findsNWidgets(2));
+        // Single-member CalculatorType groups (bmi, energyExpenditure,
+        // nitrogenBalance) suppress their group header (Roadmap Priority 8,
+        // step 3), so only the tile title renders for each - no collision
+        // with a group header to double-count anymore.
+        expect(find.text('IMC'), findsOneWidget);
+        expect(find.text('Gasto Energético'), findsOneWidget);
+        expect(find.text('Balanço Nitrogenado'), findsOneWidget);
         // Slice 5 added 4 more calculators (Enteral Nutrition Dripping/
         // Speed/Volume, Glucose Infusion Rate), none relevant for this
         // patient (not on enteral/parenteral nutrition); Slice 6 added

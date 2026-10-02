@@ -4,6 +4,7 @@ import 'package:nutri_calc/features/calculators/domain/entities/calculator_relev
 import 'package:nutri_calc/features/calculators/domain/entities/calculator_type_enum.dart';
 import 'package:nutri_calc/features/calculators/domain/use_cases/filter_relevant_calculators_use_case.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_list_tile/ds_list_tile.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_placeholder/ds_placeholder.dart';
@@ -59,10 +60,12 @@ class _CalculatorListState extends State<CalculatorList> {
 
       if (definitionsForType.isEmpty) continue;
 
-      groups.add(
-        Text(type.label, style: TextStyle(fontWeight: FontWeight.bold)),
-      );
-      groups.add(SizedBox(height: DsSpacing.sm));
+      if (definitionsForType.length > 1) {
+        groups.add(
+          Text(type.label, style: DsTextStyles.sectionHeader),
+        );
+        groups.add(SizedBox(height: DsSpacing.sm));
+      }
       groups.addAll(definitionsForType.map(_buildTile));
       groups.add(SizedBox(height: DsSpacing.vLg));
     }

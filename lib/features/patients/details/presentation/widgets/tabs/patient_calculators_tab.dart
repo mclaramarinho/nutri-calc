@@ -47,6 +47,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/core/utils/extensions/ext_datetime.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_bottom_sheet/ds_bottom_sheet.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/bmi/bmi_classification.enum.dart';
@@ -135,7 +136,7 @@ class PatientCalculatorsTab extends StatelessWidget {
           SizedBox(height: DsSpacing.sm),
           Text(
             "IMC: ${bmi.value.toStringAsFixed(2)} (${_classificationLabel(bmi.classification)})",
-            style: TextStyle(fontWeight: FontWeight.w700),
+            style: DsTextStyles.resultBold,
           ),
         ],
       ),

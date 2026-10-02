@@ -23,7 +23,7 @@ class DsButton extends StatelessWidget {
       onPressed: isInteractive ? onTap : null,
       style: ElevatedButton.styleFrom(
         disabledBackgroundColor: DsColors.gray,
-        disabledForegroundColor: DsColors.black.withValues(alpha: 0.38),
+        disabledForegroundColor: DsColors.textDisabled,
       ),
       child: isLoading ? CircularProgressIndicator() : Text(label),
     );
