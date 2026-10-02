@@ -10,6 +10,7 @@ import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/p
 import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_calculators_tab.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_history_tab.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/tabs/patient_measurements_tab.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/utils/extensions/ext_num_screen_adapter.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
@@ -43,11 +44,12 @@ class _PatientDetailsPage extends StatefulWidget {
 class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return DsScaffold(
       appBar: DsAppBarData(
         onBack: getIt.get<AppRouter>().pop,
         onClose: getIt.get<AppRouter>().pop,
-        title: "Informações do Paciente",
+        title: l10n.patientDetailsPageTitle,
       ),
       children: [
         BlocConsumer<PatientDetailsCubit, PatientDetailsState>(
@@ -73,13 +75,15 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
           listener: (context, state) {
             if (state is! PatientDetailsStateLoaded) return;
 
+            final l10n = AppLocalizations.of(context);
+
             if (state.isSaveError) {
               DsDialog.show(
                 context,
-                title: "Erro ao salvar",
+                title: l10n.patientDetailsSaveErrorTitle,
                 message:
                     state.saveErrorMessage ??
-                    "Não foi possível salvar as alterações. Tente novamente.",
+                    l10n.patientDetailsSaveErrorFallbackMessage,
                 showCloseButton: true,
                 onClose: context.read<PatientDetailsCubit>().closedErrorModal,
               );
@@ -89,8 +93,8 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
             if (state.isSaved) {
               DsDialog.show(
                 context,
-                title: "Sucesso",
-                message: "Dados do paciente atualizados com sucesso.",
+                title: l10n.patientDetailsSaveSuccessTitle,
+                message: l10n.patientDetailsSaveSuccessMessage,
                 showCloseButton: false,
                 isDismissible: false,
                 duration: Duration(seconds: 2),
@@ -104,7 +108,7 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
               if (status.isError) {
                 DsDialog.show(
                   context,
-                  title: "Erro ao salvar",
+                  title: l10n.patientDetailsSaveErrorTitle,
                   message: status.errorMessage!,
                   showCloseButton: true,
                   onClose: () => context
@@ -117,7 +121,7 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
               if (status.isSaved) {
                 DsDialog.show(
                   context,
-                  title: "Sucesso",
+                  title: l10n.patientDetailsSaveSuccessTitle,
                   message: status.savedMessage!,
                   showCloseButton: false,
                   isDismissible: false,
@@ -139,11 +143,11 @@ class _PatientDetailsPageContent extends State<_PatientDetailsPage> {
             if (state is PatientDetailsStateLoaded) {
               return DsTabView(
                 tabs: [
-                  Text("Calculadoras"),
-                  Text("Pesos"),
-                  Text("Alturas"),
-                  Text("Medidas Corporais"),
-                  Text("Histórico"),
+                  Text(l10n.patientDetailsTabCalculators),
+                  Text(l10n.patientDetailsTabWeights),
+                  Text(l10n.patientDetailsTabHeights),
+                  Text(l10n.patientDetailsTabBodyMeasurements),
+                  Text(l10n.patientDetailsTabHistory),
                 ],
                 tabsContents: [
                   PatientCalculatorsTab(),

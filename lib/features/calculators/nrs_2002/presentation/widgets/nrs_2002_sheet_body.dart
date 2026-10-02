@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/di/di.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
@@ -47,12 +48,13 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
   Nrs2002ScoreResult? _result;
 
   String? get _validationMessage {
+    final l10n = AppLocalizations.of(context);
     if (widget.age == null) {
-      return "Cadastre a idade do paciente para essa triagem.";
+      return l10n.nrs2002RegisterAgeMessage;
     }
     if (_nutritionalStatusClassification == null ||
         _illnessSeverityClassification == null) {
-      return "Selecione o estado nutricional e a gravidade da doença.";
+      return l10n.nrs2002SelectClassificationsMessage;
     }
     return null;
   }
@@ -75,7 +77,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
 
     if (res.isError) {
       setState(() {
-        _calcErrorMessage = "Não foi possível calcular o NRS-2002.";
+        _calcErrorMessage = AppLocalizations.of(context).nrs2002CalcErrorMessage;
       });
       return;
     }
@@ -87,28 +89,23 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
   }
 
   List<DropdownMenuEntry<Nrs2002Step2Classification>>
-  get _classificationOptions => [
-    DropdownMenuEntry(
-      value: .absent,
-      label: "Ausente - estado nutricional normal",
-    ),
-    DropdownMenuEntry(
-      value: .low,
-      label: "Leve - perda de peso leve ou ingestão reduzida",
-    ),
-    DropdownMenuEntry(
-      value: .mild,
-      label: "Moderado - comprometimento nutricional moderado",
-    ),
-    DropdownMenuEntry(
-      value: .severe,
-      label: "Grave - comprometimento nutricional grave",
-    ),
-  ];
+  get _classificationOptions {
+    final l10n = AppLocalizations.of(context);
+    return [
+      DropdownMenuEntry(value: .absent, label: l10n.nrs2002ClassificationAbsent),
+      DropdownMenuEntry(value: .low, label: l10n.nrs2002ClassificationLow),
+      DropdownMenuEntry(value: .mild, label: l10n.nrs2002ClassificationMild),
+      DropdownMenuEntry(
+        value: .severe,
+        label: l10n.nrs2002ClassificationSevere,
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     final validation = _validationMessage;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -119,18 +116,18 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
           spacing: DsSpacing.sm,
           children: [
             Text(
-              "NRS-2002 — Triagem de Risco Nutricional",
+              l10n.nrs2002Title,
               style: TextStyle(fontWeight: FontWeight.w700),
             ),
             if (widget.age != null)
-              Text("Idade: ${widget.age}")
+              Text(l10n.nrs2002AgeLabel("${widget.age}"))
             else
               Text(
-                "Cadastre a idade do paciente para essa triagem.",
+                l10n.nrs2002RegisterAgeMessage,
                 style: TextStyle(color: DsColors.of(context).error),
               ),
             DsCheckbox(
-              label: "Paciente está gravemente enfermo?",
+              label: l10n.nrs2002SeverelyIllQuestion,
               value: _isSeverelyIll,
               onChanged: (value) => setState(() {
                 _isSeverelyIll = value;
@@ -138,7 +135,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
               }),
             ),
             DsCheckbox(
-              label: "Houve perda de peso nos últimos 3 meses?",
+              label: l10n.nrs2002WeightLossQuestion,
               value: _weightLossLast3Months,
               onChanged: (value) => setState(() {
                 _weightLossLast3Months = value;
@@ -146,7 +143,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
               }),
             ),
             DsCheckbox(
-              label: "Houve redução da ingestão alimentar na última semana?",
+              label: l10n.nrs2002ReducedIntakeQuestion,
               value: _reducedFoodIntakeLastWeek,
               onChanged: (value) => setState(() {
                 _reducedFoodIntakeLastWeek = value;
@@ -154,7 +151,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
               }),
             ),
             DsCheckbox(
-              label: "IMC baixo?",
+              label: l10n.nrs2002LowBmiQuestion,
               value: _lowBmi,
               onChanged: (value) => setState(() {
                 _lowBmi = value;
@@ -162,7 +159,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
               }),
             ),
             DsSelect<Nrs2002Step2Classification>(
-              label: "Estado Nutricional",
+              label: l10n.nrs2002NutritionalStatusLabel,
               dropdownOptions: _classificationOptions,
               onDropdownSelect: (value) => setState(() {
                 _nutritionalStatusClassification = value;
@@ -170,7 +167,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
               }),
             ),
             DsSelect<Nrs2002Step2Classification>(
-              label: "Gravidade da Doença",
+              label: l10n.nrs2002IllnessSeverityLabel,
               dropdownOptions: _classificationOptions,
               onDropdownSelect: (value) => setState(() {
                 _illnessSeverityClassification = value;
@@ -189,19 +186,19 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
               ),
             SizedBox(height: DsSpacing.sm),
             DsButton(
-              label: "Calcular",
+              label: l10n.nrs2002CalculateButton,
               isLoading: false,
               disabled: validation != null,
               onTap: _calculate,
             ),
             if (_result != null) ...[
               Text(
-                "NRS-2002: ${_result!.score}",
+                l10n.nrs2002ScoreResultLabel(_result!.score),
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               if (_result!.score >= 3)
                 Text(
-                  "Risco nutricional identificado.",
+                  l10n.nrs2002RiskIdentifiedMessage,
                   style: TextStyle(color: DsColors.of(context).error),
                 ),
             ],
@@ -214,7 +211,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
             children: [
               Expanded(
                 child: DsButton(
-                  label: "Cancelar",
+                  label: l10n.nrs2002CancelButton,
                   isLoading: false,
                   onTap: () =>
                       getIt.get<AppRouter>().pop<GatheredNrs2002Inputs?>(null),
@@ -222,7 +219,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
               ),
               Expanded(
                 child: DsButton(
-                  label: "Confirmar",
+                  label: l10n.nrs2002ConfirmButton,
                   isLoading: false,
                   onTap: () =>
                       getIt.get<AppRouter>().pop<GatheredNrs2002Inputs?>((

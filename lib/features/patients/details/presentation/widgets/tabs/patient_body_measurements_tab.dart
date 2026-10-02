@@ -6,6 +6,7 @@ import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_
 import 'package:nutri_calc/features/patients/details/presentation/widgets/measurement_input_field.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/measurements_list.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/no_data_found_for_patient.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
 import 'package:nutri_calc/shared/utils/formatters/only_numbers_formatter.dart';
 
@@ -85,13 +86,14 @@ class PatientBodyMeasurementsTab extends StatelessWidget {
         }
 
         final cubit = context.read<PatientDetailsCubit>();
+        final l10n = AppLocalizations.of(context);
 
         return SingleChildScrollView(
           child: Column(
             children: [
               MeasurementInputField(
-                label: 'Medida',
-                hint: 'XXX',
+                label: l10n.patientBodyMeasurementsInputLabel,
+                hint: l10n.patientBodyMeasurementsInputHint,
                 isSaving: state.isSavingNewBodyMeasurement,
                 disabled:
                     state.newBodyMeasurementType == null ||
@@ -112,7 +114,7 @@ class PatientBodyMeasurementsTab extends StatelessWidget {
 
               if (state.measurements.isEmpty) ...[
                 NoDataFoundForPatient(
-                  message: "Nenhuma medida encontrada para esse paciente.",
+                  message: l10n.patientBodyMeasurementsNoDataFound,
                 ),
               ],
 

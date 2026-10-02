@@ -1,0 +1,773 @@
+{
+  "@@locale": "pt",
+
+  "homeBottomNavHomeLabel": "HOME",
+  "@homeBottomNavHomeLabel": {
+    "description": "Home page bottom nav item label/tooltip for the Home tab"
+  },
+  "homeBottomNavPatientsLabel": "PACIENTES",
+  "@homeBottomNavPatientsLabel": {
+    "description": "Home page bottom nav item label/tooltip for the Patients tab"
+  },
+  "homeThemeSheetTitle": "Tema",
+  "@homeThemeSheetTitle": {
+    "description": "Title of the bottom sheet opened from Home's app bar to pick the app theme"
+  },
+
+  "patientListEmptyState": "Você ainda não tem pacientes cadastrados",
+  "@patientListEmptyState": {
+    "description": "Shown in the patient list when there are no patients yet"
+  },
+  "patientListAgeNotInformed": "Idade não informada",
+  "@patientListAgeNotInformed": {
+    "description": "Shown in a patient list tile when age/age unit were not informed"
+  },
+  "patientListLoadErrorMessage": "Não foi possível carregar seus pacientes",
+  "@patientListLoadErrorMessage": {
+    "description": "Shown when loading the patient list fails"
+  },
+  "patientListRetryButton": "Tentar novamente",
+  "@patientListRetryButton": {
+    "description": "Retry button label shown alongside the patient list load-error message"
+  },
+  "patientListFullName": "{firstName} {lastName}",
+  "@patientListFullName": {
+    "description": "Patient full name shown as a list tile title",
+    "placeholders": {
+      "firstName": {"type": "String"},
+      "lastName": {"type": "String"}
+    }
+  },
+  "patientListAgeWithUnit": "{age} {ageUnit}",
+  "@patientListAgeWithUnit": {
+    "description": "Patient age with its unit (e.g. ano(s)) shown as a list tile subtitle",
+    "placeholders": {
+      "age": {"type": "String"},
+      "ageUnit": {"type": "String"}
+    }
+  },
+
+  "newPatientTitle": "Criar Paciente",
+  "@newPatientTitle": {
+    "description": "Create Patient page app bar title"
+  },
+  "newPatientSavedSuccessTitle": "Salvo com sucesso",
+  "@newPatientSavedSuccessTitle": {
+    "description": "Title of the dialog shown after successfully creating a patient"
+  },
+  "newPatientSavedSuccessMessage": "Esse paciente ficará visível na home.",
+  "@newPatientSavedSuccessMessage": {
+    "description": "Message of the dialog shown after successfully creating a patient"
+  },
+  "newPatientSaveErrorTitle": "Erro ao salvar",
+  "@newPatientSaveErrorTitle": {
+    "description": "Title of the dialog shown when creating a patient fails"
+  },
+  "newPatientPatientIdLabel": "ID do paciente",
+  "@newPatientPatientIdLabel": {
+    "description": "Create Patient form field label for the dietitian-assigned patient id"
+  },
+  "newPatientFirstNameLabel": "Primeiro Nome*",
+  "@newPatientFirstNameLabel": {
+    "description": "Create Patient form field label for first name"
+  },
+  "newPatientLastNameLabel": "Último Nome*",
+  "@newPatientLastNameLabel": {
+    "description": "Create Patient form field label for last name"
+  },
+  "newPatientAgeLabel": "Idade",
+  "@newPatientAgeLabel": {
+    "description": "Create Patient form field label for age"
+  },
+  "newPatientBirthdateLabel": "Data de Nascimento",
+  "@newPatientBirthdateLabel": {
+    "description": "Create Patient form field label for birthdate"
+  },
+  "newPatientClinicalInfoSectionTitle": "Informações Clínicas",
+  "@newPatientClinicalInfoSectionTitle": {
+    "description": "Section title above the clinical-flag checkboxes on the Create Patient form"
+  },
+  "newPatientEnteralNutritionLabel": "Nutrição Enteral",
+  "@newPatientEnteralNutritionLabel": {
+    "description": "Create Patient form checkbox label for enteral nutrition"
+  },
+  "newPatientParenteralNutritionLabel": "Nutrição Parenteral",
+  "@newPatientParenteralNutritionLabel": {
+    "description": "Create Patient form checkbox label for parenteral nutrition"
+  },
+  "newPatientHospitalizedLabel": "Hospitalizado",
+  "@newPatientHospitalizedLabel": {
+    "description": "Create Patient form checkbox label for hospitalized"
+  },
+  "newPatientConfinedToBedLabel": "Restrito ao leito",
+  "@newPatientConfinedToBedLabel": {
+    "description": "Create Patient form checkbox label for confined to bed"
+  },
+  "newPatientConfinedToBedHelperText": "Paciente não consegue andar ou tem dificuldade significativa para caminhar.",
+  "@newPatientConfinedToBedHelperText": {
+    "description": "Helper text under the confined-to-bed checkbox on the Create Patient form"
+  },
+  "newPatientSaveButton": "Salvar",
+  "@newPatientSaveButton": {
+    "description": "Create Patient form save button label"
+  },
+
+  "patientDetailsFormImcLabel": "IMC",
+  "@patientDetailsFormImcLabel": {
+    "description": "Patient Details form read-only BMI field label"
+  },
+  "patientDetailsFormIdLabel": "ID",
+  "@patientDetailsFormIdLabel": {
+    "description": "Patient Details form field label for the dietitian-assigned patient id"
+  },
+  "patientDetailsFormIdNotInformed": "Não informado",
+  "@patientDetailsFormIdNotInformed": {
+    "description": "Patient Details form placeholder shown when the patient id was not informed"
+  },
+  "patientDetailsFormFirstNameLabel": "Primeiro Nome",
+  "@patientDetailsFormFirstNameLabel": {
+    "description": "Patient Details form field label for first name"
+  },
+  "patientDetailsFormLastNameLabel": "Ultimo Nome",
+  "@patientDetailsFormLastNameLabel": {
+    "description": "Patient Details form field label for last name"
+  },
+  "patientDetailsFormAgeLabel": "Idade",
+  "@patientDetailsFormAgeLabel": {
+    "description": "Patient Details form field label for age"
+  },
+  "patientDetailsFormBirthdateLabel": "Data de Nascimento",
+  "@patientDetailsFormBirthdateLabel": {
+    "description": "Patient Details form field label for birthdate"
+  },
+  "patientDetailsFormClinicalInfoSectionTitle": "Informações Clínicas",
+  "@patientDetailsFormClinicalInfoSectionTitle": {
+    "description": "Section title above the clinical-flag checkboxes on the Patient Details form"
+  },
+  "patientDetailsFormEnteralNutritionLabel": "Nutrição Enteral",
+  "@patientDetailsFormEnteralNutritionLabel": {
+    "description": "Patient Details form checkbox label for enteral nutrition"
+  },
+  "patientDetailsFormParenteralNutritionLabel": "Nutrição Parenteral",
+  "@patientDetailsFormParenteralNutritionLabel": {
+    "description": "Patient Details form checkbox label for parenteral nutrition"
+  },
+  "patientDetailsFormHospitalizedLabel": "Hospitalizado",
+  "@patientDetailsFormHospitalizedLabel": {
+    "description": "Patient Details form checkbox label for hospitalized"
+  },
+  "patientDetailsFormConfinedToBedLabel": "Restrito ao leito",
+  "@patientDetailsFormConfinedToBedLabel": {
+    "description": "Patient Details form checkbox label for confined to bed"
+  },
+  "patientDetailsFormConfinedToBedHelperText": "Paciente não consegue andar ou tem dificuldade significativa para caminhar.",
+  "@patientDetailsFormConfinedToBedHelperText": {
+    "description": "Helper text under the confined-to-bed checkbox on the Patient Details form"
+  },
+
+  "patientDetailsPageTitle": "Informações do Paciente",
+  "@patientDetailsPageTitle": {
+    "description": "Patient Details page app bar title"
+  },
+  "patientDetailsSaveErrorTitle": "Erro ao salvar",
+  "@patientDetailsSaveErrorTitle": {
+    "description": "Title of the error dialog shown when saving patient data or a calculator fails"
+  },
+  "patientDetailsSaveErrorFallbackMessage": "Não foi possível salvar as alterações. Tente novamente.",
+  "@patientDetailsSaveErrorFallbackMessage": {
+    "description": "Fallback message shown when saving patient data fails without a specific error message"
+  },
+  "patientDetailsSaveSuccessTitle": "Sucesso",
+  "@patientDetailsSaveSuccessTitle": {
+    "description": "Title of the success dialog shown when saving patient data or a calculator succeeds"
+  },
+  "patientDetailsSaveSuccessMessage": "Dados do paciente atualizados com sucesso.",
+  "@patientDetailsSaveSuccessMessage": {
+    "description": "Message of the success dialog shown after saving patient data"
+  },
+  "patientDetailsTabCalculators": "Calculadoras",
+  "@patientDetailsTabCalculators": {
+    "description": "Patient Details tab label for the Calculators tab"
+  },
+  "patientDetailsTabWeights": "Pesos",
+  "@patientDetailsTabWeights": {
+    "description": "Patient Details tab label for the Weights tab"
+  },
+  "patientDetailsTabHeights": "Alturas",
+  "@patientDetailsTabHeights": {
+    "description": "Patient Details tab label for the Heights tab"
+  },
+  "patientDetailsTabBodyMeasurements": "Medidas Corporais",
+  "@patientDetailsTabBodyMeasurements": {
+    "description": "Patient Details tab label for the Body Measurements tab"
+  },
+  "patientDetailsTabHistory": "Histórico",
+  "@patientDetailsTabHistory": {
+    "description": "Patient Details tab label for the History tab"
+  },
+
+  "patientCalculatorsTabCloseButton": "Fechar",
+  "@patientCalculatorsTabCloseButton": {
+    "description": "Close button label shown in calculator bottom sheets"
+  },
+  "patientCalculatorsTabCancelButton": "Cancelar",
+  "@patientCalculatorsTabCancelButton": {
+    "description": "Cancel button label shown in calculator bottom sheets"
+  },
+  "patientCalculatorsTabConfirmButton": "Confirmar",
+  "@patientCalculatorsTabConfirmButton": {
+    "description": "Confirm button label shown in calculator bottom sheets"
+  },
+
+  "patientCalculatorsTabImcName": "IMC",
+  "@patientCalculatorsTabImcName": {
+    "description": "BMI calculator name/bottom sheet title"
+  },
+  "patientCalculatorsTabImcInsufficientDataMessage": "Não há dados suficientes para calcular o IMC. Cadastre ao menos um peso e uma altura para esse paciente.",
+  "@patientCalculatorsTabImcInsufficientDataMessage": {
+    "description": "Message shown when there isn't enough data to calculate BMI"
+  },
+  "patientCalculatorsTabWeightLabel": "Peso: {weightKg} kg",
+  "@patientCalculatorsTabWeightLabel": {
+    "description": "Weight value line shown in a calculator bottom sheet",
+    "placeholders": {
+      "weightKg": {"type": "String"}
+    }
+  },
+  "patientCalculatorsTabHeightLabel": "Altura: {heightCm} cm",
+  "@patientCalculatorsTabHeightLabel": {
+    "description": "Height value line shown in a calculator bottom sheet",
+    "placeholders": {
+      "heightCm": {"type": "String"}
+    }
+  },
+  "patientCalculatorsTabAgeLabel": "Idade: {age}",
+  "@patientCalculatorsTabAgeLabel": {
+    "description": "Age value line shown in a calculator bottom sheet",
+    "placeholders": {
+      "age": {"type": "String"}
+    }
+  },
+  "patientCalculatorsTabImcResultLabel": "IMC: {value} ({classification})",
+  "@patientCalculatorsTabImcResultLabel": {
+    "description": "BMI result line showing value and classification",
+    "placeholders": {
+      "value": {"type": "String"},
+      "classification": {"type": "String"}
+    }
+  },
+  "patientCalculatorsTabBmiClassificationLow": "Baixo peso",
+  "@patientCalculatorsTabBmiClassificationLow": {
+    "description": "BMI classification label: low weight"
+  },
+  "patientCalculatorsTabBmiClassificationEutrophy": "Eutrofia",
+  "@patientCalculatorsTabBmiClassificationEutrophy": {
+    "description": "BMI classification label: eutrophy"
+  },
+  "patientCalculatorsTabBmiClassificationOverweight": "Sobrepeso",
+  "@patientCalculatorsTabBmiClassificationOverweight": {
+    "description": "BMI classification label: overweight"
+  },
+  "patientCalculatorsTabBmiClassificationObesity": "Obesidade Grau I",
+  "@patientCalculatorsTabBmiClassificationObesity": {
+    "description": "BMI classification label: obesity grade I"
+  },
+  "patientCalculatorsTabBmiClassificationObesityGrade2": "Obesidade Grau II",
+  "@patientCalculatorsTabBmiClassificationObesityGrade2": {
+    "description": "BMI classification label: obesity grade II"
+  },
+  "patientCalculatorsTabBmiClassificationObesityGrade3": "Obesidade Grau III",
+  "@patientCalculatorsTabBmiClassificationObesityGrade3": {
+    "description": "BMI classification label: obesity grade III"
+  },
+
+  "patientCalculatorsTabEnergyExpenditureName": "Gasto Energético",
+  "@patientCalculatorsTabEnergyExpenditureName": {
+    "description": "Energy Expenditure calculator name/bottom sheet title"
+  },
+  "patientCalculatorsTabEnergyExpenditureInsufficientDataMessage": "Não há dados suficientes para calcular o gasto energético. Cadastre ao menos um peso para esse paciente.",
+  "@patientCalculatorsTabEnergyExpenditureInsufficientDataMessage": {
+    "description": "Message shown when there isn't enough data to calculate Energy Expenditure"
+  },
+
+  "patientCalculatorsTabNitrogenBalanceName": "Balanço Nitrogenado",
+  "@patientCalculatorsTabNitrogenBalanceName": {
+    "description": "Nitrogen Balance calculator name/bottom sheet title"
+  },
+
+  "patientCalculatorsTabProteinNeedsName": "Necessidade Proteica",
+  "@patientCalculatorsTabProteinNeedsName": {
+    "description": "Protein Needs calculator name/bottom sheet title"
+  },
+  "patientCalculatorsTabProteinNeedsInsufficientDataMessage": "Não há dados suficientes para calcular a necessidade proteica. Cadastre ao menos um peso para esse paciente.",
+  "@patientCalculatorsTabProteinNeedsInsufficientDataMessage": {
+    "description": "Message shown when there isn't enough data to calculate Protein Needs"
+  },
+
+  "patientCalculatorsTabWaterNeedsName": "Necessidade Hídrica",
+  "@patientCalculatorsTabWaterNeedsName": {
+    "description": "Water Needs calculator name/bottom sheet title"
+  },
+  "patientCalculatorsTabWaterNeedsInsufficientDataMessage": "Não há dados suficientes para calcular a necessidade hídrica. Cadastre ao menos um peso e a idade desse paciente.",
+  "@patientCalculatorsTabWaterNeedsInsufficientDataMessage": {
+    "description": "Message shown when there isn't enough data to calculate Water Needs"
+  },
+
+  "patientCalculatorsTabWeightLossClassificationName": "Classificação de Perda de Peso",
+  "@patientCalculatorsTabWeightLossClassificationName": {
+    "description": "Weight Loss Classification calculator name/bottom sheet title"
+  },
+  "patientCalculatorsTabWeightLossClassificationInsufficientDataMessage": "Não há dados suficientes para calcular a Classificação de Perda de Peso. Cadastre ao menos dois pesos para esse paciente.",
+  "@patientCalculatorsTabWeightLossClassificationInsufficientDataMessage": {
+    "description": "Message shown when there isn't enough data to calculate Weight Loss Classification"
+  },
+  "patientCalculatorsTabCurrentWeightLabel": "Peso atual: {value} kg ({date})",
+  "@patientCalculatorsTabCurrentWeightLabel": {
+    "description": "Current weight line shown in the Weight Loss Classification bottom sheet",
+    "placeholders": {
+      "value": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "patientCalculatorsTabLastWeightLabel": "Peso anterior: {value} kg ({date})",
+  "@patientCalculatorsTabLastWeightLabel": {
+    "description": "Previous weight line shown in the Weight Loss Classification bottom sheet",
+    "placeholders": {
+      "value": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "patientCalculatorsTabWeightLossResultLabel": "Perda de Peso: {classification}",
+  "@patientCalculatorsTabWeightLossResultLabel": {
+    "description": "Weight loss classification result line",
+    "placeholders": {
+      "classification": {"type": "String"}
+    }
+  },
+  "patientCalculatorsTabWeightLossClassificationOk": "Adequada",
+  "@patientCalculatorsTabWeightLossClassificationOk": {
+    "description": "Weight loss classification label: adequate"
+  },
+  "patientCalculatorsTabWeightLossClassificationSignificant": "Significativa",
+  "@patientCalculatorsTabWeightLossClassificationSignificant": {
+    "description": "Weight loss classification label: significant"
+  },
+  "patientCalculatorsTabWeightLossClassificationSevere": "Grave",
+  "@patientCalculatorsTabWeightLossClassificationSevere": {
+    "description": "Weight loss classification label: severe"
+  },
+
+  "patientCalculatorsTabEnteralDrippingName": "Gotejamento",
+  "@patientCalculatorsTabEnteralDrippingName": {
+    "description": "Enteral Nutrition Dripping calculator name/bottom sheet title"
+  },
+  "patientCalculatorsTabEnteralSpeedName": "Velocidade de Infusão",
+  "@patientCalculatorsTabEnteralSpeedName": {
+    "description": "Enteral Nutrition Speed calculator name/bottom sheet title"
+  },
+  "patientCalculatorsTabEnteralVolumeName": "Volume Total",
+  "@patientCalculatorsTabEnteralVolumeName": {
+    "description": "Enteral Nutrition Volume calculator name/bottom sheet title"
+  },
+
+  "patientCalculatorsTabGlucoseInfusionRateName": "TIG",
+  "@patientCalculatorsTabGlucoseInfusionRateName": {
+    "description": "Glucose Infusion Rate calculator name/bottom sheet title"
+  },
+  "patientCalculatorsTabGlucoseInfusionRateInsufficientDataMessage": "Não há dados suficientes para calcular a TIG. Cadastre ao menos um peso para esse paciente.",
+  "@patientCalculatorsTabGlucoseInfusionRateInsufficientDataMessage": {
+    "description": "Message shown when there isn't enough data to calculate Glucose Infusion Rate"
+  },
+
+  "patientCalculatorsTabIdealWeightName": "Peso Ideal",
+  "@patientCalculatorsTabIdealWeightName": {
+    "description": "Ideal Weight calculator name/bottom sheet title"
+  },
+  "patientCalculatorsTabIdealWeightInsufficientHeightMessage": "Não há dados suficientes para calcular o Peso Ideal. Cadastre ao menos uma altura para esse paciente.",
+  "@patientCalculatorsTabIdealWeightInsufficientHeightMessage": {
+    "description": "Message shown when there is no height registered to calculate Ideal Weight"
+  },
+  "patientCalculatorsTabIdealWeightInsufficientWeightMessage": "Não há dados suficientes para calcular o Peso Ideal. Cadastre ao menos um peso para esse paciente.",
+  "@patientCalculatorsTabIdealWeightInsufficientWeightMessage": {
+    "description": "Message shown when there is no weight registered to calculate Ideal Weight"
+  },
+
+  "patientCalculatorsTabAdequationName": "Adequação de Peso",
+  "@patientCalculatorsTabAdequationName": {
+    "description": "Weight Adequation calculator bottom sheet title"
+  },
+  "patientCalculatorsTabAdequationInsufficientDataMessage": "Não há dados suficientes para calcular a Adequação de Peso. Cadastre ao menos um peso para esse paciente.",
+  "@patientCalculatorsTabAdequationInsufficientDataMessage": {
+    "description": "Message shown when there isn't enough data to calculate Weight Adequation"
+  },
+  "patientCalculatorsTabIdealWeightRequiredMessage": "Calcule o Peso Ideal deste paciente antes de usar esta calculadora.",
+  "@patientCalculatorsTabIdealWeightRequiredMessage": {
+    "description": "Message shown when an Ideal Weight calculation is required before using Adequation/Adjusted Obesity"
+  },
+
+  "patientCalculatorsTabAdjustedObesityName": "Peso Ajustado - Obesidade",
+  "@patientCalculatorsTabAdjustedObesityName": {
+    "description": "Adjusted Obesity Weight calculator bottom sheet title"
+  },
+  "patientCalculatorsTabAdjustedObesityInsufficientDataMessage": "Não há dados suficientes para calcular o Peso Ajustado. Cadastre ao menos um peso para esse paciente.",
+  "@patientCalculatorsTabAdjustedObesityInsufficientDataMessage": {
+    "description": "Message shown when there isn't enough data to calculate Adjusted Obesity Weight"
+  },
+
+  "patientCalculatorsTabAdjustedDryWeightName": "Peso Seco Ajustado",
+  "@patientCalculatorsTabAdjustedDryWeightName": {
+    "description": "Adjusted Dry Weight calculator bottom sheet title"
+  },
+  "patientCalculatorsTabAdjustedDryWeightInsufficientDataMessage": "Não há dados suficientes para calcular o Peso Seco Ajustado. Cadastre ao menos um peso e uma altura para esse paciente.",
+  "@patientCalculatorsTabAdjustedDryWeightInsufficientDataMessage": {
+    "description": "Message shown when there isn't enough data to calculate Adjusted Dry Weight"
+  },
+
+  "patientCalculatorsTabEstimatedWeightName": "Peso Estimado",
+  "@patientCalculatorsTabEstimatedWeightName": {
+    "description": "Estimated Weight calculator bottom sheet title"
+  },
+  "patientCalculatorsTabEstimatedWeightInsufficientAgeMessage": "Cadastre a idade do paciente para calcular o Peso Estimado.",
+  "@patientCalculatorsTabEstimatedWeightInsufficientAgeMessage": {
+    "description": "Message shown when the patient's age is required to calculate Estimated Weight"
+  },
+
+  "patientCalculatorsTabMustName": "MUST",
+  "@patientCalculatorsTabMustName": {
+    "description": "MUST screening tool name/bottom sheet title"
+  },
+  "patientCalculatorsTabNrs2002Name": "NRS-2002",
+  "@patientCalculatorsTabNrs2002Name": {
+    "description": "NRS-2002 screening tool name/bottom sheet title"
+  },
+  "patientCalculatorsTabStrongKidsName": "STRONG-Kids",
+  "@patientCalculatorsTabStrongKidsName": {
+    "description": "STRONG-Kids screening tool name/bottom sheet title"
+  },
+
+  "patientMeasurementsWeightLabel": "Peso",
+  "@patientMeasurementsWeightLabel": {
+    "description": "Weight input field label on the Weights tab"
+  },
+  "patientMeasurementsHeightLabel": "Altura",
+  "@patientMeasurementsHeightLabel": {
+    "description": "Height input field label on the Heights tab"
+  },
+  "patientMeasurementsWeightHint": "XX.X",
+  "@patientMeasurementsWeightHint": {
+    "description": "Weight input field hint/placeholder format"
+  },
+  "patientMeasurementsHeightHint": "XXX",
+  "@patientMeasurementsHeightHint": {
+    "description": "Height input field hint/placeholder format"
+  },
+  "patientMeasurementsNoWeightsFound": "Não encontramos pesos para esse paciente.",
+  "@patientMeasurementsNoWeightsFound": {
+    "description": "Empty-state message on the Weights tab when there are no weights"
+  },
+  "patientMeasurementsNoHeightsFound": "Não encontramos alturas para esse paciente.",
+  "@patientMeasurementsNoHeightsFound": {
+    "description": "Empty-state message on the Heights tab when there are no heights"
+  },
+
+  "patientBodyMeasurementsInputLabel": "Medida",
+  "@patientBodyMeasurementsInputLabel": {
+    "description": "Body measurement input field label"
+  },
+  "patientBodyMeasurementsInputHint": "XXX",
+  "@patientBodyMeasurementsInputHint": {
+    "description": "Body measurement input field hint/placeholder format"
+  },
+  "patientBodyMeasurementsNoDataFound": "Nenhuma medida encontrada para esse paciente.",
+  "@patientBodyMeasurementsNoDataFound": {
+    "description": "Empty-state message on the Body Measurements tab when there are none"
+  },
+
+  "patientHistoryEmptyState": "Sem histórico de cálculos para esse paciente",
+  "@patientHistoryEmptyState": {
+    "description": "Empty-state message on the History tab when there are no entries"
+  },
+  "patientHistoryDeleteConfirmTitle": "Excluir",
+  "@patientHistoryDeleteConfirmTitle": {
+    "description": "Title of the swipe-to-delete confirmation on a history entry"
+  },
+  "patientHistoryDeleteConfirmMessage": "Deseja realmente excluir este resultado?",
+  "@patientHistoryDeleteConfirmMessage": {
+    "description": "Message of the swipe-to-delete confirmation on a history entry"
+  },
+  "patientHistoryCloseButton": "Fechar",
+  "@patientHistoryCloseButton": {
+    "description": "Close button label in the history entry details bottom sheet"
+  },
+
+  "energyExpenditureConfigureTitle": "Configurar cálculo",
+  "@energyExpenditureConfigureTitle": {
+    "description": "Energy Expenditure sheet step 1 title"
+  },
+  "energyExpenditureFormulaLabel": "Fórmula",
+  "@energyExpenditureFormulaLabel": {
+    "description": "Energy Expenditure formula dropdown label"
+  },
+  "energyExpenditureWeightLabel": "Peso: {weightKg} kg",
+  "@energyExpenditureWeightLabel": {
+    "description": "Weight value line in the Energy Expenditure sheet",
+    "placeholders": {
+      "weightKg": {"type": "String"}
+    }
+  },
+  "energyExpenditureHeightLabel": "Altura: {heightCm} cm",
+  "@energyExpenditureHeightLabel": {
+    "description": "Height value line in the Energy Expenditure sheet",
+    "placeholders": {
+      "heightCm": {"type": "String"}
+    }
+  },
+  "energyExpenditureRegisterHeightMessage": "Cadastre uma altura para essa fórmula.",
+  "@energyExpenditureRegisterHeightMessage": {
+    "description": "Message shown when the selected formula needs a height that isn't registered"
+  },
+  "energyExpenditureAgeLabel": "Idade: {age}",
+  "@energyExpenditureAgeLabel": {
+    "description": "Age value line in the Energy Expenditure sheet",
+    "placeholders": {
+      "age": {"type": "String"}
+    }
+  },
+  "energyExpenditureRegisterAgeMessage": "Cadastre a idade do paciente para essa fórmula.",
+  "@energyExpenditureRegisterAgeMessage": {
+    "description": "Message shown when the selected formula needs an age that isn't registered"
+  },
+  "energyExpenditureGenderLabel": "Sexo",
+  "@energyExpenditureGenderLabel": {
+    "description": "Gender dropdown label in the Energy Expenditure sheet"
+  },
+  "energyExpenditureGenderMale": "Masculino",
+  "@energyExpenditureGenderMale": {
+    "description": "Male gender option label"
+  },
+  "energyExpenditureGenderFemale": "Feminino",
+  "@energyExpenditureGenderFemale": {
+    "description": "Female gender option label"
+  },
+  "energyExpenditureActivityFactorLabel": "Fator de Atividade",
+  "@energyExpenditureActivityFactorLabel": {
+    "description": "Activity factor dropdown label in the Energy Expenditure sheet"
+  },
+  "energyExpenditureInjuryFactorLabel": "Fator de Injúria",
+  "@energyExpenditureInjuryFactorLabel": {
+    "description": "Injury factor dropdown label in the Energy Expenditure sheet"
+  },
+  "energyExpenditureTemperatureFactorLabel": "Fator de Temperatura",
+  "@energyExpenditureTemperatureFactorLabel": {
+    "description": "Temperature factor dropdown label in the Energy Expenditure sheet"
+  },
+  "energyExpenditureNoneOption": "Nenhum",
+  "@energyExpenditureNoneOption": {
+    "description": "Option label representing no injury/temperature factor selected"
+  },
+  "energyExpenditureStressLevelLabel": "Nível de Estresse",
+  "@energyExpenditureStressLevelLabel": {
+    "description": "Stress level dropdown label shown for the pocket formula"
+  },
+  "energyExpenditureSelectFormulaMessage": "Selecione uma fórmula.",
+  "@energyExpenditureSelectFormulaMessage": {
+    "description": "Validation message shown when no formula has been selected"
+  },
+  "energyExpenditureSchofieldMaxAgeMessage": "Schofield é válido apenas para pacientes de até {maxAge} anos.",
+  "@energyExpenditureSchofieldMaxAgeMessage": {
+    "description": "Validation message shown when the patient's age exceeds Schofield's max age",
+    "placeholders": {
+      "maxAge": {"type": "int"}
+    }
+  },
+  "energyExpenditureWhoMaxAgeMessage": "OMS é válido apenas para pacientes de até {maxAge} anos.",
+  "@energyExpenditureWhoMaxAgeMessage": {
+    "description": "Validation message shown when the patient's age exceeds WHO's max age",
+    "placeholders": {
+      "maxAge": {"type": "int"}
+    }
+  },
+  "energyExpenditureSelectGenderActivityMessage": "Selecione o sexo e o fator de atividade.",
+  "@energyExpenditureSelectGenderActivityMessage": {
+    "description": "Validation message shown when gender/activity factor are missing"
+  },
+  "energyExpenditureInvalidAgeError": "Idade inválida para essa fórmula.",
+  "@energyExpenditureInvalidAgeError": {
+    "description": "Calculation error message for an invalid age"
+  },
+  "energyExpenditureInvalidParamsError": "Parâmetros inválidos para essa fórmula.",
+  "@energyExpenditureInvalidParamsError": {
+    "description": "Calculation error message for invalid parameters"
+  },
+  "energyExpenditureGenericCalcError": "Não foi possível calcular o gasto energético.",
+  "@energyExpenditureGenericCalcError": {
+    "description": "Generic calculation error message"
+  },
+  "energyExpenditureRangeLabelSingle": "{value} kcal/dia",
+  "@energyExpenditureRangeLabelSingle": {
+    "description": "Energy expenditure range label when min equals max",
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "energyExpenditureRangeLabelRange": "{min} – {max} kcal/dia",
+  "@energyExpenditureRangeLabelRange": {
+    "description": "Energy expenditure range label when min differs from max",
+    "placeholders": {
+      "min": {"type": "String"},
+      "max": {"type": "String"}
+    }
+  },
+  "energyExpenditureCalculateButton": "Calcular",
+  "@energyExpenditureCalculateButton": {
+    "description": "Calculate button label in the Energy Expenditure sheet"
+  },
+  "energyExpenditureConfirmResultTitle": "Confirmar resultado",
+  "@energyExpenditureConfirmResultTitle": {
+    "description": "Energy Expenditure sheet step 2 title"
+  },
+  "energyExpenditureFormulaResultLabel": "Fórmula: {formula}",
+  "@energyExpenditureFormulaResultLabel": {
+    "description": "Formula line shown in the Energy Expenditure confirmation step",
+    "placeholders": {
+      "formula": {"type": "String"}
+    }
+  },
+  "energyExpenditureGenderResultLabel": "Sexo: {gender}",
+  "@energyExpenditureGenderResultLabel": {
+    "description": "Gender line shown in the Energy Expenditure confirmation step",
+    "placeholders": {
+      "gender": {"type": "String"}
+    }
+  },
+  "energyExpenditureActivityFactorResultLabel": "Fator de Atividade: {factor}",
+  "@energyExpenditureActivityFactorResultLabel": {
+    "description": "Activity factor line shown in the Energy Expenditure confirmation step",
+    "placeholders": {
+      "factor": {"type": "String"}
+    }
+  },
+  "energyExpenditureInjuryFactorResultLabel": "Fator de Injúria: {factor}",
+  "@energyExpenditureInjuryFactorResultLabel": {
+    "description": "Injury factor line shown in the Energy Expenditure confirmation step",
+    "placeholders": {
+      "factor": {"type": "String"}
+    }
+  },
+  "energyExpenditureTemperatureFactorResultLabel": "Fator de Temperatura: {factor}",
+  "@energyExpenditureTemperatureFactorResultLabel": {
+    "description": "Temperature factor line shown in the Energy Expenditure confirmation step",
+    "placeholders": {
+      "factor": {"type": "String"}
+    }
+  },
+  "energyExpenditureStressLevelResultLabel": "Nível de Estresse: {level}",
+  "@energyExpenditureStressLevelResultLabel": {
+    "description": "Stress level line shown in the Energy Expenditure confirmation step",
+    "placeholders": {
+      "level": {"type": "String"}
+    }
+  },
+  "energyExpenditureResultLabel": "Gasto Energético: {range}",
+  "@energyExpenditureResultLabel": {
+    "description": "Final computed energy expenditure range line",
+    "placeholders": {
+      "range": {"type": "String"}
+    }
+  },
+  "energyExpenditureCancelButton": "Cancelar",
+  "@energyExpenditureCancelButton": {
+    "description": "Cancel button label in the Energy Expenditure confirmation step"
+  },
+  "energyExpenditureConfirmButton": "Confirmar",
+  "@energyExpenditureConfirmButton": {
+    "description": "Confirm button label in the Energy Expenditure confirmation step"
+  },
+
+  "nrs2002Title": "NRS-2002 — Triagem de Risco Nutricional",
+  "@nrs2002Title": {
+    "description": "NRS-2002 sheet title"
+  },
+  "nrs2002AgeLabel": "Idade: {age}",
+  "@nrs2002AgeLabel": {
+    "description": "Age value line in the NRS-2002 sheet",
+    "placeholders": {
+      "age": {"type": "String"}
+    }
+  },
+  "nrs2002RegisterAgeMessage": "Cadastre a idade do paciente para essa triagem.",
+  "@nrs2002RegisterAgeMessage": {
+    "description": "Message shown when the patient's age isn't registered"
+  },
+  "nrs2002SeverelyIllQuestion": "Paciente está gravemente enfermo?",
+  "@nrs2002SeverelyIllQuestion": {
+    "description": "NRS-2002 questionnaire question: severely ill"
+  },
+  "nrs2002WeightLossQuestion": "Houve perda de peso nos últimos 3 meses?",
+  "@nrs2002WeightLossQuestion": {
+    "description": "NRS-2002 questionnaire question: weight loss in the last 3 months"
+  },
+  "nrs2002ReducedIntakeQuestion": "Houve redução da ingestão alimentar na última semana?",
+  "@nrs2002ReducedIntakeQuestion": {
+    "description": "NRS-2002 questionnaire question: reduced food intake last week"
+  },
+  "nrs2002LowBmiQuestion": "IMC baixo?",
+  "@nrs2002LowBmiQuestion": {
+    "description": "NRS-2002 questionnaire question: low BMI"
+  },
+  "nrs2002NutritionalStatusLabel": "Estado Nutricional",
+  "@nrs2002NutritionalStatusLabel": {
+    "description": "NRS-2002 nutritional status classification dropdown label"
+  },
+  "nrs2002IllnessSeverityLabel": "Gravidade da Doença",
+  "@nrs2002IllnessSeverityLabel": {
+    "description": "NRS-2002 illness severity classification dropdown label"
+  },
+  "nrs2002ClassificationAbsent": "Ausente - estado nutricional normal",
+  "@nrs2002ClassificationAbsent": {
+    "description": "NRS-2002 classification option: absent"
+  },
+  "nrs2002ClassificationLow": "Leve - perda de peso leve ou ingestão reduzida",
+  "@nrs2002ClassificationLow": {
+    "description": "NRS-2002 classification option: low"
+  },
+  "nrs2002ClassificationMild": "Moderado - comprometimento nutricional moderado",
+  "@nrs2002ClassificationMild": {
+    "description": "NRS-2002 classification option: mild"
+  },
+  "nrs2002ClassificationSevere": "Grave - comprometimento nutricional grave",
+  "@nrs2002ClassificationSevere": {
+    "description": "NRS-2002 classification option: severe"
+  },
+  "nrs2002SelectClassificationsMessage": "Selecione o estado nutricional e a gravidade da doença.",
+  "@nrs2002SelectClassificationsMessage": {
+    "description": "Validation message shown when the classifications are missing"
+  },
+  "nrs2002CalcErrorMessage": "Não foi possível calcular o NRS-2002.",
+  "@nrs2002CalcErrorMessage": {
+    "description": "Generic NRS-2002 calculation error message"
+  },
+  "nrs2002CalculateButton": "Calcular",
+  "@nrs2002CalculateButton": {
+    "description": "Calculate button label in the NRS-2002 sheet"
+  },
+  "nrs2002ScoreResultLabel": "NRS-2002: {score}",
+  "@nrs2002ScoreResultLabel": {
+    "description": "NRS-2002 score result line",
+    "placeholders": {
+      "score": {"type": "int"}
+    }
+  },
+  "nrs2002RiskIdentifiedMessage": "Risco nutricional identificado.",
+  "@nrs2002RiskIdentifiedMessage": {
+    "description": "Message shown when the NRS-2002 score indicates nutritional risk"
+  },
+  "nrs2002CancelButton": "Cancelar",
+  "@nrs2002CancelButton": {
+    "description": "Cancel button label in the NRS-2002 sheet"
+  },
+  "nrs2002ConfirmButton": "Confirmar",
+  "@nrs2002ConfirmButton": {
+    "description": "Confirm button label in the NRS-2002 sheet"
+  }
+}

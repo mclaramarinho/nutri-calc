@@ -5,6 +5,7 @@ import 'package:nutri_calc/features/calculators/domain/entities/calculator_type_
 import 'package:nutri_calc/features/calculators/domain/entities/history_entry_entity.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/no_data_found_for_patient.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_bottom_sheet/ds_bottom_sheet.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
@@ -34,6 +35,7 @@ class PatientHistoryTab extends StatelessWidget {
     BuildContext context,
     HistoryEntryEntity entry,
   ) async {
+    final l10n = AppLocalizations.of(context);
     await DsBottomSheet.show<void>(
       context,
       title: entry.label,
@@ -53,7 +55,7 @@ class PatientHistoryTab extends StatelessWidget {
       actions: [
         Expanded(
           child: DsButton(
-            label: "Fechar",
+            label: l10n.patientHistoryCloseButton,
             isLoading: false,
             onTap: () => Navigator.of(context).pop(),
           ),
@@ -67,6 +69,7 @@ class PatientHistoryTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     List<HistoryEntryEntity> entries,
   ) {
+    final l10n = AppLocalizations.of(context);
     final grouped = _groupByType(entries);
     final widgets = <Widget>[];
 
@@ -83,8 +86,8 @@ class PatientHistoryTab extends StatelessWidget {
         widgets.add(
           DsDismissibleTile(
             itemKey: Key(entry.id),
-            confirmTitle: "Excluir",
-            confirmMessage: "Deseja realmente excluir este resultado?",
+            confirmTitle: l10n.patientHistoryDeleteConfirmTitle,
+            confirmMessage: l10n.patientHistoryDeleteConfirmMessage,
             onDelete: () => cubit.deleteHistoryEntry(entry),
             child: DsListTile(
               title: entry.label,
@@ -116,7 +119,7 @@ class PatientHistoryTab extends StatelessWidget {
           return Column(
             children: [
               NoDataFoundForPatient(
-                message: "Sem histórico de cálculos para esse paciente",
+                message: AppLocalizations.of(context).patientHistoryEmptyState,
               ),
             ],
           );

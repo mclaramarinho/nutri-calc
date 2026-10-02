@@ -42,6 +42,7 @@ import 'package:nutri_calc/features/calculators/water_needs/domain/water_needs_r
 import 'package:nutri_calc/features/calculators/weight_loss_classification/domain/weight_loss_classification_relevance.dart';
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/resolve_weight_for_calculations.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/core/utils/extensions/ext_datetime.dart';
@@ -62,33 +63,39 @@ import 'package:nutri_calc/shared/services/calculator/domain/use_cases/weight/lo
 class PatientCalculatorsTab extends StatelessWidget {
   const PatientCalculatorsTab({super.key});
 
-  String _classificationLabel(BmiClassification classification) {
+  String _classificationLabel(
+    BuildContext context,
+    BmiClassification classification,
+  ) {
+    final l10n = AppLocalizations.of(context);
     switch (classification) {
       case .low:
-        return "Baixo peso";
+        return l10n.patientCalculatorsTabBmiClassificationLow;
       case .eutrophy:
-        return "Eutrofia";
+        return l10n.patientCalculatorsTabBmiClassificationEutrophy;
       case .overweight:
-        return "Sobrepeso";
+        return l10n.patientCalculatorsTabBmiClassificationOverweight;
       case .obesity:
-        return "Obesidade Grau I";
+        return l10n.patientCalculatorsTabBmiClassificationObesity;
       case .obesityGrade2:
-        return "Obesidade Grau II";
+        return l10n.patientCalculatorsTabBmiClassificationObesityGrade2;
       case .obesityGrade3:
-        return "Obesidade Grau III";
+        return l10n.patientCalculatorsTabBmiClassificationObesityGrade3;
     }
   }
 
   String _weightLossClassificationLabel(
+    BuildContext context,
     WeightLossClassification classification,
   ) {
+    final l10n = AppLocalizations.of(context);
     switch (classification) {
       case .ok:
-        return "Adequada";
+        return l10n.patientCalculatorsTabWeightLossClassificationOk;
       case .significant:
-        return "Significativa";
+        return l10n.patientCalculatorsTabWeightLossClassificationSignificant;
       case .severe:
-        return "Grave";
+        return l10n.patientCalculatorsTabWeightLossClassificationSevere;
     }
   }
 
@@ -97,19 +104,18 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final bmi = state.bmi;
 
     if (bmi == null) {
       await DsBottomSheet.show<void>(
         context,
-        title: "IMC",
-        body: Text(
-          "Não há dados suficientes para calcular o IMC. Cadastre ao menos um peso e uma altura para esse paciente.",
-        ),
+        title: l10n.patientCalculatorsTabImcName,
+        body: Text(l10n.patientCalculatorsTabImcInsufficientDataMessage),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -125,17 +131,20 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final confirmed = await DsBottomSheet.show<bool>(
       context,
-      title: "IMC",
+      title: l10n.patientCalculatorsTabImcName,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: DsSpacing.sm,
         children: [
-          Text("Peso: ${weight.value} kg"),
-          Text("Altura: ${height.value} cm"),
-          Text("Idade: ${age ?? '-'}"),
+          Text(l10n.patientCalculatorsTabWeightLabel("${weight.value}")),
+          Text(l10n.patientCalculatorsTabHeightLabel("${height.value}")),
+          Text(l10n.patientCalculatorsTabAgeLabel("${age ?? '-'}")),
           SizedBox(height: DsSpacing.sm),
           Text(
-            "IMC: ${bmi.value.toStringAsFixed(2)} (${_classificationLabel(bmi.classification)})",
+            l10n.patientCalculatorsTabImcResultLabel(
+              bmi.value.toStringAsFixed(2),
+              _classificationLabel(context, bmi.classification),
+            ),
             style: DsTextStyles.resultBold(context),
           ),
         ],
@@ -143,14 +152,14 @@ class PatientCalculatorsTab extends StatelessWidget {
       actions: [
         Expanded(
           child: DsButton(
-            label: "Cancelar",
+            label: l10n.patientCalculatorsTabCancelButton,
             isLoading: false,
             onTap: () => getIt.get<AppRouter>().pop<bool>(false),
           ),
         ),
         Expanded(
           child: DsButton(
-            label: "Confirmar",
+            label: l10n.patientCalculatorsTabConfirmButton,
             isLoading: false,
             onTap: () => getIt.get<AppRouter>().pop<bool>(true),
           ),
@@ -168,17 +177,18 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     if (state.weights.isEmpty) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Gasto Energético",
+        title: l10n.patientCalculatorsTabEnergyExpenditureName,
         body: Text(
-          "Não há dados suficientes para calcular o gasto energético. Cadastre ao menos um peso para esse paciente.",
+          l10n.patientCalculatorsTabEnergyExpenditureInsufficientDataMessage,
         ),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -194,7 +204,7 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final gathered = await DsBottomSheet.show<GatheredEnergyExpenditureInputs?>(
       context,
-      title: "Gasto Energético",
+      title: l10n.patientCalculatorsTabEnergyExpenditureName,
       body: EnergyExpenditureSheetBody(
         weightKg: weight.value,
         heightCm: height?.value,
@@ -224,7 +234,7 @@ class PatientCalculatorsTab extends StatelessWidget {
     // there's no insufficient-data pre-gate.
     final gathered = await DsBottomSheet.show<GatheredNitrogenBalanceInputs?>(
       context,
-      title: "Balanço Nitrogenado",
+      title: AppLocalizations.of(context).patientCalculatorsTabNitrogenBalanceName,
       body: const NitrogenBalanceSheetBody(),
       actions: null,
     );
@@ -242,17 +252,18 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     if (state.weights.isEmpty) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Necessidade Proteica",
+        title: l10n.patientCalculatorsTabProteinNeedsName,
         body: Text(
-          "Não há dados suficientes para calcular a necessidade proteica. Cadastre ao menos um peso para esse paciente.",
+          l10n.patientCalculatorsTabProteinNeedsInsufficientDataMessage,
         ),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -266,7 +277,7 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final gathered = await DsBottomSheet.show<GatheredProteinNeedsInputs?>(
       context,
-      title: "Necessidade Proteica",
+      title: l10n.patientCalculatorsTabProteinNeedsName,
       body: ProteinNeedsSheetBody(weightKg: weight.value),
       actions: null,
     );
@@ -283,19 +294,18 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final age = state.form.age;
 
     if (state.weights.isEmpty || age == null) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Necessidade Hídrica",
-        body: Text(
-          "Não há dados suficientes para calcular a necessidade hídrica. Cadastre ao menos um peso e a idade desse paciente.",
-        ),
+        title: l10n.patientCalculatorsTabWaterNeedsName,
+        body: Text(l10n.patientCalculatorsTabWaterNeedsInsufficientDataMessage),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -309,23 +319,26 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final confirmed = await DsBottomSheet.show<bool>(
       context,
-      title: "Necessidade Hídrica",
+      title: l10n.patientCalculatorsTabWaterNeedsName,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: DsSpacing.sm,
-        children: [Text("Peso: ${weight.value} kg"), Text("Idade: $age")],
+        children: [
+          Text(l10n.patientCalculatorsTabWeightLabel("${weight.value}")),
+          Text(l10n.patientCalculatorsTabAgeLabel("$age")),
+        ],
       ),
       actions: [
         Expanded(
           child: DsButton(
-            label: "Cancelar",
+            label: l10n.patientCalculatorsTabCancelButton,
             isLoading: false,
             onTap: () => getIt.get<AppRouter>().pop<bool>(false),
           ),
         ),
         Expanded(
           child: DsButton(
-            label: "Confirmar",
+            label: l10n.patientCalculatorsTabConfirmButton,
             isLoading: false,
             onTap: () => getIt.get<AppRouter>().pop<bool>(true),
           ),
@@ -343,17 +356,19 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     if (state.weights.length < 2) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Classificação de Perda de Peso",
+        title: l10n.patientCalculatorsTabWeightLossClassificationName,
         body: Text(
-          "Não há dados suficientes para calcular a Classificação de Perda de Peso. Cadastre ao menos dois pesos para esse paciente.",
+          l10n
+              .patientCalculatorsTabWeightLossClassificationInsufficientDataMessage,
         ),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -375,21 +390,32 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final confirmed = await DsBottomSheet.show<bool>(
       context,
-      title: "Classificação de Perda de Peso",
+      title: l10n.patientCalculatorsTabWeightLossClassificationName,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: DsSpacing.sm,
         children: [
           Text(
-            "Peso atual: ${currentWeight.value} kg (${currentWeight.createdAt.formattedDate()})",
+            l10n.patientCalculatorsTabCurrentWeightLabel(
+              "${currentWeight.value}",
+              currentWeight.createdAt.formattedDate(),
+            ),
           ),
           Text(
-            "Peso anterior: ${lastWeight.value} kg (${lastWeight.createdAt.formattedDate()})",
+            l10n.patientCalculatorsTabLastWeightLabel(
+              "${lastWeight.value}",
+              lastWeight.createdAt.formattedDate(),
+            ),
           ),
           if (result.isOk) ...[
             SizedBox(height: DsSpacing.sm),
             Text(
-              "Perda de Peso: ${_weightLossClassificationLabel((result as Ok<WeightLoss, String>).value.classification)}",
+              l10n.patientCalculatorsTabWeightLossResultLabel(
+                _weightLossClassificationLabel(
+                  context,
+                  (result as Ok<WeightLoss, String>).value.classification,
+                ),
+              ),
               style: TextStyle(fontWeight: FontWeight.w700),
             ),
           ],
@@ -398,14 +424,14 @@ class PatientCalculatorsTab extends StatelessWidget {
       actions: [
         Expanded(
           child: DsButton(
-            label: "Cancelar",
+            label: l10n.patientCalculatorsTabCancelButton,
             isLoading: false,
             onTap: () => getIt.get<AppRouter>().pop<bool>(false),
           ),
         ),
         Expanded(
           child: DsButton(
-            label: "Confirmar",
+            label: l10n.patientCalculatorsTabConfirmButton,
             isLoading: false,
             onTap: () => getIt.get<AppRouter>().pop<bool>(true),
           ),
@@ -428,7 +454,9 @@ class PatientCalculatorsTab extends StatelessWidget {
     final gathered =
         await DsBottomSheet.show<GatheredEnteralNutritionDrippingInputs?>(
           context,
-          title: "Gotejamento",
+          title: AppLocalizations.of(
+            context,
+          ).patientCalculatorsTabEnteralDrippingName,
           body: const EnteralNutritionDrippingSheetBody(),
           actions: null,
         );
@@ -451,7 +479,9 @@ class PatientCalculatorsTab extends StatelessWidget {
     final gathered =
         await DsBottomSheet.show<GatheredEnteralNutritionSpeedInputs?>(
           context,
-          title: "Velocidade de Infusão",
+          title: AppLocalizations.of(
+            context,
+          ).patientCalculatorsTabEnteralSpeedName,
           body: const EnteralNutritionSpeedSheetBody(),
           actions: null,
         );
@@ -473,7 +503,9 @@ class PatientCalculatorsTab extends StatelessWidget {
     final gathered =
         await DsBottomSheet.show<GatheredEnteralNutritionVolumeInputs?>(
           context,
-          title: "Volume Total",
+          title: AppLocalizations.of(
+            context,
+          ).patientCalculatorsTabEnteralVolumeName,
           body: const EnteralNutritionVolumeSheetBody(),
           actions: null,
         );
@@ -491,17 +523,18 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     if (state.weights.isEmpty) {
       await DsBottomSheet.show<void>(
         context,
-        title: "TIG",
+        title: l10n.patientCalculatorsTabGlucoseInfusionRateName,
         body: Text(
-          "Não há dados suficientes para calcular a TIG. Cadastre ao menos um peso para esse paciente.",
+          l10n.patientCalculatorsTabGlucoseInfusionRateInsufficientDataMessage,
         ),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -516,7 +549,7 @@ class PatientCalculatorsTab extends StatelessWidget {
     final gathered =
         await DsBottomSheet.show<GatheredGlucoseInfusionRateInputs?>(
           context,
-          title: "TIG",
+          title: l10n.patientCalculatorsTabGlucoseInfusionRateName,
           body: GlucoseInfusionRateSheetBody(weightKg: weight.value),
           actions: null,
         );
@@ -540,17 +573,18 @@ class PatientCalculatorsTab extends StatelessWidget {
     // validation guard), so this calculator is also insufficient-data-gated
     // when there is no weight at all - a deliberate addition beyond
     // design's original copy, which only anticipated the height gate.
+    final l10n = AppLocalizations.of(context);
     if (state.heights.isEmpty) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Peso Ideal",
+        title: l10n.patientCalculatorsTabIdealWeightName,
         body: Text(
-          "Não há dados suficientes para calcular o Peso Ideal. Cadastre ao menos uma altura para esse paciente.",
+          l10n.patientCalculatorsTabIdealWeightInsufficientHeightMessage,
         ),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -563,14 +597,14 @@ class PatientCalculatorsTab extends StatelessWidget {
     if (state.weights.isEmpty) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Peso Ideal",
+        title: l10n.patientCalculatorsTabIdealWeightName,
         body: Text(
-          "Não há dados suficientes para calcular o Peso Ideal. Cadastre ao menos um peso para esse paciente.",
+          l10n.patientCalculatorsTabIdealWeightInsufficientWeightMessage,
         ),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -590,7 +624,7 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final gathered = await DsBottomSheet.show<GatheredIdealWeightInputs?>(
       context,
-      title: "Peso Ideal",
+      title: l10n.patientCalculatorsTabIdealWeightName,
       body: IdealWeightSheetBody(
         heightCm: height.value,
         weightKg: weight.value,
@@ -621,17 +655,16 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     if (state.weights.isEmpty) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Adequação de Peso",
-        body: Text(
-          "Não há dados suficientes para calcular a Adequação de Peso. Cadastre ao menos um peso para esse paciente.",
-        ),
+        title: l10n.patientCalculatorsTabAdequationName,
+        body: Text(l10n.patientCalculatorsTabAdequationInsufficientDataMessage),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -645,14 +678,12 @@ class PatientCalculatorsTab extends StatelessWidget {
     if (idealWeight == null) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Adequação de Peso",
-        body: Text(
-          "Calcule o Peso Ideal deste paciente antes de usar esta calculadora.",
-        ),
+        title: l10n.patientCalculatorsTabAdequationName,
+        body: Text(l10n.patientCalculatorsTabIdealWeightRequiredMessage),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -668,7 +699,7 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final gathered = await DsBottomSheet.show<GatheredAdequationInputs?>(
       context,
-      title: "Adequação de Peso",
+      title: l10n.patientCalculatorsTabAdequationName,
       body: AdequationSheetBody(
         currentWeight: currentWeight.value,
         idealWeight: idealWeight.value,
@@ -688,17 +719,18 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     if (state.weights.isEmpty) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Peso Ajustado - Obesidade",
+        title: l10n.patientCalculatorsTabAdjustedObesityName,
         body: Text(
-          "Não há dados suficientes para calcular o Peso Ajustado. Cadastre ao menos um peso para esse paciente.",
+          l10n.patientCalculatorsTabAdjustedObesityInsufficientDataMessage,
         ),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -712,14 +744,12 @@ class PatientCalculatorsTab extends StatelessWidget {
     if (idealWeight == null) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Peso Ajustado - Obesidade",
-        body: Text(
-          "Calcule o Peso Ideal deste paciente antes de usar esta calculadora.",
-        ),
+        title: l10n.patientCalculatorsTabAdjustedObesityName,
+        body: Text(l10n.patientCalculatorsTabIdealWeightRequiredMessage),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -735,7 +765,7 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final gathered = await DsBottomSheet.show<GatheredAdjustedObesityInputs?>(
       context,
-      title: "Peso Ajustado - Obesidade",
+      title: l10n.patientCalculatorsTabAdjustedObesityName,
       body: AdjustedObesitySheetBody(
         currentWeight: currentWeight.value,
         idealWeight: idealWeight.value,
@@ -755,17 +785,18 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     if (state.weights.isEmpty || state.bmi == null) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Peso Seco Ajustado",
+        title: l10n.patientCalculatorsTabAdjustedDryWeightName,
         body: Text(
-          "Não há dados suficientes para calcular o Peso Seco Ajustado. Cadastre ao menos um peso e uma altura para esse paciente.",
+          l10n.patientCalculatorsTabAdjustedDryWeightInsufficientDataMessage,
         ),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -781,7 +812,7 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final gathered = await DsBottomSheet.show<GatheredAdjustedDryWeightInputs?>(
       context,
-      title: "Peso Seco Ajustado",
+      title: l10n.patientCalculatorsTabAdjustedDryWeightName,
       body: AdjustedDryWeightSheetBody(
         currentWeight: currentWeight.value,
         imc: state.bmi!,
@@ -803,19 +834,20 @@ class PatientCalculatorsTab extends StatelessWidget {
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final age = state.form.age;
 
     if (age == null) {
       await DsBottomSheet.show<void>(
         context,
-        title: "Peso Estimado",
+        title: l10n.patientCalculatorsTabEstimatedWeightName,
         body: Text(
-          "Cadastre a idade do paciente para calcular o Peso Estimado.",
+          l10n.patientCalculatorsTabEstimatedWeightInsufficientAgeMessage,
         ),
         actions: [
           Expanded(
             child: DsButton(
-              label: "Fechar",
+              label: l10n.patientCalculatorsTabCloseButton,
               isLoading: false,
               onTap: () => getIt.get<AppRouter>().pop(),
             ),
@@ -827,7 +859,7 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final gathered = await DsBottomSheet.show<GatheredEstimatedWeightInputs?>(
       context,
-      title: "Peso Estimado",
+      title: l10n.patientCalculatorsTabEstimatedWeightName,
       body: EstimatedWeightSheetBody(age: age),
       actions: null,
     );
@@ -853,7 +885,7 @@ class PatientCalculatorsTab extends StatelessWidget {
     // no BMI on file, so there is no insufficient-data pre-gate here.
     final gathered = await DsBottomSheet.show<GatheredMustInputs?>(
       context,
-      title: "MUST",
+      title: AppLocalizations.of(context).patientCalculatorsTabMustName,
       body: MustSheetBody(currentBmi: state.bmi?.value),
       actions: null,
     );
@@ -880,7 +912,7 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final gathered = await DsBottomSheet.show<GatheredNrs2002Inputs?>(
       context,
-      title: "NRS-2002",
+      title: AppLocalizations.of(context).patientCalculatorsTabNrs2002Name,
       body: Nrs2002SheetBody(age: age),
       actions: null,
     );
@@ -907,7 +939,7 @@ class PatientCalculatorsTab extends StatelessWidget {
     // so there's no insufficient-data pre-gate.
     final gathered = await DsBottomSheet.show<GatheredStrongKidsInputs?>(
       context,
-      title: "STRONG-Kids",
+      title: AppLocalizations.of(context).patientCalculatorsTabStrongKidsName,
       body: const StrongKidsSheetBody(),
       actions: null,
     );
@@ -924,49 +956,51 @@ class PatientCalculatorsTab extends StatelessWidget {
   }
 
   List<CalculatorDefinition> _buildDefinitions(
+    BuildContext context,
     PatientDetailsCubit cubit,
     PatientDetailsStateLoaded state,
   ) {
+    final l10n = AppLocalizations.of(context);
     return [
       CalculatorDefinition(
         id: CalculatorIds.bmi,
         type: CalculatorType.bmi,
-        name: "IMC",
+        name: l10n.patientCalculatorsTabImcName,
         isRelevant: isBmiRelevant,
         onTap: (ctx) => _openBmiBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
         id: CalculatorIds.energyExpenditure,
         type: CalculatorType.energyExpenditure,
-        name: "Gasto Energético",
+        name: l10n.patientCalculatorsTabEnergyExpenditureName,
         isRelevant: isEnergyExpenditureRelevant,
         onTap: (ctx) => _openEnergyExpenditureBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
         id: CalculatorIds.nitrogenBalance,
         type: CalculatorType.nitrogenBalance,
-        name: "Balanço Nitrogenado",
+        name: l10n.patientCalculatorsTabNitrogenBalanceName,
         isRelevant: isNitrogenBalanceRelevant,
         onTap: (ctx) => _openNitrogenBalanceBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
         id: CalculatorIds.proteinNeeds,
         type: CalculatorType.proteinNeeds,
-        name: "Necessidade Proteica",
+        name: l10n.patientCalculatorsTabProteinNeedsName,
         isRelevant: isProteinNeedsRelevant,
         onTap: (ctx) => _openProteinNeedsBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
         id: CalculatorIds.waterNeeds,
         type: CalculatorType.waterNeeds,
-        name: "Necessidade Hídrica",
+        name: l10n.patientCalculatorsTabWaterNeedsName,
         isRelevant: isWaterNeedsRelevant,
         onTap: (ctx) => _openWaterNeedsBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
         id: CalculatorIds.enteralNutritionDripping,
         type: CalculatorType.enteralNutrition,
-        name: "Gotejamento",
+        name: l10n.patientCalculatorsTabEnteralDrippingName,
         isRelevant: isEnteralNutritionDrippingRelevant,
         onTap: (ctx) =>
             _openEnteralNutritionDrippingBottomSheet(ctx, cubit, state),
@@ -974,7 +1008,7 @@ class PatientCalculatorsTab extends StatelessWidget {
       CalculatorDefinition(
         id: CalculatorIds.enteralNutritionSpeed,
         type: CalculatorType.enteralNutrition,
-        name: "Velocidade de Infusão",
+        name: l10n.patientCalculatorsTabEnteralSpeedName,
         isRelevant: isEnteralNutritionSpeedRelevant,
         onTap: (ctx) =>
             _openEnteralNutritionSpeedBottomSheet(ctx, cubit, state),
@@ -982,7 +1016,7 @@ class PatientCalculatorsTab extends StatelessWidget {
       CalculatorDefinition(
         id: CalculatorIds.enteralNutritionVolume,
         type: CalculatorType.enteralNutrition,
-        name: "Volume Total",
+        name: l10n.patientCalculatorsTabEnteralVolumeName,
         isRelevant: isEnteralNutritionVolumeRelevant,
         onTap: (ctx) =>
             _openEnteralNutritionVolumeBottomSheet(ctx, cubit, state),
@@ -990,14 +1024,14 @@ class PatientCalculatorsTab extends StatelessWidget {
       CalculatorDefinition(
         id: CalculatorIds.glucoseInfusionRate,
         type: CalculatorType.parenteralNutrition,
-        name: "TIG",
+        name: l10n.patientCalculatorsTabGlucoseInfusionRateName,
         isRelevant: isGlucoseInfusionRateRelevant,
         onTap: (ctx) => _openGlucoseInfusionRateBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
         id: CalculatorIds.weightLossClassification,
         type: CalculatorType.weightLossClassification,
-        name: "Classificação de Perda de Peso",
+        name: l10n.patientCalculatorsTabWeightLossClassificationName,
         isRelevant: isWeightLossClassificationRelevant,
         onTap: (ctx) =>
             _openWeightLossClassificationBottomSheet(ctx, cubit, state),
@@ -1005,28 +1039,28 @@ class PatientCalculatorsTab extends StatelessWidget {
       CalculatorDefinition(
         id: CalculatorIds.must,
         type: CalculatorType.screening,
-        name: "MUST",
+        name: l10n.patientCalculatorsTabMustName,
         isRelevant: isMustRelevant,
         onTap: (ctx) => _openMustBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
         id: CalculatorIds.nrs2002,
         type: CalculatorType.screening,
-        name: "NRS-2002",
+        name: l10n.patientCalculatorsTabNrs2002Name,
         isRelevant: isNrs2002Relevant,
         onTap: (ctx) => _openNrs2002BottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
         id: CalculatorIds.strongKids,
         type: CalculatorType.screening,
-        name: "STRONG-Kids",
+        name: l10n.patientCalculatorsTabStrongKidsName,
         isRelevant: isStrongKidsRelevant,
         onTap: (ctx) => _openStrongKidsBottomSheet(ctx, cubit, state),
       ),
       CalculatorDefinition(
         id: CalculatorIds.idealWeight,
         type: CalculatorType.weight,
-        name: "Peso Ideal",
+        name: l10n.patientCalculatorsTabIdealWeightName,
         isRelevant: isIdealWeightRelevant,
         onTap: (ctx) => _openIdealWeightBottomSheet(ctx, cubit, state),
       ),
@@ -1087,7 +1121,7 @@ class PatientCalculatorsTab extends StatelessWidget {
         final cubit = context.read<PatientDetailsCubit>();
 
         return CalculatorList(
-          definitions: _buildDefinitions(cubit, state),
+          definitions: _buildDefinitions(context, cubit, state),
           relevanceContext: _buildRelevanceContext(state),
         );
       },

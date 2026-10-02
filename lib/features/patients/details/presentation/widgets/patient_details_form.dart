@@ -8,6 +8,7 @@ import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_typography.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/shared/utils/enums/time_unit.dart';
 
 class PatientDetailsForm extends StatefulWidget {
@@ -83,7 +84,11 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
           bmiController,
           state.bmi != null ? state.bmi!.value.toStringAsFixed(1) : "-",
         );
-        _syncController(idController, state.form.patientId ?? "Não informado");
+        final l10n = AppLocalizations.of(context);
+        _syncController(
+          idController,
+          state.form.patientId ?? l10n.patientDetailsFormIdNotInformed,
+        );
         _syncController(firstNameController, state.form.firstName);
         _syncController(lastNameController, state.form.lastName);
         _syncController(ageController, state.form.age?.toString());
@@ -112,13 +117,13 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
             Column(
               children: [
                 DsTextfield(
-                  label: "IMC",
+                  label: l10n.patientDetailsFormImcLabel,
                   customController: bmiController,
                   disabled: true,
                   type: .text,
                 ),
                 DsTextfield(
-                  label: "ID",
+                  label: l10n.patientDetailsFormIdLabel,
                   customController: idController,
                   disabled: !state.isEditing,
                   onChange: cubit.updateId,
@@ -128,7 +133,7 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
                   children: [
                     Expanded(
                       child: DsTextfield(
-                        label: "Primeiro Nome",
+                        label: l10n.patientDetailsFormFirstNameLabel,
                         customController: firstNameController,
                         disabled: !state.isEditing,
                         onChange: cubit.updateFirstName,
@@ -137,7 +142,7 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
                     ),
                     Expanded(
                       child: DsTextfield(
-                        label: "Ultimo Nome",
+                        label: l10n.patientDetailsFormLastNameLabel,
                         customController: lastNameController,
                         disabled: !state.isEditing,
                         onChange: cubit.updateLastName,
@@ -150,7 +155,7 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
                   children: [
                     Expanded(
                       child: DsTextfield(
-                        label: "Idade",
+                        label: l10n.patientDetailsFormAgeLabel,
                         customController: ageController,
                         disabled: !state.isEditing,
                         onChange: cubit.updateAge,
@@ -177,7 +182,7 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
                   ],
                 ),
                 DsTextfield(
-                  label: "Data de Nascimento",
+                  label: l10n.patientDetailsFormBirthdateLabel,
                   type: .datetime,
                   customController: birthdateController,
                   disabled: !state.isEditing,
@@ -192,7 +197,7 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      "Informações Clínicas",
+                      l10n.patientDetailsFormClinicalInfoSectionTitle,
                       style: TextStyle(
                         fontSize: DsTypography.medium,
                         fontWeight: FontWeight.w600,
@@ -202,33 +207,32 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
                   ),
                 ),
                 DsCheckbox(
-                  label: "Nutrição Enteral",
+                  label: l10n.patientDetailsFormEnteralNutritionLabel,
                   value: state.form.enteralNutrition,
                   disabled: !state.isEditing,
                   onChanged: cubit.updateEnteralNutrition,
                 ),
                 SizedBox(height: DsSpacing.sm),
                 DsCheckbox(
-                  label: "Nutrição Parenteral",
+                  label: l10n.patientDetailsFormParenteralNutritionLabel,
                   value: state.form.parenteralNutrition,
                   disabled: !state.isEditing,
                   onChanged: cubit.updateParenteralNutrition,
                 ),
                 SizedBox(height: DsSpacing.sm),
                 DsCheckbox(
-                  label: "Hospitalizado",
+                  label: l10n.patientDetailsFormHospitalizedLabel,
                   value: state.form.hospitalized,
                   disabled: !state.isEditing,
                   onChanged: cubit.updateHospitalized,
                 ),
                 SizedBox(height: DsSpacing.sm),
                 DsCheckbox(
-                  label: "Restrito ao leito",
+                  label: l10n.patientDetailsFormConfinedToBedLabel,
                   value: state.form.confinedToBed,
                   disabled: !state.isEditing,
                   onChanged: cubit.updateConfinedToBed,
-                  helperText:
-                      "Paciente não consegue andar ou tem dificuldade significativa para caminhar.",
+                  helperText: l10n.patientDetailsFormConfinedToBedHelperText,
                 ),
               ],
             ),

@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/di/di.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/features/patients/list/domain/entities/patient_list_card_entity.dart';
 import 'package:nutri_calc/features/patients/list/domain/use_cases/get_patients_list_use_case.dart';
 import 'package:nutri_calc/features/patients/list/presentation/cubit/list_patients_cubit.dart';
@@ -85,6 +86,8 @@ void main() {
   });
 
   Widget wrap() => MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: Builder(
       builder: (context) {
         DsScreenAdapter.init(context);

@@ -35,6 +35,7 @@ import 'package:nutri_calc/features/patients/details/domain/use_cases/load_patie
 import 'package:nutri_calc/features/patients/details/domain/use_cases/update_patient_use_case.dart';
 import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_details_state.dart';
 import 'package:nutri_calc/features/patients/details/presentation/pages/patient_details_page.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/routing/app_routes.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/must/must_classification_result.enum.dart';
@@ -575,7 +576,11 @@ void main() {
     await GetIt.instance.reset();
   });
 
-  Widget wrap() => const MaterialApp(home: PatientDetailsPage());
+  Widget wrap() => MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: const PatientDetailsPage(),
+  );
 
   group('PatientDetailsPage listener wiring', () {
     testWidgets('MUST error transition shows the error DsDialog', (

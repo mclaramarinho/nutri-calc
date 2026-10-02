@@ -7,6 +7,7 @@ import 'package:nutri_calc/features/patients/details/presentation/cubit/patient_
 import 'package:nutri_calc/features/patients/details/presentation/widgets/measurement_input_field.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/measurements_list.dart';
 import 'package:nutri_calc/features/patients/details/presentation/widgets/no_data_found_for_patient.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/shared/utils/formatters/only_numbers_formatter.dart';
 
 enum MeasurementType { weight, height }
@@ -55,6 +56,7 @@ class PatientMeasurementsTab extends StatelessWidget {
         }
 
         final cubit = context.read<PatientDetailsCubit>();
+        final l10n = AppLocalizations.of(context);
 
         final isWeight = type == .weight;
 
@@ -63,8 +65,12 @@ class PatientMeasurementsTab extends StatelessWidget {
         return Column(
           children: [
             MeasurementInputField(
-              label: isWeight ? "Peso" : "Altura",
-              hint: isWeight ? "XX.X" : "XXX",
+              label: isWeight
+                  ? l10n.patientMeasurementsWeightLabel
+                  : l10n.patientMeasurementsHeightLabel,
+              hint: isWeight
+                  ? l10n.patientMeasurementsWeightHint
+                  : l10n.patientMeasurementsHeightHint,
               isSaving: isWeight ? state.isSavingWeight : state.isSavingHeight,
               disabled: isWeight
                   ? state.newWeight == null
@@ -84,8 +90,9 @@ class PatientMeasurementsTab extends StatelessWidget {
 
             if (listData.isEmpty) ...[
               NoDataFoundForPatient(
-                message:
-                    "Não encontramos ${isWeight ? 'pesos' : 'alturas'} para esse paciente.",
+                message: isWeight
+                    ? l10n.patientMeasurementsNoWeightsFound
+                    : l10n.patientMeasurementsNoHeightsFound,
               ),
             ],
 

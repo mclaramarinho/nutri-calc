@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/features/patients/list/presentation/cubit/list_patients_cubit.dart';
 import 'package:nutri_calc/di/di.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/routing/app_routes.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
@@ -27,6 +28,7 @@ class ListPatientsPage extends StatelessWidget {
 class _ListPatientsPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<ListPatientsCubit, ListPatientsState>(
       listener: (context, state) {},
       builder: (context, state) {
@@ -34,9 +36,7 @@ class _ListPatientsPageContent extends StatelessWidget {
           case ListPatientsStateInitial():
             final patients = state.patients;
             if (patients.isEmpty) {
-              return DsPlaceholder(
-                message: "Você ainda não tem pacientes cadastrados",
-              );
+              return DsPlaceholder(message: l10n.patientListEmptyState);
             }
             return ListView.separated(
               itemCount: patients.length,
@@ -49,10 +49,16 @@ class _ListPatientsPageContent extends StatelessWidget {
                 final patient = patients[index];
                 return DsListTile(
                   overline: patient.patientId,
-                  title: "${patient.firstName} ${patient.lastName}",
+                  title: l10n.patientListFullName(
+                    patient.firstName,
+                    patient.lastName,
+                  ),
                   subtitle: patient.age == null || patient.ageUnit == null
-                      ? "Idade não informada"
-                      : "${patient.age} ${patient.ageUnit!.value.toLowerCase()}",
+                      ? l10n.patientListAgeNotInformed
+                      : l10n.patientListAgeWithUnit(
+                          "${patient.age}",
+                          patient.ageUnit!.value.toLowerCase(),
+                        ),
                   trailing: Icon(
                     Icons.chevron_right_outlined,
                     color: DsColors.of(context).textDisabled,
@@ -72,12 +78,10 @@ class _ListPatientsPageContent extends StatelessWidget {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                DsPlaceholder(
-                  message: "Não foi possível carregar seus pacientes",
-                ),
+                DsPlaceholder(message: l10n.patientListLoadErrorMessage),
                 SizedBox(height: DsSpacing.md),
                 DsButton(
-                  label: "Tentar novamente",
+                  label: l10n.patientListRetryButton,
                   isLoading: false,
                   onTap: () => context.read<ListPatientsCubit>().init(),
                 ),

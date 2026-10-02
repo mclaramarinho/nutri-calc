@@ -83,6 +83,7 @@ import 'package:nutri_calc/features/calculators/domain/use_cases/delete_calculat
 import 'package:nutri_calc/features/measurements/weight/domain/use_cases/delete_weight_use_case.dart';
 import 'package:nutri_calc/features/measurements/height/domain/use_cases/delete_height_use_case.dart';
 import 'package:nutri_calc/features/measurements/body_measurement/domain/use_cases/delete_body_measurement_use_case.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 
 /// Fakes implementing the abstract use-case interfaces directly - no mocking
 /// package is set up in this project, matching patient_details_cubit_test.dart.
@@ -817,6 +818,8 @@ void main() {
 
   Widget wrap() => MaterialApp(
     navigatorKey: navigatorKey,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: Builder(
       builder: (context) {
         DsScreenAdapter.init(context);

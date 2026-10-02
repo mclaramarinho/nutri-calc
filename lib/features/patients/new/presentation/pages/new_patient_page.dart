@@ -11,6 +11,7 @@ import 'package:nutri_calc/shared/design_system/widgets/ds_dialog/ds_dialog.dart
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
 import 'package:nutri_calc/di/di.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/utils/enums/time_unit.dart';
 import 'package:nutri_calc/shared/utils/validators/input_validators.dart';
@@ -34,13 +35,14 @@ class _NewPatientPageContent extends StatelessWidget {
     final NewPatientCubit cubit = context.read<NewPatientCubit>();
     return BlocConsumer<NewPatientCubit, NewPatientState>(
       listener: (context, state) {
+        final l10n = AppLocalizations.of(context);
         switch (state) {
           case NewPatientStateSuccess():
             cubit.stopLoading();
             DsDialog.show(
               context,
-              title: "Salvo com sucesso",
-              message: "Esse paciente ficará visível na home.",
+              title: l10n.newPatientSavedSuccessTitle,
+              message: l10n.newPatientSavedSuccessMessage,
               showCloseButton: false,
               onClose: () => _router.replace(.home),
               duration: Duration(seconds: 2),
@@ -51,7 +53,7 @@ class _NewPatientPageContent extends StatelessWidget {
             cubit.stopLoading();
             DsDialog.show(
               context,
-              title: "Erro ao salvar",
+              title: l10n.newPatientSaveErrorTitle,
               message: state.message,
               onClose: cubit.closedErrorModal,
               showCloseButton: true,
@@ -61,9 +63,10 @@ class _NewPatientPageContent extends StatelessWidget {
       },
       buildWhen: (previous, current) => current is NewPatientStateInitial,
       builder: (context, state) {
+        final l10n = AppLocalizations.of(context);
         return DsScaffold(
           appBar: DsAppBarData(
-            title: "Criar Paciente",
+            title: l10n.newPatientTitle,
             onBack: _router.pop,
             onClose: _router.pop,
           ),
@@ -74,7 +77,7 @@ class _NewPatientPageContent extends StatelessWidget {
                 child: Column(
                   children: [
                     DsTextfield(
-                      label: "ID do paciente",
+                      label: l10n.newPatientPatientIdLabel,
                       onChange: (val) => cubit.setValue(.patientId, val),
                       validator: (value) => InputValidators.patientId(value),
                     ),
@@ -82,7 +85,7 @@ class _NewPatientPageContent extends StatelessWidget {
                       children: [
                         Expanded(
                           child: DsTextfield(
-                            label: "Primeiro Nome*",
+                            label: l10n.newPatientFirstNameLabel,
                             onChange: (val) => cubit.setValue(.firstName, val),
                             type: .name,
                           ),
@@ -90,7 +93,7 @@ class _NewPatientPageContent extends StatelessWidget {
                         SizedBox(width: DsSpacing.md),
                         Expanded(
                           child: DsTextfield(
-                            label: "Último Nome*",
+                            label: l10n.newPatientLastNameLabel,
                             onChange: (val) => cubit.setValue(.lastName, val),
                             type: .name,
                           ),
@@ -101,7 +104,7 @@ class _NewPatientPageContent extends StatelessWidget {
                       children: [
                         Expanded(
                           child: DsTextfield(
-                            label: "Idade",
+                            label: l10n.newPatientAgeLabel,
                             customController: cubit.ageInputController,
                             onChange: (val) =>
                                 cubit.setValue(.age, int.tryParse(val)),
@@ -133,7 +136,7 @@ class _NewPatientPageContent extends StatelessWidget {
                       ],
                     ),
                     DsTextfield(
-                      label: "Data de Nascimento",
+                      label: l10n.newPatientBirthdateLabel,
                       onChange: (val) =>
                           cubit.setValue(.birthdate, DateTime.tryParse(val)),
                       type: .datetime,
@@ -146,7 +149,7 @@ class _NewPatientPageContent extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          "Informações Clínicas",
+                          l10n.newPatientClinicalInfoSectionTitle,
                           style: TextStyle(
                             fontSize: DsTypography.medium,
                             fontWeight: FontWeight.w600,
@@ -156,37 +159,36 @@ class _NewPatientPageContent extends StatelessWidget {
                       ),
                     ),
                     DsCheckbox(
-                      label: "Nutrição Enteral",
+                      label: l10n.newPatientEnteralNutritionLabel,
                       value: state.form?.enteralNutrition ?? false,
                       onChanged: (val) =>
                           cubit.setValue(.enteralNutrition, val),
                     ),
                     SizedBox(height: DsSpacing.sm),
                     DsCheckbox(
-                      label: "Nutrição Parenteral",
+                      label: l10n.newPatientParenteralNutritionLabel,
                       value: state.form?.parenteralNutrition ?? false,
                       onChanged: (val) =>
                           cubit.setValue(.parenteralNutrition, val),
                     ),
                     SizedBox(height: DsSpacing.sm),
                     DsCheckbox(
-                      label: "Hospitalizado",
+                      label: l10n.newPatientHospitalizedLabel,
                       value: state.form?.hospitalized ?? false,
                       onChanged: (val) => cubit.setValue(.hospitalized, val),
                     ),
                     SizedBox(height: DsSpacing.sm),
                     DsCheckbox(
-                      label: "Restrito ao leito",
+                      label: l10n.newPatientConfinedToBedLabel,
                       value: state.form?.confinedToBed ?? false,
                       onChanged: (val) => cubit.setValue(.confinedToBed, val),
-                      helperText:
-                          "Paciente não consegue andar ou tem dificuldade significativa para caminhar.",
+                      helperText: l10n.newPatientConfinedToBedHelperText,
                     ),
 
                     Row(
                       children: [
                         DsButton(
-                          label: "Salvar",
+                          label: l10n.newPatientSaveButton,
                           isLoading: state.isSaving,
                           onTap: cubit.onSubmit,
                         ),

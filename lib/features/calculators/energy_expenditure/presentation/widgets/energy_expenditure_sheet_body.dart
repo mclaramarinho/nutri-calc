@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nutri_calc/core/utils/result/result.dart';
 import 'package:nutri_calc/features/calculators/energy_expenditure/domain/entities/energy_expenditure_formula.enum.dart';
+import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
@@ -79,46 +80,48 @@ class _EnergyExpenditureSheetBodyState
   bool get _needsGenderAndActivity => _formula != null && _formula != .pocket;
 
   String? get _validationMessage {
-    if (_formula == null) return "Selecione uma fórmula.";
+    final l10n = AppLocalizations.of(context);
+    if (_formula == null) return l10n.energyExpenditureSelectFormulaMessage;
 
     if (_needsHeight && widget.heightCm == null) {
-      return "Cadastre uma altura para essa fórmula.";
+      return l10n.energyExpenditureRegisterHeightMessage;
     }
 
     if (_needsAge && widget.age == null) {
-      return "Cadastre a idade do paciente para essa fórmula.";
+      return l10n.energyExpenditureRegisterAgeMessage;
     }
 
     if (_formula == .schofield &&
         widget.age != null &&
         widget.age! > CalculateEerSchofield.maxAge) {
-      return "Schofield é válido apenas para pacientes de até "
-          "${CalculateEerSchofield.maxAge} anos.";
+      return l10n.energyExpenditureSchofieldMaxAgeMessage(
+        CalculateEerSchofield.maxAge,
+      );
     }
 
     if (_formula == .who &&
         widget.age != null &&
         widget.age! > CalculateEerWho.maxAge) {
-      return "OMS é válido apenas para pacientes de até "
-          "${CalculateEerWho.maxAge} anos.";
+      return l10n.energyExpenditureWhoMaxAgeMessage(CalculateEerWho.maxAge);
     }
 
     if (_needsGenderAndActivity &&
         (_gender == null || _activityFactor == null)) {
-      return "Selecione o sexo e o fator de atividade.";
+      return l10n.energyExpenditureSelectGenderActivityMessage;
     }
 
     return null;
   }
 
   String _friendlyCalcError(String error) {
+    final l10n = AppLocalizations.of(context);
     switch (error) {
       case "INVALID_AGE":
-        return "Idade inválida para essa fórmula.";
+        return l10n.energyExpenditureInvalidAgeError;
       case "INVALID_PARAMS":
-        return "Parâmetros inválidos para essa fórmula.";
+        return l10n.energyExpenditureInvalidParamsError;
       default:
-        return "Não foi possível calcular o gasto energético.";
+        return l10n.energyExpenditureGenericCalcError;
     }
   }
 
@@ -210,19 +213,31 @@ class _EnergyExpenditureSheetBodyState
   }
 
   String _rangeLabel(double min, double max) {
-    if (min == max) return "${min.toStringAsFixed(0)} kcal/dia";
-    return "${min.toStringAsFixed(0)} – ${max.toStringAsFixed(0)} kcal/dia";
+    final l10n = AppLocalizations.of(context);
+    if (min == max) {
+      return l10n.energyExpenditureRangeLabelSingle(min.toStringAsFixed(0));
+    }
+    return l10n.energyExpenditureRangeLabelRange(
+      min.toStringAsFixed(0),
+      max.toStringAsFixed(0),
+    );
   }
 
   List<DropdownMenuEntry<InjuryFactor?>> get _injuryFactorOptions => [
-    DropdownMenuEntry(value: null, label: "Nenhum"),
+    DropdownMenuEntry(
+      value: null,
+      label: AppLocalizations.of(context).energyExpenditureNoneOption,
+    ),
     ...InjuryFactor.values.map(
       (f) => DropdownMenuEntry(value: f, label: f.label),
     ),
   ];
 
   List<DropdownMenuEntry<TemperatureFactor?>> get _temperatureFactorOptions => [
-    DropdownMenuEntry(value: null, label: "Nenhum"),
+    DropdownMenuEntry(
+      value: null,
+      label: AppLocalizations.of(context).energyExpenditureNoneOption,
+    ),
     ...TemperatureFactor.values.map(
       (f) => DropdownMenuEntry(value: f, label: f.label),
     ),
@@ -230,17 +245,18 @@ class _EnergyExpenditureSheetBodyState
 
   Widget _buildStep1() {
     final validation = _validationMessage;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: DsSpacing.sm,
       children: [
         Text(
-          "Configurar cálculo",
+          l10n.energyExpenditureConfigureTitle,
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         DsSelect<EnergyExpenditureFormulaEnum>(
-          label: "Fórmula",
+          label: l10n.energyExpenditureFormulaLabel,
           dropdownOptions: EnergyExpenditureFormulaEnum.values
               .map((f) => DropdownMenuEntry(value: f, label: f.label))
               .toList(),
@@ -249,36 +265,42 @@ class _EnergyExpenditureSheetBodyState
             _calcErrorMessage = null;
           }),
         ),
-        Text("Peso: ${widget.weightKg} kg"),
+        Text(l10n.energyExpenditureWeightLabel("${widget.weightKg}")),
         if (_needsHeight) ...[
           if (widget.heightCm != null)
-            Text("Altura: ${widget.heightCm} cm")
+            Text(l10n.energyExpenditureHeightLabel("${widget.heightCm}"))
           else
             Text(
-              "Cadastre uma altura para essa fórmula.",
+              l10n.energyExpenditureRegisterHeightMessage,
               style: TextStyle(color: DsColors.of(context).error),
             ),
         ],
         if (_needsAge) ...[
           if (widget.age != null)
-            Text("Idade: ${widget.age}")
+            Text(l10n.energyExpenditureAgeLabel("${widget.age}"))
           else
             Text(
-              "Cadastre a idade do paciente para essa fórmula.",
+              l10n.energyExpenditureRegisterAgeMessage,
               style: TextStyle(color: DsColors.of(context).error),
             ),
         ],
         if (_needsGenderAndActivity) ...[
           DsSelect<Gender>(
-            label: "Sexo",
+            label: l10n.energyExpenditureGenderLabel,
             dropdownOptions: [
-              DropdownMenuEntry(value: Gender.male, label: "Masculino"),
-              DropdownMenuEntry(value: Gender.female, label: "Feminino"),
+              DropdownMenuEntry(
+                value: Gender.male,
+                label: l10n.energyExpenditureGenderMale,
+              ),
+              DropdownMenuEntry(
+                value: Gender.female,
+                label: l10n.energyExpenditureGenderFemale,
+              ),
             ],
             onDropdownSelect: (value) => setState(() => _gender = value),
           ),
           DsSelect<ActivityFactor>(
-            label: "Fator de Atividade",
+            label: l10n.energyExpenditureActivityFactorLabel,
             dropdownOptions: ActivityFactor.values
                 .map((f) => DropdownMenuEntry(value: f, label: f.label))
                 .toList(),
@@ -286,12 +308,12 @@ class _EnergyExpenditureSheetBodyState
                 setState(() => _activityFactor = value),
           ),
           DsSelect<InjuryFactor?>(
-            label: "Fator de Injúria",
+            label: l10n.energyExpenditureInjuryFactorLabel,
             dropdownOptions: _injuryFactorOptions,
             onDropdownSelect: (value) => setState(() => _injuryFactor = value),
           ),
           DsSelect<TemperatureFactor?>(
-            label: "Fator de Temperatura",
+            label: l10n.energyExpenditureTemperatureFactorLabel,
             dropdownOptions: _temperatureFactorOptions,
             onDropdownSelect: (value) =>
                 setState(() => _temperatureFactor = value),
@@ -299,7 +321,7 @@ class _EnergyExpenditureSheetBodyState
         ],
         if (_isPocket) ...[
           DsSelect<StressLevel>(
-            label: "Nível de Estresse",
+            label: l10n.energyExpenditureStressLevelLabel,
             dropdownOptions: StressLevel.values
                 .map((s) => DropdownMenuEntry(value: s, label: s.label))
                 .toList(),
@@ -314,7 +336,7 @@ class _EnergyExpenditureSheetBodyState
           ),
         SizedBox(height: DsSpacing.sm),
         DsButton(
-          label: "Calcular",
+          label: l10n.energyExpenditureCalculateButton,
           isLoading: false,
           disabled: validation != null,
           onTap: _calculate,
@@ -332,30 +354,55 @@ class _EnergyExpenditureSheetBodyState
   }
 
   Widget _buildStep2() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: DsSpacing.sm,
       children: [
         Text(
-          "Confirmar resultado",
+          l10n.energyExpenditureConfirmResultTitle,
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
-        Text("Fórmula: ${_formula!.label}"),
-        Text("Peso: ${widget.weightKg} kg"),
-        if (_needsHeight) Text("Altura: ${widget.heightCm} cm"),
-        if (_needsAge) Text("Idade: ${widget.age}"),
+        Text(l10n.energyExpenditureFormulaResultLabel(_formula!.label)),
+        Text(l10n.energyExpenditureWeightLabel("${widget.weightKg}")),
+        if (_needsHeight)
+          Text(l10n.energyExpenditureHeightLabel("${widget.heightCm}")),
+        if (_needsAge) Text(l10n.energyExpenditureAgeLabel("${widget.age}")),
         if (_needsGenderAndActivity) ...[
-          Text("Sexo: ${_gender == .male ? 'Masculino' : 'Feminino'}"),
-          Text("Fator de Atividade: ${_activityFactor?.label}"),
+          Text(
+            l10n.energyExpenditureGenderResultLabel(
+              _gender == .male
+                  ? l10n.energyExpenditureGenderMale
+                  : l10n.energyExpenditureGenderFemale,
+            ),
+          ),
+          Text(
+            l10n.energyExpenditureActivityFactorResultLabel(
+              "${_activityFactor?.label}",
+            ),
+          ),
           if (_injuryFactor != null)
-            Text("Fator de Injúria: ${_injuryFactor!.label}"),
+            Text(
+              l10n.energyExpenditureInjuryFactorResultLabel(
+                _injuryFactor!.label,
+              ),
+            ),
           if (_temperatureFactor != null)
-            Text("Fator de Temperatura: ${_temperatureFactor!.label}"),
+            Text(
+              l10n.energyExpenditureTemperatureFactorResultLabel(
+                _temperatureFactor!.label,
+              ),
+            ),
         ],
-        if (_isPocket) Text("Nível de Estresse: ${_stressLevel.label}"),
+        if (_isPocket)
+          Text(
+            l10n.energyExpenditureStressLevelResultLabel(_stressLevel.label),
+          ),
         SizedBox(height: DsSpacing.sm),
         Text(
-          "Gasto Energético: ${_rangeLabel(_minValue!, _maxValue!)}",
+          l10n.energyExpenditureResultLabel(
+            _rangeLabel(_minValue!, _maxValue!),
+          ),
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ],
@@ -376,7 +423,9 @@ class _EnergyExpenditureSheetBodyState
             children: [
               Expanded(
                 child: DsButton(
-                  label: "Cancelar",
+                  label: AppLocalizations.of(
+                    context,
+                  ).energyExpenditureCancelButton,
                   isLoading: false,
                   onTap: () => getIt
                       .get<AppRouter>()
@@ -385,7 +434,9 @@ class _EnergyExpenditureSheetBodyState
               ),
               Expanded(
                 child: DsButton(
-                  label: "Confirmar",
+                  label: AppLocalizations.of(
+                    context,
+                  ).energyExpenditureConfirmButton,
                   isLoading: false,
                   onTap: () => getIt
                       .get<AppRouter>()
