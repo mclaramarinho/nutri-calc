@@ -24,13 +24,11 @@ class DsCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = disabled
-        ? DsColors.textDisabled
-        : DsColors.black;
+        ? DsColors.of(context).textDisabled
+        : DsColors.of(context).black;
 
     return InkWell(
-      onTap: disabled || onChanged == null
-          ? null
-          : () => onChanged!(!value),
+      onTap: disabled || onChanged == null ? null : () => onChanged!(!value),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -38,8 +36,12 @@ class DsCheckbox extends StatelessWidget {
             value: value,
             onChanged: disabled ? null : (v) => onChanged?.call(v ?? false),
             fillColor: WidgetStateProperty.resolveWith((states) {
-              if (disabled) return DsColors.gray;
-              if (states.contains(WidgetState.selected)) return DsColors.blue;
+              if (disabled) {
+                return DsColors.of(context).gray;
+              }
+              if (states.contains(WidgetState.selected)) {
+                return DsColors.of(context).blue;
+              }
               return null;
             }),
           ),
@@ -61,8 +63,8 @@ class DsCheckbox extends StatelessWidget {
                     style: TextStyle(
                       fontSize: DsTypography.xxs,
                       color: disabled
-                          ? DsColors.textDisabled
-                          : DsColors.textMuted,
+                          ? DsColors.of(context).textDisabled
+                          : DsColors.of(context).textMuted,
                     ),
                   ),
               ],

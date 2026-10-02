@@ -11,8 +11,8 @@ class DsFab extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: data.onTap,
-      backgroundColor: DsColors.blue,
-      child: Icon(data.icon, color: DsColors.white),
+      backgroundColor: DsColors.of(context).blue,
+      child: Icon(data.icon, color: DsColors.of(context).white),
     );
   }
 }

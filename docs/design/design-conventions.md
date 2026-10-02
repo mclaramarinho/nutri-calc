@@ -549,3 +549,249 @@ Confirmed site: `CalculatorList._buildAllView` (`lib/features/calculators/presen
 - Option (b) would have required renaming 6 groups' worth of tile names (or 6 group labels) with no obvious shorter alternative for terms like "IMC" or "Balanço Nitrogenado" that are already at their shortest clinically-recognized form — inventing new shorthand purely to avoid a header felt riskier (confusing a dietitian who already knows "IMC") than simply not showing a redundant header.
 
 **Implementation note for `senior-analyst`/`mobile-dev`:** in `_buildAllView`, guard the three lines that currently always render (`groups.add(Text(type.label, ...))`, the `SizedBox(height: DsSpacing.sm)` immediately after it) behind `if (definitionsForType.length > 1)` — the trailing `SizedBox(height: DsSpacing.vLg)` group-spacer still renders unconditionally (same as `PatientHistoryTab`'s own suppression, which still separates groups vertically, it just omits the label itself).
+
+---
+
+## Priority 10 — Dark Mode (`po` scoping pass, 2026-10-01)
+
+Confirmed by direct inspection before scoping: `lib/shared/design_system/tokens/ds_colors.dart` is 7 pure static `Color` getters with zero theme-awareness (no `Theme.of`, no `ThemeData`, no brightness check anywhere in `lib/`); `lib/main.dart` is a bare `MaterialApp.router(routerConfig: ...)` with no `theme`/`darkTheme`/`themeMode`. **This is a from-scratch theming introduction**, not an extension of existing theme-awareness. There is also **no settings/profile screen anywhere in the app today** (confirmed via grep across `lib/`) and no `AppRoutes` entry for one, and no `shared_preferences`-style key-value persistence dependency in `pubspec.yaml` (only `sqflite` via `AppDatabaseService`).
+
+### Decision: manual tri-state toggle, defaulting to "follow system" — option (c)
+
+Not system-only (a), not a bare on/off switch (b). Reasoning, weighed against `docs/design/user-personas.md`'s dietitian persona (mobile, one-handed, time-pressured, bedside/varied-lighting use):
+
+- A dietitian walking from a bright hallway into a dim patient room, or vice versa, may want to override the OS setting in the moment without leaving the app to dig through phone-wide settings — system-only (a) can't serve that without an OS round-trip, which is exactly the friction the persona doc flags.
+- Once `ThemeData`/`darkTheme` exist at all (required regardless of which option is picked, since Flutter needs both to do anything beyond pure-system), exposing all three `ThemeMode` values (`light`/`dark`/`system`) via `MaterialApp.router(theme:, darkTheme:, themeMode:)` costs essentially nothing extra over a plain two-way switch — `ThemeMode` is already a 3-value enum in the framework, there's no simpler option (b) actually saves effort on.
+- Defaulting to `system` keeps zero-friction behavior for the common case (most users never touch it, it "just matches the phone") while still answering the persona's override need for the minority of sessions where it matters.
+
+### Acceptance criteria
+
+1. **Palette coverage** — every existing `DsColors` token (`white`, `blue`, `black`, `gray`, `error`, `textDisabled`, `textMuted`) must have a defined dark-mode counterpart. PO does not pick exact hex/opacity values here (senior-designer's call) but requires: (a) no raw/unthemed Material color leaks through in dark mode, (b) contrast between text/icon tokens and their surface stays "clearly distinguishable" in both modes, per `user-personas.md`'s existing note on contrast for clinical/varied-lighting use, (c) `DsColors.error`'s destructive semantics (swipe-to-delete background, `DsDateTimePicker`'s error text) must stay visually distinct as "destructive" against a dark surface, not just inherit the light-mode red unchanged.
+2. **Mechanism** — `MaterialApp.router` (`lib/main.dart`) gains `theme`/`darkTheme`/`themeMode`, driven by a persisted tri-state preference (`ThemeMode.light` / `.dark` / `.system`, default `.system` on first install). "Switching mechanism wired" means: selecting a mode updates the live `MaterialApp` immediately (no restart required) and the choice survives an app restart.
+3. **Entry point** — since no settings/profile screen exists today, adding one from scratch purely to host this toggle would be scope creep for a first slice. Required: a **minimal** entry point reachable in ≤2 taps from Home (not a full Settings page with other preferences) — e.g. an icon affordance on Home or a small inline control. The exact placement/shape (new icon slot on `DsAppBarData`/`DsAppBar`, a Home-screen action, or a one-row minimal settings surface) is a `senior-designer` decision, not decided here — `DsAppBar` today has a fixed, non-extensible `actions` slot (hardcoded close icon only, confirmed by reading `ds_app_bar.dart`), so adding a toggle entry point will require a DS widget API change regardless of placement; flagging that as a design/architecture call, not prescribing the shape.
+4. **`DsColors` becomes theme-aware** — the 7 tokens must stop being static Brightness-blind getters and resolve per current theme (mechanism — `Theme.of(context)`/`ThemeExtension`/other — is a `senior-analyst`/`senior-designer` architecture decision, not made here). This is a hard requirement of the slice, not optional, since static getters structurally cannot vary by mode.
+5. **DS widget/screen regression coverage** — every `Ds*` widget must render legibly in both modes; QA pass should visually cover at minimum: Home, Create/Edit Patient, Patient Details tabs (Measurements/Calculators/History), a calculator input bottom sheet, and a confirmation/feedback dialog.
+6. **Baseline must hold**: `flutter test` (485/485 at scoping time) and `flutter analyze` stay clean after `DsColors` becomes theme-aware.
+
+### Explicitly out of scope for this slice
+
+- A full dedicated Settings/Profile screen with preferences beyond theme switching.
+- Per-screen custom color overrides beyond the existing 7 `DsColors` tokens (no new tokens introduced here beyond giving the existing 7 a dark variant).
+- The clinical risk/classification color-coding system (BMI bands, MUST/NRS-2002/STRONG-Kids, Glucose Infusion Rate threshold) — already deferred separately since priority 8; dark mode must not be blocked waiting on it, but whenever that system does ship it will need its own dark-mode-safe colors, noted here as a future dependency, not a blocker now.
+- Animated/transition styling for the mode switch (instant swap is acceptable).
+- Accessibility work beyond the contrast requirement above (RTL/screen-reader gaps already logged against `DsDialog`/`DsSelect` in priority 8's scope are unrelated and not revisited here).
+
+### Open risks for `senior-designer`/`senior-analyst`
+
+- **No settings surface exists anywhere to host the toggle** — the entry-point shape (criterion 3) is a real, unresolved design decision, not a formality.
+- **`DsColors` call-site audit needed**: making the 7 getters theme-aware (criterion 4) likely requires `BuildContext` at every call site; `DsColors.x` is currently called from many places (DS widgets, ~16 calculator sheet-body files, tab widgets) — some may not have straightforward context access (e.g. anything called outside a `build` method). Sizing this is an engineering task for `senior-analyst`, not resolved by this scoping pass.
+- **No persistence mechanism exists today** for a simple key-value preference (no `shared_preferences`-equivalent dependency; `AppDatabaseService`/sqflite is schema-table-oriented per `CLAUDE.md`). Whether to add a new lightweight dependency or model theme-mode as a one-row settings table is a `senior-analyst` architecture call — PO only requires that the choice persists across restarts (criterion 2).
+- **Existing widget tests may assume today's static `DsColors` values** — once tokens become theme-dependent, any test asserting a specific `Color` from `DsColors` directly (outside a themed widget tree) could need a test-harness wrapper (e.g. explicit `MaterialApp(theme: ...)` ancestor) to keep passing; flagging as a likely, not confirmed, regression risk.
+
+### Dark palette (senior-designer)
+
+Confirmed by reading `ds_colors.dart`: 7 getters, 2 of them (`textDisabled`, `textMuted`) are *derived* from `black` via `.withValues(alpha:)` rather than independent literals. That derivation is preserved below rather than replaced — once `black`'s dark value is itself a light/near-white tone (see below), the existing 0.38/0.54 alpha formula keeps working unchanged and produces the same Material-standard low/medium-emphasis behavior in both themes, so no new multiplier logic is needed for those two tokens.
+
+Grep confirmed real call sites to weigh contrast against: `DsColors.white`/`black` back dialogs, bottom sheets, and default text (`ds_dialog.dart`, `ds_bottom_sheet.dart`); `DsColors.gray` is the list-separator/divider fill (`list_patients_page.dart`) and a disabled-state fill (`ds_button.dart`, `ds_checkbox.dart`); `DsColors.error` is swipe-to-delete's reveal background (`ds_dismissible_tile.dart`) and `DsDateTimePicker`'s validation text.
+
+| Token | Light (current) | Dark (proposed) | Reasoning |
+|---|---|---|---|
+| `white` | `Colors.white` (`#FFFFFF`) | `Color(0xFF1E1E1E)` | `white` is used as the *surface* role (dialog/bottom-sheet card background), not literally "the color white" — in dark mode that role inverts to a dark surface. `#1E1E1E` (not pure `#000000`) follows the standard Material dark-surface convention: pure black against light text/icons is harsher to read in the varied-lighting bedside/consult-room context the persona doc flags, and a slightly-lifted dark gray still reads clearly as "the surface," distinguishable from pure-black text/icons sitting on it. |
+| `black` | `Colors.black` (`#000000`) | `Color(0xFFECECEC)` | `black` is used as the default on-surface *text/icon* role, not literally "the color black" — in dark mode that role inverts to light text on a dark surface. Picked an off-white (`#ECECEC`) rather than pure `#FFFFFF`: avoids glare/eye strain for a user who may be using the app in a dim room right after a bright hallway (persona's varied-lighting note), while still giving strong contrast against the `#1E1E1E` surface above. Kept as a solid, independent literal (not alpha-derived) specifically because `textDisabled`/`textMuted` derive *from* this token — it has to stay a fully-opaque base color for that formula to keep working. |
+| `gray` | `Colors.grey.shade200` (`#EEEEEE`) | `Color(0xFF424242)` (Material Grey 800) | `gray` is a divider/disabled-fill that must sit *just barely off* the surface color, not blend into it or compete with it. In light mode that means slightly **darker** than the white surface (`#EEEEEE` vs `#FFFFFF`). A naive "darker gray" in dark mode (e.g. `#121212`) would sit *below* the `#1E1E1E` surface and functionally disappear as a divider/disabled-fill. The correct analogous move is the opposite direction — slightly **lighter** than the dark surface — so the same "subtle, visible but non-competing offset" relationship holds in both themes. |
+| `blue` | `Colors.blue` (`#2196F3`, Material Blue 500) | `Color(0xFF64B5F6)` (Material Blue 300) | Primary/interactive accent. Blue 500 against a light-gray/white surface has strong contrast; against the new `#1E1E1E` dark surface the same hex reads muddier/lower-contrast. Moving one step lighter on the same hue (Blue 300) restores clearly-legible contrast on the dark surface without changing what the color communicates (still unambiguously "blue," no hue shift). |
+| `error` | `Colors.red` (`#F44336`, Material Red 500) | `Color(0xFFCF6679)` | Explicitly called out by PO: destructive semantics (swipe-to-delete fill, date-picker error text) must stay visually distinct as "destructive," not just inherit light-mode red unchanged. Saturated Material Red 500 vibrates/glares against a dark surface and is harder to read as body text. `#CF6679` is the de-facto standard Material dark-theme error tone — desaturated/lightened just enough to stay comfortably legible on `#1E1E1E` while remaining unmistakably a warning/destructive red, not drifting toward pink or orange. |
+| `textDisabled` | `DsColors.black.withValues(alpha: 0.38)` | `DsColors.black.withValues(alpha: 0.38)` (unchanged formula) | Because `black` itself is now theme-aware (resolves to `#000000` light / `#ECECEC` dark), this formula automatically produces a correctly-muted disabled tone in both themes with zero extra logic — 38% is already the Material-standard disabled-content alpha, valid against either a light or dark base. |
+| `textMuted` | `DsColors.black.withValues(alpha: 0.54)` | `DsColors.black.withValues(alpha: 0.54)` (unchanged formula) | Same reasoning as `textDisabled` — the formula doesn't need to change, only its base (`black`) does, since `black` becomes theme-aware. |
+
+**Contrast note:** `#ECECEC` text on `#1E1E1E` surface and `#000000` text on `#FFFFFF` surface both exceed WCAG AA (4.5:1) by a wide margin — well inside the "clearly distinguishable in both modes" bar AC1 sets, without needing a formal audit (out of scope per the "Explicitly out of scope" list above).
+
+**Implementation note for `senior-analyst`/`mobile-dev`:** since `textDisabled`/`textMuted` are computed from `black`, whatever mechanism makes `DsColors` theme-aware (ThemeExtension, `Theme.of(context)`, etc. — PO left this open) must resolve `black` to its theme-correct value *before* those two derive from it, not hold two independent light/dark alpha tables.
+
+### Toggle entry point (senior-designer)
+
+**Decision: extend `DsAppBarData`/`DsAppBar` with a new optional `onThemeToggle` action, surfaced only on Home.**
+
+Confirmed by reading `home_page.dart`: Home's `DsScaffold` currently passes no `appBar:` at all (only `fabData`/`bottomNavData`) — Home has zero app-bar real estate today. `DsScaffold` already accepts an optional `appBar: DsAppBarData?` (`ds_scaffold.dart`), so giving Home one is not new DS surface area, just Home opting into an existing optional slot it currently leaves null.
+
+**Why this over the alternatives:**
+- A brand-new Home-specific widget (bare `IconButton` dropped into Home's body) would duplicate what `DsAppBar`'s `actions` row already does structurally, just outside the DS widget — exactly the kind of one-off pattern `CLAUDE.md`/this doc's conventions ask to avoid.
+- A bottom-sheet triggered by a long-press on something already on Home (e.g. the FAB) would be lower-discoverability — the persona is time-pressured and needs to *see* the control, not learn a hidden gesture, especially for something used rarely (mode-switching is an occasional override, not a core flow).
+- Extending `DsAppBarData` (vs. inventing a parallel "Home-only actions" API) means any other screen that later wants the same toggle (none today) gets it for free, and it's additive/optional — zero impact on `PatientDetailsPage`/`NewPatientPage`, the two existing `DsAppBarData` call sites, since the new field defaults to `null`.
+- Top app-bar icon placement is "harder to reach one-handed" per the persona doc's touch-target note — accepted here anyway because this is an *infrequent* override action (not a primary/repeated action like Save or a calculator result), where the persona doc's bar applies most strongly to frequent actions. A bottom-anchored placement (e.g. mixed into the FAB or bottom nav) would overload those with an unrelated, infrequent concern and was rejected on that basis.
+
+**Exact API shape:**
+
+```dart
+// ds_app_bar_data.dart
+class DsAppBarData {
+  final String? title;
+  final VoidCallback? onBack;
+  final VoidCallback? onClose;
+  final VoidCallback? onThemeToggle; // new, optional, default null
+
+  const DsAppBarData({this.title, this.onBack, this.onClose, this.onThemeToggle});
+}
+```
+
+```dart
+// ds_app_bar.dart — actions list
+actions: [
+  if (data.onThemeToggle != null)
+    Icon(Icons.brightness_6).touchEvents(onTap: data.onThemeToggle!),
+  Icon(Icons.close).touchEvents(onTap: () => data.onClose?.call()),
+],
+```
+
+`Icons.brightness_6` (a half-shaded circle) was picked over a mode-specific icon (sun/moon) because it reads as "appearance/display setting" regardless of which of the 3 states is currently active — avoids needing to swap the icon's glyph per state, which would add stateful-icon complexity PO didn't ask for (out of scope: "animated/transition styling for the mode switch"). Placed *before* the existing close icon in the `actions` row — close stays the outermost/rightmost action since it's the "exit this screen" affordance and should stay last.
+
+**Implementation note for `senior-analyst`/`mobile-dev`:** `DsAppBar.build` today renders the close icon unconditionally regardless of whether `data.onClose` is set (only the tap callback is null-guarded) — Home passing `DsAppBarData(onThemeToggle: ...)` with `onClose: null` would otherwise show a dead close icon on Home's new app bar. Since this work already touches `DsAppBar`'s `actions` list, guard the close icon the same way (`if (data.onClose != null)`) while adding the toggle icon — small, in-scope fix, not a separate slice.
+
+**Toggle's own visual form:** tapping the `brightness_6` icon opens a `DsBottomSheet` (reusing the existing DS bottom-sheet pattern, no new widget) titled **"Tema"**, containing 3 directly-tappable rows (reusing `DsListTile`, no new widget) — not a `DsSelect` dropdown, since `DsSelect` is a form-field-style dropdown that costs an extra "expand the menu" tap before a choice is even visible; with only 3 fixed, always-relevant options, showing them as immediately-visible rows cuts a tap and is more scannable at a glance, matching the persona's density/speed preference. Selecting a row applies the mode immediately and closes the sheet (consistent with the house auto-closing/minimal-confirmation feedback pattern) — no separate "Save"/"Apply" button. The currently-active mode is indicated with a trailing checkmark icon (`Icons.check`) on its row, using `DsColors.blue` for the check analogous to other selected-state treatments in the app, in the house style (not a new indicator widget).
+
+Tap budget: icon tap (1) opens the sheet — already satisfies AC3's "reachable in ≤2 taps from Home" for the entry point itself; selecting a mode is 1 further tap (2 total) to actually apply it.
+
+**Portuguese copy for the 3 states** (bottom-sheet title + 3 row labels):
+
+| State | Copy |
+|---|---|
+| Sheet title | "Tema" |
+| `ThemeMode.light` | "Claro" |
+| `ThemeMode.dark` | "Escuro" |
+| `ThemeMode.system` (default) | "Automático" |
+
+Kept to single words — matches the persona's density/scannability preference and the house style of short clinical shorthand over verbose labels; "Automático" was chosen over a longer "Seguir sistema"/"Padrão do sistema" for the same reason, while still being unambiguous as "this follows something external," which is the only disambiguation a first-time user needs.
+
+### Implementation plan (`senior-analyst`, for `mobile-dev`) — architecture resolved
+
+Full rationale in `docs/adr/0012-dark-mode-theming-architecture.md`; this is the step-by-step build order. Three open risks flagged above are resolved:
+
+- **`DsColors` call-site audit (resolved, no risk materialized):** every `DsColors.`/`DsTextStyles.` call site in `lib/` (~30 files: all ~16 calculator `*_sheet_body.dart` files, all `Ds*` DS widgets, `list_patients_page.dart`, `new_patient_page.dart`, `patient_details_form.dart`, `measurements_list.dart`, `patient_calculators_tab.dart`, `calculator_list.dart`) is inside a `build(BuildContext context)` method or a static `show(BuildContext context, ...)` method that already receives `context`. Zero call sites exist without context access. The retrofit is a mechanical rename, not a redesign.
+- **Mechanism decided:** `ThemeExtension<DsColors>` read via `DsColors.of(context)` (not a bare `Theme.of(context)` inline, not a global singleton). Call sites change from `DsColors.white` to `DsColors.of(context).white`; `DsTextStyles.sectionHeader` becomes `DsTextStyles.sectionHeader(context)`.
+- **Persistence decided:** new `shared_preferences` dependency, wrapped in a new full-layered feature `lib/features/theme/` — explicitly *not* `AppDatabaseTables`/`AppDatabaseService` (that stays scoped to clinical/domain data).
+
+#### Step 1 — `DsColors` becomes a `ThemeExtension`
+
+File: `lib/shared/design_system/tokens/ds_colors.dart` (rewrite). See ADR 0012 for the exact class body (`light`/`dark` const instances, `copyWith`/`lerp` overrides required by `ThemeExtension`, `DsColors.of(context)` static accessor, `textDisabled`/`textMuted` as instance getters deriving from `black`).
+
+File: `lib/shared/design_system/tokens/ds_text_styles.dart` — change the 2 static `TextStyle get` getters to `static TextStyle sectionHeader(BuildContext context) => TextStyle(fontWeight: FontWeight.w700, color: DsColors.of(context).black);` (same for `resultBold`).
+
+#### Step 2 — Retrofit all call sites
+
+Mechanical find/replace across the ~30 files listed above:
+- `DsColors\.(white|blue|black|gray|error|textDisabled|textMuted)` → `DsColors.of(context).$1`, in every file where `context` is the enclosing `build`/`show` method's parameter.
+- `DsTextStyles\.(sectionHeader|resultBold)` → `DsTextStyles.$1(context)` in its 4 call sites (`patient_calculators_tab.dart`, `nitrogen_balance_sheet_body.dart` x2, `calculator_list.dart`).
+- Run `flutter analyze` after this step alone (before Step 3) to confirm no call site was missed — any remaining static reference to the old `DsColors.xxx` getter shape will fail to compile, which is the intended guardrail.
+
+#### Step 3 — `lib/main.dart` wiring
+
+```dart
+theme: ThemeData(brightness: Brightness.light, extensions: const [DsColors.light]),
+darkTheme: ThemeData(brightness: Brightness.dark, extensions: const [DsColors.dark]),
+themeMode: themeMode, // from ThemeCubit, see Step 5
+```
+
+`MainApp` becomes a `BlocProvider.value` + `BlocBuilder<ThemeCubit, ThemeMode>` wrapping `MaterialApp.router`, so the whole tree rebuilds with new `theme`/`darkTheme`/`themeMode` the instant the cubit emits (no restart needed — this requirement is satisfied by `BlocBuilder` + `Theme.of(context)`'s own `InheritedWidget` propagation, no extra plumbing).
+
+#### Step 4 — `lib/features/theme/` (new feature, persistence)
+
+Add `shared_preferences: ^<latest>` to `pubspec.yaml`.
+
+```
+lib/features/theme/
+  domain/
+    repositories/theme_preference_repository.dart   // abstract
+    use_cases/get_theme_mode.usecase.dart            // abstract + Impl
+    use_cases/set_theme_mode.usecase.dart            // abstract + Impl
+  data/
+    repositories/theme_preference_repository_impl.dart
+  presentation/
+    cubit/theme_cubit.dart
+    cubit/... (ThemeMode is the state itself, no custom state class needed)
+    widgets/theme_select_sheet_content.dart
+```
+
+- `ThemePreferenceRepository`: `Future<Result<ThemeMode, String>> getThemeMode(); Future<Result<void, String>> setThemeMode(ThemeMode mode);`
+- `ThemePreferenceRepositoryImpl`: wraps `SharedPreferences.getInstance()`, stores under key `'theme_mode'` as `mode.name` (`'light'`/`'dark'`/`'system'`); missing key → `Ok(ThemeMode.system)`. Follows the house `Result`/try-catch convention from `CLAUDE.md` (wrap body in try/catch, `Error(err.toString())` on exception).
+- `GetThemeModeUseCase`/`SetThemeModeUseCase` + `*Impl`: thin pass-throughs to the repository — added for strict consistency with `CLAUDE.md`'s "cubits only call use cases" rule (see ADR 0012's Alternatives section for why this wasn't skipped despite being trivial).
+- `ThemeCubit extends Cubit<ThemeMode>` (`@injectable`), initial state `ThemeMode.system`. Exposes:
+  - `Future<void> hydrate()` — calls `GetThemeModeUseCase`, emits the result (or stays `.system` on `Error`).
+  - `Future<void> setThemeMode(ThemeMode mode)` — calls `SetThemeModeUseCase`, emits `mode` optimistically (UI should not wait on persistence latency for the live toggle to feel instant), ignoring the `Result`'s error case beyond logging/no-op (acceptable: worst case the next app restart falls back to the last successfully-persisted mode, not a mode the user never actually chose — not a Result that reaches the UI in a user-visible error dialog, since this isn't domain data).
+- All 5 new classes get `@Injectable(as: ...)`/`@injectable` annotations per the existing DI convention; run `dart run build_runner build --delete-conflicting-outputs` to regenerate `di.config.dart`.
+
+#### Step 5 — `main()` hydration (mirrors the existing `AppDatabaseService.init()` pattern)
+
+```dart
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  configureDependencies();
+  await getIt.get<AppDatabaseService>().init();
+  final themeCubit = getIt.get<ThemeCubit>();
+  await themeCubit.hydrate();
+  runApp(MainApp(themeCubit: themeCubit));
+}
+```
+
+`MainApp` takes the already-hydrated `ThemeCubit` via `BlocProvider.value(value: themeCubit, ...)` — avoids a one-frame flash of the default `.system` theme before `SharedPreferences` resolves.
+
+#### Step 6 — `DsAppBarData`/`DsAppBar`
+
+`lib/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart`: add `final VoidCallback? onThemeToggle;` (default `null`, 3rd/4th positional-named field, non-breaking for the 2 existing call sites in `PatientDetailsPage`/`NewPatientPage`).
+
+`lib/shared/design_system/widgets/ds_app_bar/ds_app_bar.dart`: add the toggle icon before the close icon, and null-guard the close icon (pre-existing bug, fixed here per the senior-designer note above):
+
+```dart
+actions: [
+  if (data.onThemeToggle != null)
+    Icon(Icons.brightness_6).touchEvents(onTap: data.onThemeToggle),
+  if (data.onClose != null)
+    Icon(Icons.close).touchEvents(onTap: () => data.onClose?.call()),
+],
+```
+
+#### Step 7 — Home wiring + bottom-sheet content
+
+`lib/features/home/presentation/pages/home_page.dart`: `DsScaffold` gains `appBar: DsAppBarData(onThemeToggle: () => _openThemeSheet(context))` (Home currently passes no `appBar:` at all, confirmed).
+
+New widget `lib/features/theme/presentation/widgets/theme_select_sheet_content.dart`: 3 `DsListTile` rows (Claro/Escuro/Automático), reads `context.read<ThemeCubit>().state` for the active mode (trailing `Icons.check` in `DsColors.of(context).blue` on the active row), `onTap` calls `context.read<ThemeCubit>().setThemeMode(mode)` then `AppRouter.pop()` (or whatever `DsBottomSheet`'s own dismiss mechanism is — reuse, don't invent). Opened via `DsBottomSheet.show(context, title: 'Tema', child: ThemeSelectSheetContent())` from `_openThemeSheet`. `ThemeCubit` is reachable from Home's context because `BlocProvider.value` sits above `MaterialApp.router` at the app root (Step 3/5), so every routed page and every bottom sheet opened from it shares the same provider.
+
+#### Step 8 — Test harness
+
+Add `test/shared/design_system/test_utils/ds_theme_test_utils.dart` (new file):
+
+```dart
+Future<void> pumpWidgetWithTheme(
+  WidgetTester tester,
+  Widget widget, {
+  Brightness brightness = Brightness.light,
+}) {
+  return tester.pumpWidget(
+    MaterialApp(
+      theme: ThemeData(
+        brightness: Brightness.light,
+        extensions: const [DsColors.light],
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        extensions: const [DsColors.dark],
+      ),
+      themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
+      home: Builder(
+        builder: (context) {
+          DsScreenAdapter.init(context); // existing LateInitializationError guard, same as ds_loading_indicator_test.dart/ds_checkbox_test.dart
+          return Scaffold(body: widget);
+        },
+      ),
+    ),
+  );
+}
+```
+
+Update `test/shared/design_system/widgets/ds_loading_indicator_test.dart` (the only test asserting a literal `DsColors` value): replace `_pumpIndicator`'s bare `MaterialApp(...)` with `pumpWidgetWithTheme`, and duplicate each of the 4 existing `testWidgets` cases into a light-mode and dark-mode variant (e.g. `'page variant renders ... blue spinner in light mode'` / `'... in dark mode'`), asserting `DsColors.light.blue`/`DsColors.light.white` vs `DsColors.dark.blue`/`DsColors.dark.white` respectively — per `CLAUDE.md`'s own constraint, update/duplicate the assertions, don't delete coverage. No other existing test file asserts a `DsColors` value directly (confirmed by grep), so no other test requires this treatment; any `MaterialApp(...)` ancestor elsewhere in `test/` that doesn't currently set `theme:`/`darkTheme:` will still compile and run unaffected since `DsColors.of(context)` falls back to `DsColors.light` when no extension is registered (the `?? light` in `DsColors.of`).
+
+#### Explicit scope boundaries (confirmed, not touched by this plan)
+
+- No calculator math/business-logic files under `domain/use_cases/<topic>/` are touched — only `TextStyle(color: ...)` wrapper call sites inside their `*_sheet_body.dart` presentation widgets change.
+- No existing repository/use-case for patient/measurement/calculator domain data is touched.
+- No `AppDatabaseTables` entry is added — `lib/features/theme/`'s persistence is entirely separate from `AppDatabaseService`, by design (ADR 0012).
+- `flutter test` and `flutter analyze` must stay clean end-to-end (PO's criterion 6) — run both after Step 2 (compile-check the retrofit) and again after Step 8 (full suite + the updated test).

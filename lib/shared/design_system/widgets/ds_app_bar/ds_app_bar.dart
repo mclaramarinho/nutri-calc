@@ -13,7 +13,10 @@ class DsAppBar {
         size: DsSizing.iconAppBar,
       ).touchEvents(onTap: data.onBack?.call),
       actions: [
-        Icon(Icons.close).touchEvents(onTap: () => data.onClose?.call()),
+        if (data.onThemeToggle != null)
+          Icon(Icons.brightness_6).touchEvents(onTap: data.onThemeToggle),
+        if (data.onClose != null)
+          Icon(Icons.close).touchEvents(onTap: () => data.onClose?.call()),
       ],
       actionsPadding: EdgeInsets.all(DsSpacing.xxl),
     );

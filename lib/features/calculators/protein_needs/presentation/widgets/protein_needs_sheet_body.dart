@@ -42,8 +42,7 @@ class _ProteinNeedsSheetBodyState extends State<ProteinNeedsSheetBody> {
 
     if (res.isError) {
       setState(() {
-        _calcErrorMessage =
-            "Não foi possível calcular a necessidade proteica.";
+        _calcErrorMessage = "Não foi possível calcular a necessidade proteica.";
       });
       return;
     }
@@ -84,7 +83,10 @@ class _ProteinNeedsSheetBodyState extends State<ProteinNeedsSheetBody> {
               }),
             ),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             SizedBox(height: DsSpacing.sm),
             DsButton(
               label: "Calcular",
@@ -118,9 +120,8 @@ class _ProteinNeedsSheetBodyState extends State<ProteinNeedsSheetBody> {
                 child: DsButton(
                   label: "Confirmar",
                   isLoading: false,
-                  onTap: () => getIt
-                      .get<AppRouter>()
-                      .pop<GatheredProteinNeedsInputs?>((
+                  onTap: () =>
+                      getIt.get<AppRouter>().pop<GatheredProteinNeedsInputs?>((
                         patientState: _patientState!,
                       )),
                 ),

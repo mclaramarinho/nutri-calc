@@ -79,10 +79,7 @@ class _EnteralNutritionDrippingSheetBodyState
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: DsSpacing.sm,
           children: [
-            Text(
-              "Gotejamento",
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
+            Text("Gotejamento", style: TextStyle(fontWeight: FontWeight.w700)),
             DsTextfield(
               label: "Volume Total (mL)",
               type: TextInputType.number,
@@ -100,9 +97,15 @@ class _EnteralNutritionDrippingSheetBodyState
               }),
             ),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             if (validation != null)
-              Text(validation, style: TextStyle(color: DsColors.error)),
+              Text(
+                validation,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             SizedBox(height: DsSpacing.sm),
             DsButton(
               label: "Calcular",

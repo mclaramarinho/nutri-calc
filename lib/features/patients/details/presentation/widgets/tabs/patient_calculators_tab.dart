@@ -136,7 +136,7 @@ class PatientCalculatorsTab extends StatelessWidget {
           SizedBox(height: DsSpacing.sm),
           Text(
             "IMC: ${bmi.value.toStringAsFixed(2)} (${_classificationLabel(bmi.classification)})",
-            style: DsTextStyles.resultBold,
+            style: DsTextStyles.resultBold(context),
           ),
         ],
       ),
@@ -192,17 +192,16 @@ class PatientCalculatorsTab extends StatelessWidget {
     final height = state.heights.isNotEmpty ? state.heights.first : null;
     final age = state.form.age;
 
-    final gathered = await DsBottomSheet
-        .show<GatheredEnergyExpenditureInputs?>(
-          context,
-          title: "Gasto Energético",
-          body: EnergyExpenditureSheetBody(
-            weightKg: weight.value,
-            heightCm: height?.value,
-            age: age,
-          ),
-          actions: null,
-        );
+    final gathered = await DsBottomSheet.show<GatheredEnergyExpenditureInputs?>(
+      context,
+      title: "Gasto Energético",
+      body: EnergyExpenditureSheetBody(
+        weightKg: weight.value,
+        heightCm: height?.value,
+        age: age,
+      ),
+      actions: null,
+    );
 
     if (gathered != null) {
       await cubit.saveEnergyExpenditureCalculation(
@@ -314,10 +313,7 @@ class PatientCalculatorsTab extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: DsSpacing.sm,
-        children: [
-          Text("Peso: ${weight.value} kg"),
-          Text("Idade: $age"),
-        ],
+        children: [Text("Peso: ${weight.value} kg"), Text("Idade: $age")],
       ),
       actions: [
         Expanded(
@@ -429,8 +425,8 @@ class PatientCalculatorsTab extends StatelessWidget {
   ) async {
     // Both inputs are fully manual - nothing derived from patient data, so
     // there's no insufficient-data pre-gate.
-    final gathered = await DsBottomSheet
-        .show<GatheredEnteralNutritionDrippingInputs?>(
+    final gathered =
+        await DsBottomSheet.show<GatheredEnteralNutritionDrippingInputs?>(
           context,
           title: "Gotejamento",
           body: const EnteralNutritionDrippingSheetBody(),
@@ -452,8 +448,8 @@ class PatientCalculatorsTab extends StatelessWidget {
   ) async {
     // The single input is fully manual - nothing derived from patient data,
     // so there's no insufficient-data pre-gate.
-    final gathered = await DsBottomSheet
-        .show<GatheredEnteralNutritionSpeedInputs?>(
+    final gathered =
+        await DsBottomSheet.show<GatheredEnteralNutritionSpeedInputs?>(
           context,
           title: "Velocidade de Infusão",
           body: const EnteralNutritionSpeedSheetBody(),
@@ -474,8 +470,8 @@ class PatientCalculatorsTab extends StatelessWidget {
   ) async {
     // Both inputs are fully manual - nothing derived from patient data, so
     // there's no insufficient-data pre-gate.
-    final gathered = await DsBottomSheet
-        .show<GatheredEnteralNutritionVolumeInputs?>(
+    final gathered =
+        await DsBottomSheet.show<GatheredEnteralNutritionVolumeInputs?>(
           context,
           title: "Volume Total",
           body: const EnteralNutritionVolumeSheetBody(),
@@ -517,8 +513,8 @@ class PatientCalculatorsTab extends StatelessWidget {
 
     final weight = state.weights.first;
 
-    final gathered = await DsBottomSheet
-        .show<GatheredGlucoseInfusionRateInputs?>(
+    final gathered =
+        await DsBottomSheet.show<GatheredGlucoseInfusionRateInputs?>(
           context,
           title: "TIG",
           body: GlucoseInfusionRateSheetBody(weightKg: weight.value),
@@ -595,7 +591,10 @@ class PatientCalculatorsTab extends StatelessWidget {
     final gathered = await DsBottomSheet.show<GatheredIdealWeightInputs?>(
       context,
       title: "Peso Ideal",
-      body: IdealWeightSheetBody(heightCm: height.value, weightKg: weight.value),
+      body: IdealWeightSheetBody(
+        heightCm: height.value,
+        weightKg: weight.value,
+      ),
       actions: null,
     );
 
@@ -780,16 +779,15 @@ class PatientCalculatorsTab extends StatelessWidget {
         const ResolveWeightForCalculations()(state.weights) ??
         state.weights.first;
 
-    final gathered =
-        await DsBottomSheet.show<GatheredAdjustedDryWeightInputs?>(
-          context,
-          title: "Peso Seco Ajustado",
-          body: AdjustedDryWeightSheetBody(
-            currentWeight: currentWeight.value,
-            imc: state.bmi!,
-          ),
-          actions: null,
-        );
+    final gathered = await DsBottomSheet.show<GatheredAdjustedDryWeightInputs?>(
+      context,
+      title: "Peso Seco Ajustado",
+      body: AdjustedDryWeightSheetBody(
+        currentWeight: currentWeight.value,
+        imc: state.bmi!,
+      ),
+      actions: null,
+    );
 
     if (gathered != null) {
       await cubit.saveAdjustedDryWeightCalculation(

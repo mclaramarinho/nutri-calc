@@ -43,7 +43,7 @@ class _ListPatientsPageContent extends StatelessWidget {
               separatorBuilder: (context, index) => SizedBox(
                 height: 1,
                 width: MediaQuery.sizeOf(context).width,
-                child: Container(color: DsColors.gray),
+                child: Container(color: DsColors.of(context).gray),
               ),
               itemBuilder: (context, index) {
                 final patient = patients[index];
@@ -55,7 +55,7 @@ class _ListPatientsPageContent extends StatelessWidget {
                       : "${patient.age} ${patient.ageUnit!.value.toLowerCase()}",
                   trailing: Icon(
                     Icons.chevron_right_outlined,
-                    color: DsColors.textDisabled,
+                    color: DsColors.of(context).textDisabled,
                   ),
                   onTap: () => getIt.get<AppRouter>().push(
                     AppRoutes.patientDetails,

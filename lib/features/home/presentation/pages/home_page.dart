@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/features/home/presentation/cubit/home_state.dart';
 import 'package:nutri_calc/features/patients/list/presentation/pages/list_patients_page.dart';
+import 'package:nutri_calc/features/theme/presentation/widgets/theme_select_sheet_content.dart';
 import 'package:nutri_calc/routing/app_router.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_app_bar/ds_app_bar_data.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_bottom_nav/ds_bottom_nav_data.dart';
+import 'package:nutri_calc/shared/design_system/widgets/ds_bottom_sheet/ds_bottom_sheet.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_fab/ds_fab_data.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_placeholder/ds_placeholder.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_scaffold/ds_scaffold.dart';
@@ -22,6 +25,7 @@ class HomePage extends StatelessWidget {
         listener: (context, state) {},
         builder: (context, state) {
           return DsScaffold(
+            appBar: DsAppBarData(onThemeToggle: () => _openThemeSheet(context)),
             fabData: DsFabData(
               onTap: () => router.push(.createPatient),
               icon: Icons.person_add,
@@ -50,6 +54,14 @@ class HomePage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _openThemeSheet(BuildContext context) {
+    DsBottomSheet.show<void>(
+      context,
+      title: "Tema",
+      body: const ThemeSelectSheetContent(),
     );
   }
 }

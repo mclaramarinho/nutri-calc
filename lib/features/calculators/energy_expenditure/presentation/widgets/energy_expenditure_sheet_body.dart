@@ -76,8 +76,7 @@ class _EnergyExpenditureSheetBodyState
   // gender/activity. Modeled as separate getters since they answer distinct
   // questions and a future formula could need one without the other.
   bool get _needsAge => _formula != null && _formula != .pocket;
-  bool get _needsGenderAndActivity =>
-      _formula != null && _formula != .pocket;
+  bool get _needsGenderAndActivity => _formula != null && _formula != .pocket;
 
   String? get _validationMessage {
     if (_formula == null) return "Selecione uma fórmula.";
@@ -257,7 +256,7 @@ class _EnergyExpenditureSheetBodyState
           else
             Text(
               "Cadastre uma altura para essa fórmula.",
-              style: TextStyle(color: DsColors.error),
+              style: TextStyle(color: DsColors.of(context).error),
             ),
         ],
         if (_needsAge) ...[
@@ -266,7 +265,7 @@ class _EnergyExpenditureSheetBodyState
           else
             Text(
               "Cadastre a idade do paciente para essa fórmula.",
-              style: TextStyle(color: DsColors.error),
+              style: TextStyle(color: DsColors.of(context).error),
             ),
         ],
         if (_needsGenderAndActivity) ...[
@@ -289,8 +288,7 @@ class _EnergyExpenditureSheetBodyState
           DsSelect<InjuryFactor?>(
             label: "Fator de Injúria",
             dropdownOptions: _injuryFactorOptions,
-            onDropdownSelect: (value) =>
-                setState(() => _injuryFactor = value),
+            onDropdownSelect: (value) => setState(() => _injuryFactor = value),
           ),
           DsSelect<TemperatureFactor?>(
             label: "Fator de Temperatura",
@@ -305,13 +303,15 @@ class _EnergyExpenditureSheetBodyState
             dropdownOptions: StressLevel.values
                 .map((s) => DropdownMenuEntry(value: s, label: s.label))
                 .toList(),
-            onDropdownSelect: (value) => setState(
-              () => _stressLevel = value ?? StressLevel.noStress,
-            ),
+            onDropdownSelect: (value) =>
+                setState(() => _stressLevel = value ?? StressLevel.noStress),
           ),
         ],
         if (_calcErrorMessage != null)
-          Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+          Text(
+            _calcErrorMessage!,
+            style: TextStyle(color: DsColors.of(context).error),
+          ),
         SizedBox(height: DsSpacing.sm),
         DsButton(
           label: "Calcular",
@@ -322,7 +322,10 @@ class _EnergyExpenditureSheetBodyState
         if (validation != null)
           Padding(
             padding: EdgeInsets.only(top: DsSpacing.xs),
-            child: Text(validation, style: TextStyle(color: DsColors.error)),
+            child: Text(
+              validation,
+              style: TextStyle(color: DsColors.of(context).error),
+            ),
           ),
       ],
     );
@@ -375,10 +378,9 @@ class _EnergyExpenditureSheetBodyState
                 child: DsButton(
                   label: "Cancelar",
                   isLoading: false,
-                  onTap: () =>
-                      getIt.get<AppRouter>().pop<GatheredEnergyExpenditureInputs?>(
-                        null,
-                      ),
+                  onTap: () => getIt
+                      .get<AppRouter>()
+                      .pop<GatheredEnergyExpenditureInputs?>(null),
                 ),
               ),
               Expanded(

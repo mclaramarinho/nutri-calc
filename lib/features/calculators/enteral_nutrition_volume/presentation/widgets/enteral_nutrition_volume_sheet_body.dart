@@ -79,10 +79,7 @@ class _EnteralNutritionVolumeSheetBodyState
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: DsSpacing.sm,
           children: [
-            Text(
-              "Volume Total",
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
+            Text("Volume Total", style: TextStyle(fontWeight: FontWeight.w700)),
             DsTextfield(
               label: "Energia Diária Total (kcal)",
               type: TextInputType.number,
@@ -100,9 +97,15 @@ class _EnteralNutritionVolumeSheetBodyState
               }),
             ),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             if (validation != null)
-              Text(validation, style: TextStyle(color: DsColors.error)),
+              Text(
+                validation,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             SizedBox(height: DsSpacing.sm),
             DsButton(
               label: "Calcular",

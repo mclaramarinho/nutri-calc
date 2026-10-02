@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
+
 class TabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar _tabBar;
   TabBarDelegate(this._tabBar);
@@ -12,7 +14,7 @@ class TabBarDelegate extends SliverPersistentHeaderDelegate {
   ) {
     return SizedBox(
       height: _tabBar.preferredSize.height,
-      child: Material(color: Colors.white, child: _tabBar),
+      child: Material(color: DsColors.of(context).white, child: _tabBar),
     );
   }
 

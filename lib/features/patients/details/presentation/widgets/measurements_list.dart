@@ -56,7 +56,7 @@ class MeasurementsList extends StatelessWidget {
         return SizedBox(
           height: 1,
           width: MediaQuery.sizeOf(context).width,
-          child: Container(color: DsColors.gray),
+          child: Container(color: DsColors.of(context).gray),
         );
       },
     );
@@ -65,7 +65,7 @@ class MeasurementsList extends StatelessWidget {
         headerBuilder: (context, _) {
           return Container(
             padding: EdgeInsets.all(DsSpacing.xxl),
-            color: DsColors.gray,
+            color: DsColors.of(context).gray,
             child: Row(
               mainAxisAlignment: .spaceBetween,
               children: [

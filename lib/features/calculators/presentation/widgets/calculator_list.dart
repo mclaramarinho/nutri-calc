@@ -62,7 +62,7 @@ class _CalculatorListState extends State<CalculatorList> {
 
       if (definitionsForType.length > 1) {
         groups.add(
-          Text(type.label, style: DsTextStyles.sectionHeader),
+          Text(type.label, style: DsTextStyles.sectionHeader(context)),
         );
         groups.add(SizedBox(height: DsSpacing.sm));
       }
@@ -70,7 +70,10 @@ class _CalculatorListState extends State<CalculatorList> {
       groups.add(SizedBox(height: DsSpacing.vLg));
     }
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: groups);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: groups,
+    );
   }
 
   @override

@@ -146,9 +146,15 @@ class _StrongKidsSheetBodyState extends State<StrongKidsSheetBody> {
               }),
             ),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             if (validation != null)
-              Text(validation, style: TextStyle(color: DsColors.error)),
+              Text(
+                validation,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             SizedBox(height: DsSpacing.sm),
             DsButton(
               label: "Calcular",
@@ -181,9 +187,8 @@ class _StrongKidsSheetBodyState extends State<StrongKidsSheetBody> {
                 child: DsButton(
                   label: "Confirmar",
                   isLoading: false,
-                  onTap: () => getIt
-                      .get<AppRouter>()
-                      .pop<GatheredStrongKidsInputs?>((
+                  onTap: () =>
+                      getIt.get<AppRouter>().pop<GatheredStrongKidsInputs?>((
                         clinicalAppearanceOfMalnutrition: _q1!,
                         highRiskDiseasePresent: _q2!,
                         reducedIntakeOrLosses: _q3!,

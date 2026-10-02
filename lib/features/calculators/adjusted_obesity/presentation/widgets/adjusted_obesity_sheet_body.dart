@@ -81,7 +81,10 @@ class _AdjustedObesitySheetBodyState extends State<AdjustedObesitySheetBody> {
             Text("Peso Atual: ${widget.currentWeight} kg"),
             Text("Peso Ideal: ${widget.idealWeight} kg"),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             if (_resultValue != null) ...[
               Text(
                 "Peso Ajustado: ${_resultValue!.toStringAsFixed(1)} kg",

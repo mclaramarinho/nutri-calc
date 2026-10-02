@@ -92,7 +92,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
             Container(
               padding: EdgeInsets.all(DsSpacing.md),
               decoration: BoxDecoration(
-                color: DsColors.white,
+                color: DsColors.of(context).white,
                 borderRadius: BorderRadius.all(DsRadius.small),
               ),
               child: Row(
@@ -107,7 +107,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                             widget.title!,
                             style: TextStyle(
                               fontWeight: .w700,
-                              color: DsColors.black,
+                              color: DsColors.of(context).black,
                               decoration: .none,
                               fontSize: DsTypography.large,
                             ),
@@ -118,7 +118,7 @@ class _DsDialogWidgetState extends State<_DsDialogWidget> {
                             widget.message!,
                             style: TextStyle(
                               fontWeight: .w700,
-                              color: DsColors.black,
+                              color: DsColors.of(context).black,
                               decoration: .none,
                               fontSize: DsTypography.small,
                             ),

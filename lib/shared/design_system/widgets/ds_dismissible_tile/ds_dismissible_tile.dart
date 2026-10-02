@@ -94,10 +94,10 @@ class DsDismissibleTile extends StatelessWidget {
         return true;
       },
       background: Container(
-        color: DsColors.error,
+        color: DsColors.of(context).error,
         alignment: Alignment.centerRight,
         padding: EdgeInsets.symmetric(horizontal: DsSpacing.lg),
-        child: Icon(Icons.delete, color: DsColors.white),
+        child: Icon(Icons.delete, color: DsColors.of(context).white),
       ),
       child: child,
     );

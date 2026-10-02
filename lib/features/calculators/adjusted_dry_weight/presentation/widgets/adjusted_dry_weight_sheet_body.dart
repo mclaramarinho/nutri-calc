@@ -26,7 +26,12 @@ typedef GatheredAdjustedDryWeightInputs = ({
 // Only `OedemaLevel`'s 4 non-ascites cases are exposed here - the
 // `ascitisLow/Moderate/Severe` cases duplicate the separate `ascitis`
 // field's concern (Slice 10 po decision, 2026-09-26).
-const _oedemaOptions = [OedemaLevel.low, OedemaLevel.moderate, OedemaLevel.severe, OedemaLevel.generalized];
+const _oedemaOptions = [
+  OedemaLevel.low,
+  OedemaLevel.moderate,
+  OedemaLevel.severe,
+  OedemaLevel.generalized,
+];
 
 String _ascitisLabel(AscitisLevel level) {
   switch (level) {
@@ -152,7 +157,10 @@ class _AdjustedDryWeightSheetBodyState
               }),
             ),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             SizedBox(height: DsSpacing.sm),
             DsButton(
               label: "Calcular",

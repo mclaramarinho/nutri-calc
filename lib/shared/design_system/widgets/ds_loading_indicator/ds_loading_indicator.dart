@@ -21,8 +21,8 @@ class DsLoadingIndicator extends StatelessWidget {
         : DsSizing.loadingIndicatorInline;
     final strokeWidth = variant == DsLoadingIndicatorVariant.page ? 4.0 : 2.5;
     final defaultColor = variant == DsLoadingIndicatorVariant.page
-        ? DsColors.blue
-        : DsColors.white;
+        ? DsColors.of(context).blue
+        : DsColors.of(context).white;
 
     final indicator = SizedBox(
       width: size,

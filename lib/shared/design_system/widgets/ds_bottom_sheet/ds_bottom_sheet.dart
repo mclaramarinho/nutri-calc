@@ -31,7 +31,7 @@ class DsBottomSheet {
       isScrollControlled: true,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
-      backgroundColor: DsColors.white,
+      backgroundColor: DsColors.of(context).white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: DsRadius.small,
@@ -109,7 +109,7 @@ class _DsBottomSheetWidgetState extends State<_DsBottomSheetWidget> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: DsColors.gray,
+                      color: DsColors.of(context).gray,
                       borderRadius: BorderRadius.all(DsRadius.full),
                     ),
                   ),
@@ -123,7 +123,7 @@ class _DsBottomSheetWidgetState extends State<_DsBottomSheetWidget> {
                   widget.title!,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: DsColors.black,
+                    color: DsColors.of(context).black,
                     decoration: TextDecoration.none,
                     fontSize: DsTypography.large,
                   ),

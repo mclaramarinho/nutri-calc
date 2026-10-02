@@ -106,11 +106,11 @@ class _NewPatientPageContent extends StatelessWidget {
                             onChange: (val) =>
                                 cubit.setValue(.age, int.tryParse(val)),
                             type: .number,
-                            disabled:
-                                (state as NewPatientStateInitial).disableAgeInput,
+                            disabled: (state as NewPatientStateInitial)
+                                .disableAgeInput,
                           ),
                         ),
-              
+
                         Expanded(
                           child: DropdownMenuFormField(
                             dropdownMenuEntries: TimeUnit.values
@@ -121,7 +121,7 @@ class _NewPatientPageContent extends StatelessWidget {
                                   ),
                                 )
                                 .toList(),
-              
+
                             expandedInsets: EdgeInsets.all(DsSpacing.none),
                             onSelected: (val) => cubit.setValue(.ageUnit, val),
                             enabled: !state.disableAgeInput,
@@ -150,7 +150,7 @@ class _NewPatientPageContent extends StatelessWidget {
                           style: TextStyle(
                             fontSize: DsTypography.medium,
                             fontWeight: FontWeight.w600,
-                            color: DsColors.black,
+                            color: DsColors.of(context).black,
                           ),
                         ),
                       ),
@@ -178,8 +178,7 @@ class _NewPatientPageContent extends StatelessWidget {
                     DsCheckbox(
                       label: "Restrito ao leito",
                       value: state.form?.confinedToBed ?? false,
-                      onChanged: (val) =>
-                          cubit.setValue(.confinedToBed, val),
+                      onChanged: (val) => cubit.setValue(.confinedToBed, val),
                       helperText:
                           "Paciente não consegue andar ou tem dificuldade significativa para caminhar.",
                     ),

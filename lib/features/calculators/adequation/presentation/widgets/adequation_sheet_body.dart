@@ -92,11 +92,17 @@ class _AdequationSheetBodyState extends State<AdequationSheetBody> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: DsSpacing.sm,
           children: [
-            Text("Adequação de Peso", style: TextStyle(fontWeight: FontWeight.w700)),
+            Text(
+              "Adequação de Peso",
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
             Text("Peso Atual: ${widget.currentWeight} kg"),
             Text("Peso Ideal: ${widget.idealWeight} kg"),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             if (_result != null) ...[
               Text(
                 "Adequação de Peso: ${_result!.value.toStringAsFixed(2)}% "
@@ -132,9 +138,8 @@ class _AdequationSheetBodyState extends State<AdequationSheetBody> {
                 child: DsButton(
                   label: "Confirmar",
                   isLoading: false,
-                  onTap: () => getIt
-                      .get<AppRouter>()
-                      .pop<GatheredAdequationInputs?>((
+                  onTap: () =>
+                      getIt.get<AppRouter>().pop<GatheredAdequationInputs?>((
                         considerForCalculations: _considerForCalculations,
                       )),
                 ),

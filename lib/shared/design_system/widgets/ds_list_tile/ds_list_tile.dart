@@ -40,7 +40,7 @@ class DsListTile extends StatelessWidget {
                     overline!,
                     style: TextStyle(
                       fontSize: DsTypography.xxs,
-                      color: DsColors.textMuted,
+                      color: DsColors.of(context).textMuted,
                     ),
                   ),
                   SizedBox(height: DsSpacing.xxs),
@@ -50,7 +50,7 @@ class DsListTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: DsTypography.small,
                     fontWeight: FontWeight.w600,
-                    color: DsColors.black,
+                    color: DsColors.of(context).black,
                   ),
                 ),
                 if (subtitle != null) ...[
@@ -59,7 +59,7 @@ class DsListTile extends StatelessWidget {
                     subtitle!,
                     style: TextStyle(
                       fontSize: DsTypography.xxs,
-                      color: DsColors.textMuted,
+                      color: DsColors.of(context).textMuted,
                     ),
                   ),
                 ],

@@ -86,7 +86,8 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
     });
   }
 
-  List<DropdownMenuEntry<Nrs2002Step2Classification>> get _classificationOptions => [
+  List<DropdownMenuEntry<Nrs2002Step2Classification>>
+  get _classificationOptions => [
     DropdownMenuEntry(
       value: .absent,
       label: "Ausente - estado nutricional normal",
@@ -126,7 +127,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
             else
               Text(
                 "Cadastre a idade do paciente para essa triagem.",
-                style: TextStyle(color: DsColors.error),
+                style: TextStyle(color: DsColors.of(context).error),
               ),
             DsCheckbox(
               label: "Paciente está gravemente enfermo?",
@@ -177,9 +178,15 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
               }),
             ),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             if (validation != null)
-              Text(validation, style: TextStyle(color: DsColors.error)),
+              Text(
+                validation,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             SizedBox(height: DsSpacing.sm),
             DsButton(
               label: "Calcular",
@@ -195,7 +202,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
               if (_result!.score >= 3)
                 Text(
                   "Risco nutricional identificado.",
-                  style: TextStyle(color: DsColors.error),
+                  style: TextStyle(color: DsColors.of(context).error),
                 ),
             ],
           ],

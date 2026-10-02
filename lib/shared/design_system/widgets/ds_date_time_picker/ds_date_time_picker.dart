@@ -167,7 +167,7 @@ class _DsDateTimePickerState extends State<DsDateTimePicker> {
             : (widget.helperText ??
                   "Se não selecionado, será usado o momento do registro."),
         errorText: _errorText,
-        errorStyle: TextStyle(color: DsColors.error),
+        errorStyle: TextStyle(color: DsColors.of(context).error),
         suffixIcon: hasValue
             ? IconButton(
                 icon: const Icon(Icons.close),

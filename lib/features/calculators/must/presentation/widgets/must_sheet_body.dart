@@ -153,9 +153,15 @@ class _MustSheetBodyState extends State<MustSheetBody> {
               }),
             ),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             if (validation != null)
-              Text(validation, style: TextStyle(color: DsColors.error)),
+              Text(
+                validation,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             SizedBox(height: DsSpacing.sm),
             DsButton(
               label: "Calcular",

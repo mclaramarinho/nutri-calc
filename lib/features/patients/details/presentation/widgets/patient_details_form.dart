@@ -196,7 +196,7 @@ class _PatientDetailsFormState extends State<PatientDetailsForm> {
                       style: TextStyle(
                         fontSize: DsTypography.medium,
                         fontWeight: FontWeight.w600,
-                        color: DsColors.black,
+                        color: DsColors.of(context).black,
                       ),
                     ),
                   ),

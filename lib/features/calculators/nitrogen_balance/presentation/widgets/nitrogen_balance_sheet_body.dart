@@ -78,7 +78,7 @@ class _NitrogenBalanceSheetBodyState extends State<NitrogenBalanceSheetBody> {
           children: [
             Text(
               "Balanço Nitrogenado",
-              style: DsTextStyles.sectionHeader,
+              style: DsTextStyles.sectionHeader(context),
             ),
             DsTextfield(
               label: "Proteína Ingerida (g)",
@@ -97,9 +97,15 @@ class _NitrogenBalanceSheetBodyState extends State<NitrogenBalanceSheetBody> {
               }),
             ),
             if (_calcErrorMessage != null)
-              Text(_calcErrorMessage!, style: TextStyle(color: DsColors.error)),
+              Text(
+                _calcErrorMessage!,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             if (validation != null)
-              Text(validation, style: TextStyle(color: DsColors.error)),
+              Text(
+                validation,
+                style: TextStyle(color: DsColors.of(context).error),
+              ),
             SizedBox(height: DsSpacing.sm),
             DsButton(
               label: "Calcular",
@@ -110,7 +116,7 @@ class _NitrogenBalanceSheetBodyState extends State<NitrogenBalanceSheetBody> {
             if (_resultValue != null)
               Text(
                 "Balanço Nitrogenado: ${_resultValue!.toStringAsFixed(2)} g/dia",
-                style: DsTextStyles.resultBold,
+                style: DsTextStyles.resultBold(context),
               ),
           ],
         ),
