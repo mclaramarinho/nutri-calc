@@ -4,6 +4,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/use_cases/enteral_nutrition/calculate_enteral_nutrition_volume.usecase.dart';
@@ -79,7 +80,7 @@ class _EnteralNutritionVolumeSheetBodyState
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: DsSpacing.sm,
           children: [
-            Text("Volume Total", style: TextStyle(fontWeight: FontWeight.w700)),
+            Text("Volume Total", style: DsTextStyles.sectionHeader(context)),
             DsTextfield(
               label: "Energia Diária Total (kcal)",
               type: TextInputType.number,
@@ -116,7 +117,7 @@ class _EnteralNutritionVolumeSheetBodyState
             if (_resultValue != null)
               Text(
                 "Volume Total: ${_resultValue!.toStringAsFixed(1)} mL/dia",
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
           ],
         ),

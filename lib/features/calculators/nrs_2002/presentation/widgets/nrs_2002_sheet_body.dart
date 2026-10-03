@@ -5,6 +5,7 @@ import 'package:nutri_calc/l10n/generated/app_localizations.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_select/ds_select.dart';
@@ -117,7 +118,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
           children: [
             Text(
               l10n.nrs2002Title,
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: DsTextStyles.sectionHeader(context),
             ),
             if (widget.age != null)
               Text(l10n.nrs2002AgeLabel("${widget.age}"))
@@ -194,7 +195,7 @@ class _Nrs2002SheetBodyState extends State<Nrs2002SheetBody> {
             if (_result != null) ...[
               Text(
                 l10n.nrs2002ScoreResultLabel(_result!.score),
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
               if (_result!.score >= 3)
                 Text(

@@ -4,6 +4,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/screening/strong_kids/strong_kids_result.entity.dart';
@@ -103,7 +104,7 @@ class _StrongKidsSheetBodyState extends State<StrongKidsSheetBody> {
           children: [
             Text(
               "STRONG-Kids — Triagem de Risco Nutricional Pediátrica",
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: DsTextStyles.sectionHeader(context),
             ),
             DsCheckbox(
               label: "Aparência clínica sugestiva de desnutrição?",
@@ -165,7 +166,7 @@ class _StrongKidsSheetBodyState extends State<StrongKidsSheetBody> {
             if (_result != null)
               Text(
                 "STRONG-Kids: ${_result!.score} (${_classificationLabel(_result!)})",
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
           ],
         ),

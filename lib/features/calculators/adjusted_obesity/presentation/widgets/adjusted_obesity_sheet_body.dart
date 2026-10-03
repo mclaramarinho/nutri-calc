@@ -4,6 +4,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/use_cases/weight/adjusted/calculate_adjusted_obesity_weight.usecase.dart';
@@ -76,7 +77,7 @@ class _AdjustedObesitySheetBodyState extends State<AdjustedObesitySheetBody> {
           children: [
             Text(
               "Peso Ajustado - Obesidade",
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: DsTextStyles.sectionHeader(context),
             ),
             Text("Peso Atual: ${widget.currentWeight} kg"),
             Text("Peso Ideal: ${widget.idealWeight} kg"),
@@ -88,7 +89,7 @@ class _AdjustedObesitySheetBodyState extends State<AdjustedObesitySheetBody> {
             if (_resultValue != null) ...[
               Text(
                 "Peso Ajustado: ${_resultValue!.toStringAsFixed(1)} kg",
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
               DsCheckbox(
                 label: "Considerar este peso para cálculos futuros",

@@ -4,6 +4,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/use_cases/enteral_nutrition/calculate_enteral_nutrition_speed.usecase.dart';
@@ -74,7 +75,7 @@ class _EnteralNutritionSpeedSheetBodyState
           children: [
             Text(
               "Velocidade de Infusão",
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: DsTextStyles.sectionHeader(context),
             ),
             DsTextfield(
               label: "Volume Diário Total (mL)",
@@ -104,7 +105,7 @@ class _EnteralNutritionSpeedSheetBodyState
             if (_resultValue != null)
               Text(
                 "Velocidade de Infusão: ${_resultValue!.toStringAsFixed(1)} mL/h",
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
           ],
         ),

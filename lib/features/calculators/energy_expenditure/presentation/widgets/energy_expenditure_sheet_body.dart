@@ -6,6 +6,7 @@ import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_select/ds_select.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/energy_expenditure/activity_factor.enum.dart';
@@ -253,7 +254,7 @@ class _EnergyExpenditureSheetBodyState
       children: [
         Text(
           l10n.energyExpenditureConfigureTitle,
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: DsTextStyles.sectionHeader(context),
         ),
         DsSelect<EnergyExpenditureFormulaEnum>(
           label: l10n.energyExpenditureFormulaLabel,
@@ -361,7 +362,7 @@ class _EnergyExpenditureSheetBodyState
       children: [
         Text(
           l10n.energyExpenditureConfirmResultTitle,
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: DsTextStyles.sectionHeader(context),
         ),
         Text(l10n.energyExpenditureFormulaResultLabel(_formula!.label)),
         Text(l10n.energyExpenditureWeightLabel("${widget.weightKg}")),
@@ -403,7 +404,7 @@ class _EnergyExpenditureSheetBodyState
           l10n.energyExpenditureResultLabel(
             _rangeLabel(_minValue!, _maxValue!),
           ),
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: DsTextStyles.resultBold(context),
         ),
       ],
     );

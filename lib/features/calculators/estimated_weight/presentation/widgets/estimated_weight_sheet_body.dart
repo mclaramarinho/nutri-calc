@@ -4,6 +4,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_select/ds_select.dart';
@@ -127,7 +128,7 @@ class _EstimatedWeightSheetBodyState extends State<EstimatedWeightSheetBody> {
           children: [
             Text(
               "Peso Estimado",
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: DsTextStyles.sectionHeader(context),
             ),
             Text("Idade: ${widget.age}"),
             DsTextfield(
@@ -190,7 +191,7 @@ class _EstimatedWeightSheetBodyState extends State<EstimatedWeightSheetBody> {
             if (_resultValue != null) ...[
               Text(
                 "Peso Estimado: ${_resultValue!.toStringAsFixed(1)} kg",
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
               DsCheckbox(
                 label: "Considerar este peso para cálculos futuros",

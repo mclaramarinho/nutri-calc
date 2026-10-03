@@ -4,6 +4,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
@@ -109,7 +110,7 @@ class _MustSheetBodyState extends State<MustSheetBody> {
           children: [
             Text(
               "MUST — Triagem de Risco Nutricional",
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: DsTextStyles.sectionHeader(context),
             ),
             DsTextfield(
               label: "IMC",
@@ -172,7 +173,7 @@ class _MustSheetBodyState extends State<MustSheetBody> {
             if (_result != null)
               Text(
                 "MUST: ${_result!.score} (${_classificationLabel(_result!)})",
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
           ],
         ),

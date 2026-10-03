@@ -4,6 +4,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_textfield/ds_textfield.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/use_cases/parenteral_nutrition/calculate_glucose_infusion_rate.usecase.dart';
@@ -75,7 +76,7 @@ class _GlucoseInfusionRateSheetBodyState
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: DsSpacing.sm,
           children: [
-            Text("TIG", style: TextStyle(fontWeight: FontWeight.w700)),
+            Text("TIG", style: DsTextStyles.sectionHeader(context)),
             Text("Peso: ${widget.weightKg} kg"),
             DsTextfield(
               label: "Glicose Total (g)",
@@ -105,7 +106,7 @@ class _GlucoseInfusionRateSheetBodyState
             if (_resultValue != null)
               Text(
                 "Taxa de Infusão de Glicose (TIG): ${_resultValue!.toStringAsFixed(2)} mg/kg/min",
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
           ],
         ),

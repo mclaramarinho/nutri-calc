@@ -4,6 +4,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_checkbox/ds_checkbox.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_select/ds_select.dart';
@@ -91,7 +92,7 @@ class _IdealWeightSheetBodyState extends State<IdealWeightSheetBody> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: DsSpacing.sm,
           children: [
-            Text("Peso Ideal", style: TextStyle(fontWeight: FontWeight.w700)),
+            Text("Peso Ideal", style: DsTextStyles.sectionHeader(context)),
             Text("Altura: ${widget.heightCm} cm"),
             DsSelect<Gender>(
               label: "Sexo",
@@ -124,7 +125,7 @@ class _IdealWeightSheetBodyState extends State<IdealWeightSheetBody> {
             if (_resultValue != null) ...[
               Text(
                 "Peso Ideal: ${_resultValue!.toStringAsFixed(1)} kg",
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
               DsCheckbox(
                 label: "Considerar este peso para cálculos futuros",

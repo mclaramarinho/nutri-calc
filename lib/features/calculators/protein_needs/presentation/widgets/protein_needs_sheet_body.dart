@@ -4,6 +4,7 @@ import 'package:nutri_calc/di/di.dart';
 import 'package:nutri_calc/routing/app_router.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_colors.dart';
 import 'package:nutri_calc/shared/design_system/tokens/ds_spacing.dart';
+import 'package:nutri_calc/shared/design_system/tokens/ds_text_styles.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_button/ds_button.dart';
 import 'package:nutri_calc/shared/design_system/widgets/ds_select/ds_select.dart';
 import 'package:nutri_calc/shared/services/calculator/domain/entities/protein/protein_needs.entity.dart';
@@ -68,7 +69,7 @@ class _ProteinNeedsSheetBodyState extends State<ProteinNeedsSheetBody> {
           children: [
             Text(
               "Necessidade Proteica",
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: DsTextStyles.sectionHeader(context),
             ),
             Text("Peso: ${widget.weightKg} kg"),
             DsSelect<PatientState>(
@@ -98,7 +99,7 @@ class _ProteinNeedsSheetBodyState extends State<ProteinNeedsSheetBody> {
               Text(
                 "Necessidade Proteica: ${_minValue!.toStringAsFixed(1)} – "
                 "${_maxValue!.toStringAsFixed(1)} g/dia",
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: DsTextStyles.resultBold(context),
               ),
           ],
         ),
